@@ -31,32 +31,38 @@ try {
 // 主菜单配置（用于Header组件）
 export const defaultMenuItems: MenuItem[] = [
   {
-    id: 'index',
-    label: 'menu.index',
-    href: '/',
+    id: "index",
+    label: "menu.index",
+    href: "/",
     icon: null,
     hide: false,
   },
   {
-    id: 'stats',
-    label: 'menu.stats',
-    href: '/user/stats',
+    id: "stats",
+    label: "menu.stats",
+    href: "/user/stats",
     icon: null,
     hide: true,
   },
   {
-    id: 'knowledge',
-    label: '知识库',
-    href: '/user/knowledge',
+    id: "trend",
+    label: "趋势分析",
+    href: "/user/trend-analysis",
     icon: null,
   },
   {
-    id: 'admin',
-    label: 'menu.admin',
-    href: '/admin',
+    id: "knowledge",
+    label: "知识库",
+    href: "/user/knowledge",
     icon: null,
   },
-]
+  {
+    id: "admin",
+    label: "menu.admin",
+    href: "/admin",
+    icon: null,
+  },
+];
 
 // 管理后台菜单配置
 export const adminMenuItems: AdminHeader[] = [
