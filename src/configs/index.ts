@@ -119,6 +119,18 @@ export const adminMenuItems: AdminHeader[] = [
     path: "/admin/knowledge",
   },
   {
+    id: "7",
+    title: "数据管理",
+    icon: "DataBoard",
+    path: "/admin/dataManage",
+  },
+  {
+    id: "9",
+    title: "预测历史管理",
+    icon: "TrendCharts",
+    path: "/admin/predictionHistory",
+  },
+  {
     id: "6",
     title: "订单管理",
     icon: "ShoppingCart",
