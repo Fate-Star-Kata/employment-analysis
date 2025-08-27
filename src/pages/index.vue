@@ -6,20 +6,20 @@
       <div class="text-center space-y-6 mb-8">
         <RevealMotion :delay="0">
           <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight">
-            赫兹系统
+            🎓 大学生就业分析与预测系统
           </h1>
         </RevealMotion>
 
         <RevealMotion :delay="0.1">
           <p class="text-lg md:text-xl opacity-70">
-            项目介绍
+            基于深度学习技术，为大学生提供精准的就业趋势分析和个性化职业预测
           </p>
         </RevealMotion>
 
         <RevealMotion :delay="0.2">
           <div class="flex items-center justify-center gap-3 pt-2">
-            <a class="btn btn-primary rounded-full px-6">立即使用</a>
-            <a class="btn btn-outline rounded-full px-6">了解更多</a>
+            <a class="btn btn-primary rounded-full px-6">开始预测</a>
+            <a class="btn btn-outline rounded-full px-6">查看趋势</a>
           </div>
         </RevealMotion>
       </div>
@@ -113,14 +113,14 @@ const RevealMotion = defineComponent<RevealProps>({
   },
 });
 
-// 文案内容：保持中性，便于替换
+// 就业分析与预测系统功能特性
 const features = [
-  { title: "极简设计", desc: "去除干扰，聚焦信息与层次。" },
-  { title: "响应布局", desc: "桌面/移动端一致的体验。" },
-  { title: "即插即用", desc: "替换文字与链接即可上线。" },
-  { title: "轻量动画", desc: "只在需要处出现的动效。" },
-  { title: "DaisyUI 组件", desc: "开箱即用的优雅样式。" },
-  { title: "Tailwind 原子化", desc: "一致、可维护的样式体系。" },
+  { title: "数据采集预处理", desc: "收集个人学历、技能、经验等信息进行标准化处理。" },
+  { title: "就业趋势分析", desc: "基于大数据分析当前就业市场趋势和行业发展。" },
+  { title: "个人就业预测", desc: "根据个人能力和市场需求预测就业成功率。" },
+  { title: "智能职位推荐", desc: "智能匹配适合的职位和公司提供个性化建议。" },
+  { title: "预测历史管理", desc: "查看历史预测记录跟踪个人职业发展轨迹。" },
+  { title: "数据管理系统", desc: "管理就业数据库维护数据质量和完整性。" },
 ];
 </script>
 
