@@ -1,21 +1,5 @@
-<template>
-  <Transition name="loading-fade">
-    <div v-if="isLoading" class="global-loading-overlay">
-      <div class="loading-container">
-        <!-- 主要加载动画 -->
-        <component :is="serverConfig.VITE_APP_LOGO" v-if="serverConfig.VITE_APP_LOGO" size="80px" />
-
-        <!-- 进度条 -->
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: progress + '%' }"></div>
-        </div>
-      </div>
-    </div>
-  </Transition>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onUnmounted, watch, toRefs } from 'vue'
+import { onUnmounted, ref, toRefs, watch } from 'vue'
 import serverConfig from '@/configs/index'
 
 interface Props {
@@ -27,14 +11,14 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
   text: '加载中',
-  showProgress: true
+  showProgress: true,
 })
 
 const progress = ref(0)
 let progressInterval: ReturnType<typeof setInterval> | null = null
 
 // 模拟进度条动画
-const startProgress = () => {
+function startProgress() {
   progress.value = 0
   progressInterval = setInterval(() => {
     if (progress.value < 90) {
@@ -44,7 +28,7 @@ const startProgress = () => {
 }
 
 // 完成进度条
-const completeProgress = () => {
+function completeProgress() {
   if (progressInterval) {
     clearInterval(progressInterval)
     progressInterval = null
@@ -52,14 +36,13 @@ const completeProgress = () => {
   progress.value = 100
 }
 
-
-
 // 监听加载状态变化
 const { isLoading } = toRefs(props)
 watch(isLoading, (newVal) => {
   if (newVal) {
     startProgress()
-  } else {
+  }
+  else {
     completeProgress()
   }
 })
@@ -70,6 +53,22 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<template>
+  <Transition name="loading-fade">
+    <div v-if="isLoading" class="global-loading-overlay">
+      <div class="loading-container">
+        <!-- 主要加载动画 -->
+        <component :is="serverConfig.VITE_APP_LOGO" v-if="serverConfig.VITE_APP_LOGO" size="80px" />
+
+        <!-- 进度条 -->
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: `${progress}%` }" />
+        </div>
+      </div>
+    </div>
+  </Transition>
+</template>
 
 <style scoped>
 .global-loading-overlay {
@@ -178,8 +177,6 @@ onUnmounted(() => {
   }
 }
 
-
-
 /* 进度条 */
 .progress-bar {
   width: 200px;
@@ -247,7 +244,6 @@ onUnmounted(() => {
   .progress-bar {
     width: 160px;
   }
-
 
 }
 </style>

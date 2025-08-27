@@ -1,6 +1,76 @@
+<script setup lang="ts">
+import type { FormInstance, FormRules } from 'element-plus'
+import {
+  ChatDotRound,
+  Link,
+  Share,
+  User,
+} from '@element-plus/icons-vue'
+import { computed, ref } from 'vue'
+
+// 定义组件名称
+defineOptions({
+  name: 'SocialInfo',
+})
+
+const props = defineProps<Props>()
+
+const emit = defineEmits<Emits>()
+
+// Props
+interface Props {
+  userInfo?: any
+}
+
+// Emits
+interface Emits {
+  'update:user-info': [userInfo: any]
+}
+
+// 表单引用
+const formRef = ref<FormInstance>()
+
+// 本地用户信息（用于双向绑定）
+const localUserInfo = computed({
+  get: () => props.userInfo,
+  set: (value) => {
+    emit('update:user-info', value)
+  },
+})
+
+// 表单验证规则
+const rules: FormRules = {
+  wechat: [
+    { max: 50, message: '微信号不能超过50个字符', trigger: 'blur' },
+  ],
+  qq: [
+    { pattern: /^[1-9]\d{4,10}$/, message: '请输入正确的QQ号', trigger: 'blur' },
+  ],
+  weibo: [
+    { max: 50, message: '微博用户名不能超过50个字符', trigger: 'blur' },
+  ],
+  personal_site: [
+    { type: 'url', message: '请输入正确的网站地址', trigger: 'blur' },
+  ],
+}
+
+// 更新用户信息
+function updateUserInfo() {
+  if (localUserInfo.value) {
+    emit('update:user-info', { ...localUserInfo.value })
+  }
+}
+
+// 暴露表单验证方法给父组件
+defineExpose({
+  validate: () => formRef.value?.validate(),
+  resetFields: () => formRef.value?.resetFields(),
+})
+</script>
+
 <template>
   <div class="social-info">
-    <el-form ref="formRef" :model="localUserInfo" :rules="rules" label-width="100px" v-if="localUserInfo">
+    <el-form v-if="localUserInfo" ref="formRef" :model="localUserInfo" :rules="rules" label-width="100px">
       <!-- 微信 -->
       <el-form-item label="微信号" prop="wechat">
         <el-input v-model="localUserInfo.wechat" placeholder="请输入微信号" @input="updateUserInfo">
@@ -36,84 +106,12 @@
           </template>
         </el-input>
       </el-form-item>
-
-
     </el-form>
     <div v-else class="loading-placeholder">
       <el-skeleton :rows="5" animated />
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { FormInstance, FormRules } from 'element-plus'
-import {
-  ChatDotRound,
-  User,
-  Share,
-  Link
-} from '@element-plus/icons-vue'
-
-// 定义组件名称
-defineOptions({
-  name: 'SocialInfo'
-})
-
-// Props
-interface Props {
-  userInfo?: any
-}
-
-const props = defineProps<Props>()
-
-// Emits
-interface Emits {
-  'update:user-info': [userInfo: any]
-}
-
-const emit = defineEmits<Emits>()
-
-// 表单引用
-const formRef = ref<FormInstance>()
-
-// 本地用户信息（用于双向绑定）
-const localUserInfo = computed({
-  get: () => props.userInfo,
-  set: (value) => {
-    emit('update:user-info', value)
-  }
-})
-
-// 表单验证规则
-const rules: FormRules = {
-  wechat: [
-    { max: 50, message: '微信号不能超过50个字符', trigger: 'blur' }
-  ],
-  qq: [
-    { pattern: /^[1-9][0-9]{4,10}$/, message: '请输入正确的QQ号', trigger: 'blur' }
-  ],
-  weibo: [
-    { max: 50, message: '微博用户名不能超过50个字符', trigger: 'blur' }
-  ],
-  personal_site: [
-    { type: 'url', message: '请输入正确的网站地址', trigger: 'blur' }
-  ]
-}
-
-// 更新用户信息
-const updateUserInfo = () => {
-  if (localUserInfo.value) {
-    emit('update:user-info', { ...localUserInfo.value })
-  }
-}
-
-// 暴露表单验证方法给父组件
-defineExpose({
-  validate: () => formRef.value?.validate(),
-  resetFields: () => formRef.value?.resetFields()
-})
-</script>
 
 <style scoped>
 .social-info {

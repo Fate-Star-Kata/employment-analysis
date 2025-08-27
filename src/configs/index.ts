@@ -1,10 +1,12 @@
-import type { AdminHeader } from '@/types/factory'
 import type { MenuItem } from '@/types/components/header'
-import { defineAsyncComponent } from 'vue';
+import type { AdminHeader } from '@/types/factory'
+import { defineAsyncComponent } from 'vue'
 
-//获得资源服务地址
+// 获得资源服务地址
 const FileUploadUrl: string = (import.meta.env.VITE_FILE_UPLOAD_URL as string)
-  .startsWith("http") ? import.meta.env.VITE_FILE_UPLOAD_URL : window.location.protocol + "//" + window.location.host + "/api" + import.meta.env.VITE_FILE_UPLOAD_URL;
+  .startsWith('http')
+  ? import.meta.env.VITE_FILE_UPLOAD_URL
+  : `${window.location.protocol}//${window.location.host}/api${import.meta.env.VITE_FILE_UPLOAD_URL}`
 
 let VITE_APP_LOGO
 
@@ -18,12 +20,14 @@ try {
       onError: (error, _retry, fail, _attempts) => {
         console.warn(`Failed to load logo component: ${logoName}`, error)
         fail()
-      }
+      },
     })
-  } else {
+  }
+  else {
     VITE_APP_LOGO = null
   }
-} catch (error) {
+}
+catch (error) {
   console.warn('Error setting up logo component:', error)
   VITE_APP_LOGO = null
 }
@@ -31,123 +35,117 @@ try {
 // 主菜单配置（用于Header组件）
 export const defaultMenuItems: MenuItem[] = [
   {
-    id: "index",
-    label: "menu.index",
-    href: "/",
+    id: 'index',
+    label: 'menu.index',
+    href: '/',
     icon: null,
     hide: false,
   },
   {
-    id: "stats",
-    label: "menu.stats",
-    href: "/user/stats",
+    id: 'stats',
+    label: 'menu.stats',
+    href: '/user/stats',
     icon: null,
     hide: true,
   },
   {
-    id: "trend",
-    label: "趋势分析",
-    href: "/user/trend_analysis",
+    id: 'trend',
+    label: '趋势分析',
+    href: '/user/trend_analysis',
     icon: null,
   },
   {
-    id: "prediction",
-    label: "就业预测",
-    href: "/user/personal_prediction",
+    id: 'prediction',
+    label: '就业预测',
+    href: '/user/personal_prediction',
     icon: null,
   },
   {
-    id: "recommendation",
-    label: "职位推荐",
-    href: "/user/job_recommendation",
+    id: 'recommendation',
+    label: '职位推荐',
+    href: '/user/job_recommendation',
     icon: null,
   },
   {
-    id: "history",
-    label: "历史记录",
-    href: "/user/prediction_history",
+    id: 'history',
+    label: '历史记录',
+    href: '/user/prediction_history',
     icon: null,
   },
   {
-    id: "knowledge",
-    label: "知识库",
-    href: "/user/knowledge",
+    id: 'knowledge',
+    label: '知识库',
+    href: '/user/knowledge',
     icon: null,
     hide: true,
   },
   {
-    id: "admin",
-    label: "menu.admin",
-    href: "/admin",
+    id: 'admin',
+    label: 'menu.admin',
+    href: '/admin',
     icon: null,
   },
-];
+]
 
 // 管理后台菜单配置
 export const adminMenuItems: AdminHeader[] = [
   {
-    id: "1",
-    title: "仪表板",
-    icon: "Odometer",
-    path: "/admin/dashboard",
+    id: '1',
+    title: '仪表板',
+    icon: 'Odometer',
+    path: '/admin/dashboard',
   },
   {
-    id: "2",
-    title: "系统监控",
-    icon: "Cpu",
-    path: "/admin/SystemMonitoring",
+    id: '2',
+    title: '系统监控',
+    icon: 'Cpu',
+    path: '/admin/SystemMonitoring',
   },
   {
-    id: "3",
-    title: "用户管理",
-    icon: "User",
-    path: "/admin/userManage",
+    id: '3',
+    title: '用户管理',
+    icon: 'User',
+    path: '/admin/userManage',
     // children: [
     //   { id: '2-1', title: '用户列表', icon: 'UserFilled', path: '/admin/userManage' },
     // ]
   },
   {
-    id: "4",
-    title: "通知管理",
-    icon: "Bell",
-    path: "/admin/notice",
+    id: '4',
+    title: '通知管理',
+    icon: 'Bell',
+    path: '/admin/notice',
   },
   {
-    id: "5",
-    title: "知识管理",
-    icon: "Document",
-    path: "/admin/knowledge",
+    id: '5',
+    title: '知识管理',
+    icon: 'Document',
+    path: '/admin/knowledge',
   },
   {
-    id: "7",
-    title: "数据管理",
-    icon: "DataBoard",
-    path: "/admin/dataManage",
+    id: '9',
+    title: '预测历史管理',
+    icon: 'TrendCharts',
+    path: '/admin/predictionHistory',
   },
   {
-    id: "9",
-    title: "预测历史管理",
-    icon: "TrendCharts",
-    path: "/admin/predictionHistory",
-  },
-  {
-    id: "6",
-    title: "订单管理",
-    icon: "ShoppingCart",
-    path: "/admin/orders",
+    id: '6',
+    title: '订单管理',
+    icon: 'ShoppingCart',
+    path: '/admin/orders',
     hide: true,
     children: [
       {
-        id: "6-1",
-        title: "订单列表",
-        icon: "List",
-        path: "/admin/orders/list",
+        id: '6-1',
+        title: '订单列表',
+        icon: 'List',
+        path: '/admin/orders/list',
       },
       {
-        id: "6-2",
-        title: "退款管理",
-        icon: "RefreshLeft",
-        path: "/admin/orders/refunds",
+        id: '6-2',
+        title: '退款管理',
+        icon: 'RefreshLeft',
+        path: '/admin/orders/refunds',
       },
     ],
   },
@@ -156,48 +154,48 @@ export const adminMenuItems: AdminHeader[] = [
     title: 'AI 助手',
     icon: 'ChatDotRound',
     path: '/admin/ai',
-    hide: true
+    hide: true,
   },
   {
-    id: "10",
-    title: "系统设置",
-    icon: "Setting",
-    path: "/admin/settings",
+    id: '10',
+    title: '系统设置',
+    icon: 'Setting',
+    path: '/admin/settings',
     hide: true,
     children: [
       {
-        id: "10-1",
-        title: "基础设置",
-        icon: "Tools",
-        path: "/admin/settings/basic",
+        id: '10-1',
+        title: '基础设置',
+        icon: 'Tools',
+        path: '/admin/settings/basic',
       },
       {
-        id: "10-2",
-        title: "权限管理",
-        icon: "Key",
-        path: "/admin/settings/permissions",
+        id: '10-2',
+        title: '权限管理',
+        icon: 'Key',
+        path: '/admin/settings/permissions',
       },
       {
-        id: "10-3",
-        title: "系统日志",
-        icon: "DocumentCopy",
-        path: "/admin/settings/logs",
+        id: '10-3',
+        title: '系统日志',
+        icon: 'DocumentCopy',
+        path: '/admin/settings/logs',
       },
     ],
   },
   {
-    id: "11",
-    title: "操作日志",
-    icon: "DocumentCopy",
-    path: "/admin/log",
+    id: '11',
+    title: '操作日志',
+    icon: 'DocumentCopy',
+    path: '/admin/log',
   },
   {
-    id: "12",
-    title: "系统配置",
-    icon: "Tools",
-    path: "/admin/systemConfig",
+    id: '12',
+    title: '系统配置',
+    icon: 'Tools',
+    path: '/admin/systemConfig',
   },
-];
+]
 
 const serverConfig = {
   baseURL: import.meta.env.MODE === 'development' ? '/api' : (import.meta.env.VITE_SERVER_PATH || '/api'),
@@ -208,7 +206,7 @@ const serverConfig = {
 
   VITE_APP_TITLE: import.meta.env.VITE_APP_TITLE,
 
-  VITE_APP_LOGO: VITE_APP_LOGO ? VITE_APP_LOGO : () => null,
+  VITE_APP_LOGO: VITE_APP_LOGO || (() => null),
 
   VITE_APP_VERSION: import.meta.env.VITE_APP_VERSION,
 

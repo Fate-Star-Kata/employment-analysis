@@ -236,12 +236,12 @@ import type { LoginRequest, LoginResponse } from '@/types/apis/auth'
 import { http } from '@/http'
 
 // 登录接口
-export const login = (data: LoginRequest): Promise<LoginResponse> => {
+export function login(data: LoginRequest): Promise<LoginResponse> {
   return http.post('/auth/login', data)
 }
 
 // 获取用户信息
-export const getUserInfo = (): Promise<UserInfoResponse> => {
+export function getUserInfo(): Promise<UserInfoResponse> {
   return http.get('/auth/user-info')
 }
 ```
@@ -254,9 +254,9 @@ export const getUserInfo = (): Promise<UserInfoResponse> => {
 <summary>查看示例</summary>
 
 ```typescript
+import type { AxiosResponse } from 'axios'
 // http/index.ts
 import axios from 'axios'
-import type { AxiosResponse } from 'axios'
 
 // 创建 axios 实例
 const http = axios.create({
@@ -277,7 +277,7 @@ http.interceptors.request.use(
     }
     return config
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 )
 
 // 响应拦截器
@@ -312,9 +312,9 @@ export { http }
 <summary>查看示例</summary>
 
 ```typescript
+import type { RouteRecordRaw } from 'vue-router'
 // router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {

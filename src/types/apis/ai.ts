@@ -70,7 +70,7 @@ export interface AiChatUpdateRequest {
 
 // 发送AI消息请求
 export interface AiMessageSendRequest {
-  chat_id: number|string
+  chat_id: number | string
   content: string
 }
 

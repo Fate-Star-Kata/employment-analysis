@@ -42,6 +42,6 @@ export const useRequestLoadingStore = defineStore('requestLoading', () => {
     showLoading,
     hideLoading,
     forceHideLoading,
-    setLoadingText
+    setLoadingText,
   }
 })

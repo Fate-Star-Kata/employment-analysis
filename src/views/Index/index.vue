@@ -97,10 +97,14 @@ onMounted(() => {
             {{ t('demo.date_picker') }}
           </h2>
           <div class="flex flex-wrap gap-4 items-center">
-            <el-date-picker v-model="currentDate" type="date" :placeholder="t('demo.select_date')"
-              style="width: 200px" />
-            <el-date-picker v-model="currentDate" type="datetime" :placeholder="t('demo.select_datetime')"
-              style="width: 220px" />
+            <el-date-picker
+              v-model="currentDate" type="date" :placeholder="t('demo.select_date')"
+              style="width: 200px"
+            />
+            <el-date-picker
+              v-model="currentDate" type="datetime" :placeholder="t('demo.select_datetime')"
+              style="width: 220px"
+            />
           </div>
         </div>
       </div>

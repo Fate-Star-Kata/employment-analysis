@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import type { CaptchaResponse, RegisterForm, RegisterRequest, RegisterResponse } from '@/types/apis/auth'
+
+import { Check, Refresh, RefreshLeft, UserFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { UserFilled, Check, Refresh, RefreshLeft } from '@element-plus/icons-vue'
-import type { RegisterForm, RegisterRequest, RegisterResponse } from '@/types/apis/auth'
-import type { CaptchaResponse } from '@/types/apis/auth'
-import { register, getCaptCha } from '@/api/user'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { getCaptCha, register } from '@/api/user'
 import serverConfig from '@/configs'
 
 const router = useRouter()
@@ -17,7 +17,7 @@ const registerForm = ref<RegisterForm>({
   password: '',
   confirmPassword: '',
   captcha_id: '',
-  captcha_text: ''
+  captcha_text: '',
 })
 
 // 状态管理
@@ -29,16 +29,16 @@ const rules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' },
-    { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' }
+    { pattern: /^\w+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' },
   ],
   email: [
     { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' },
-    { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, message: '密码必须包含大小写字母和数字', trigger: 'blur' }
+    { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, message: '密码必须包含大小写字母和数字', trigger: 'blur' },
   ],
   confirmPassword: [
     { required: true, message: '请确认密码', trigger: 'blur' },
@@ -46,17 +46,18 @@ const rules = {
       validator: (rule: any, value: string, callback: Function) => {
         if (value !== registerForm.value.password) {
           callback(new Error('两次输入的密码不一致'))
-        } else {
+        }
+        else {
           callback()
         }
       },
-      trigger: 'blur'
-    }
+      trigger: 'blur',
+    },
   ],
   captcha_text: [
     { required: true, message: '请输入验证码', trigger: 'blur' },
-    { min: 4, max: 4, message: '验证码为4位', trigger: 'blur' }
-  ]
+    { min: 4, max: 4, message: '验证码为4位', trigger: 'blur' },
+  ],
 }
 
 // 刷新验证码
@@ -68,10 +69,12 @@ async function refreshCaptcha(): Promise<void> {
     if (response.code === 200 && response.data) {
       captchaImage.value = import.meta.env.VITE_SERVER_PATH + response.data.captcha_url
       registerForm.value.captcha_id = response.data.captcha_id
-    } else {
+    }
+    else {
       throw new Error(response.msg)
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取验证码失败:', error)
     ElMessage.error('获取验证码失败')
     // 模拟验证码图片
@@ -91,8 +94,9 @@ async function refreshCaptcha(): Promise<void> {
 const formRef = ref()
 
 // 提交表单
-const handleSubmit = async () => {
-  if (!formRef.value) return
+async function handleSubmit() {
+  if (!formRef.value)
+    return
 
   try {
     await formRef.value.validate()
@@ -103,7 +107,7 @@ const handleSubmit = async () => {
       password: registerForm.value.password,
       email: registerForm.value.email,
       captcha_id: registerForm.value.captcha_id,
-      captcha_text: registerForm.value.captcha_text
+      captcha_text: registerForm.value.captcha_text,
     }
 
     const response: RegisterResponse = await register(requestData)
@@ -111,28 +115,31 @@ const handleSubmit = async () => {
       ElMessage.success('注册成功！')
       await ElMessageBox.alert('注册成功，即将跳转到登录页面', '提示', {
         confirmButtonText: '确定',
-        type: 'success'
+        type: 'success',
       })
       router.push('/auth/login')
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '注册失败')
       // 刷新验证码
       await refreshCaptcha()
       registerForm.value.captcha_text = ''
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('注册失败:', error)
     ElMessage.error(error.message || '注册失败，请重试')
     // 刷新验证码
     await refreshCaptcha()
     registerForm.value.captcha_text = ''
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
 // 重置表单
-const resetForm = () => {
+function resetForm() {
   if (formRef.value) {
     formRef.value.resetFields()
   }
@@ -149,9 +156,9 @@ onMounted(() => {
   <div class="register-container">
     <!-- 背景装饰 -->
     <div class="background-decoration">
-      <div class="decoration-circle circle-1"></div>
-      <div class="decoration-circle circle-2"></div>
-      <div class="decoration-circle circle-3"></div>
+      <div class="decoration-circle circle-1" />
+      <div class="decoration-circle circle-2" />
+      <div class="decoration-circle circle-3" />
     </div>
 
     <!-- 主要内容区域 -->
@@ -165,7 +172,9 @@ onMounted(() => {
                 <component :is="serverConfig.VITE_APP_LOGO" v-if="serverConfig.VITE_APP_LOGO" size="80px" />
               </el-icon>
             </div>
-            <h1 class="brand-title">{{ serverConfig.VITE_APP_TITLE }}</h1>
+            <h1 class="brand-title">
+              {{ serverConfig.VITE_APP_TITLE }}
+            </h1>
           </div>
 
           <div class="welcome-text">
@@ -206,8 +215,10 @@ onMounted(() => {
           </div>
 
           <!-- 注册表单 -->
-          <el-form ref="formRef" :model="registerForm" :rules="rules" label-position="top" size="large"
-            class="register-form" @submit.prevent="handleSubmit">
+          <el-form
+            ref="formRef" :model="registerForm" :rules="rules" label-position="top" size="large"
+            class="register-form" @submit.prevent="handleSubmit"
+          >
             <!-- 用户名和邮箱并排 -->
             <div class="form-row">
               <el-form-item label="用户名" prop="username" class="form-item-half">
@@ -215,32 +226,42 @@ onMounted(() => {
               </el-form-item>
 
               <el-form-item label="邮箱地址" prop="email" class="form-item-half">
-                <el-input v-model="registerForm.email" type="email" placeholder="请输入邮箱地址" prefix-icon="Message"
-                  clearable />
+                <el-input
+                  v-model="registerForm.email" type="email" placeholder="请输入邮箱地址" prefix-icon="Message"
+                  clearable
+                />
               </el-form-item>
             </div>
 
             <!-- 密码和确认密码并排 -->
             <div class="form-row">
               <el-form-item label="密码" prop="password" class="form-item-half">
-                <el-input v-model="registerForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock"
-                  show-password clearable />
+                <el-input
+                  v-model="registerForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock"
+                  show-password clearable
+                />
               </el-form-item>
 
               <el-form-item label="确认密码" prop="confirmPassword" class="form-item-half">
-                <el-input v-model="registerForm.confirmPassword" type="password" placeholder="请再次输入密码"
-                  prefix-icon="Lock" show-password clearable />
+                <el-input
+                  v-model="registerForm.confirmPassword" type="password" placeholder="请再次输入密码"
+                  prefix-icon="Lock" show-password clearable
+                />
               </el-form-item>
             </div>
 
             <!-- 验证码 -->
             <el-form-item label="验证码" prop="captcha_text">
               <div class="captcha-container">
-                <el-input v-model="registerForm.captcha_text" placeholder="请输入验证码" prefix-icon="Picture" maxlength="4"
-                  clearable class="captcha-input" />
+                <el-input
+                  v-model="registerForm.captcha_text" placeholder="请输入验证码" prefix-icon="Picture" maxlength="4"
+                  clearable class="captcha-input"
+                />
                 <div class="captcha-image-wrapper">
-                  <img v-if="captchaImage" :src="captchaImage" alt="验证码" class="captcha-image" @click="refreshCaptcha"
-                    title="点击刷新验证码" />
+                  <img
+                    v-if="captchaImage" :src="captchaImage" alt="验证码" class="captcha-image" title="点击刷新验证码"
+                    @click="refreshCaptcha"
+                  >
                   <div v-else class="captcha-placeholder" @click="refreshCaptcha">
                     <el-icon>
                       <Refresh />
@@ -253,14 +274,14 @@ onMounted(() => {
 
             <!-- 操作按钮 -->
             <div class="form-actions">
-              <el-button type="primary" size="large" :loading="loading" @click="handleSubmit" class="submit-btn">
+              <el-button type="primary" size="large" :loading="loading" class="submit-btn" @click="handleSubmit">
                 <el-icon v-if="!loading">
                   <UserFilled />
                 </el-icon>
                 {{ loading ? '注册中...' : '立即注册' }}
               </el-button>
 
-              <el-button size="large" @click="resetForm" class="reset-btn">
+              <el-button size="large" class="reset-btn" @click="resetForm">
                 <el-icon>
                   <RefreshLeft />
                 </el-icon>
@@ -741,8 +762,6 @@ onMounted(() => {
     align-self: center;
     margin-top: 0.5rem;
   }
-
-
 
   .brand-title {
     font-size: 2rem;

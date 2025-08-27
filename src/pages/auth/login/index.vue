@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { getCaptCha, login, getCurrentUserInfo } from '@/api/user'
-import type { LoginReq, LoginFormRules, CaptchaResponse, LoginResNoToken } from '@/types/apis/auth'
-import { Lock, Picture, User, UserFilled, Check, Refresh, RefreshLeft } from '@element-plus/icons-vue'
+import type { CaptchaResponse, LoginFormRules, LoginReq, LoginResNoToken } from '@/types/apis/auth'
+import { Lock, Picture, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
+import { getCaptCha, getCurrentUserInfo, login } from '@/api/user'
 import router from '@/router'
 import { useUserStore } from '@/stores/auth/user'
 // import throttle from 'lodash/throttle'; // 移除节流机制
-import serverConfig from '../../../configs/index';
+import serverConfig from '../../../configs/index'
 
-const store = useUserStore();
+const store = useUserStore()
 const captchaImage = ref('')
 const loading = ref(false)
 const captchaLoading = ref(false) // 验证码加载状态
@@ -42,18 +42,20 @@ const rules: LoginFormRules = {
 
 // 刷新验证码
 async function refreshCaptcha(): Promise<void> {
-  if (captchaLoading.value) return // 如果正在加载中，直接返回
-  
+  if (captchaLoading.value)
+    return // 如果正在加载中，直接返回
+
   captchaLoading.value = true // 设置加载状态
   try {
     // 这里应该调用后端API获取验证码图片
     const response: CaptchaResponse = await getCaptCha()
-    console.log(response);
+    console.log(response)
 
     if (response.code === 200 && response.data) {
       captchaImage.value = import.meta.env.VITE_SERVER_PATH + response.data.captcha_url
       loginForm.value.captcha_id = response.data.captcha_id
-    } else {
+    }
+    else {
       throw new Error(response.msg)
     }
   }
@@ -100,15 +102,18 @@ async function handleLogin(): Promise<void> {
         if (is_staff || is_superuser) {
           // 管理员跳转到管理端
           router.push('/admin/dashboard')
-        } else {
+        }
+        else {
           // 普通用户跳转到用户端首页（统计分析页面）
           router.push('/user/stats/')
         }
-      } else {
+      }
+      else {
         ElMessage.error('获取用户信息失败')
         throw new Error('获取用户信息失败')
       }
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '登录失败！')
       throw new Error(response.msg || '登录失败')
     }
@@ -137,9 +142,9 @@ onMounted(() => {
   <div class="login-container">
     <!-- 背景装饰 -->
     <div class="background-decoration">
-      <div class="decoration-circle circle-1"></div>
-      <div class="decoration-circle circle-2"></div>
-      <div class="decoration-circle circle-3"></div>
+      <div class="decoration-circle circle-1" />
+      <div class="decoration-circle circle-2" />
+      <div class="decoration-circle circle-3" />
     </div>
 
     <!-- 主要内容区域 -->
@@ -153,7 +158,9 @@ onMounted(() => {
                 <component :is="serverConfig.VITE_APP_LOGO" v-if="serverConfig.VITE_APP_LOGO" size="80px" />
               </el-icon>
             </div>
-            <h1 class="brand-title">{{ serverConfig.VITE_APP_TITLE }}</h1>
+            <h1 class="brand-title">
+              {{ serverConfig.VITE_APP_TITLE }}
+            </h1>
           </div>
 
           <div class="welcome-text">
@@ -194,8 +201,10 @@ onMounted(() => {
           </div>
 
           <!-- 登录表单 -->
-          <el-form ref="loginFormRef" :model="loginForm" :rules="rules" label-position="top" size="large"
-            class="login-form" @submit.prevent="handleLogin">
+          <el-form
+            ref="loginFormRef" :model="loginForm" :rules="rules" label-position="top" size="large"
+            class="login-form" @submit.prevent="handleLogin"
+          >
             <!-- 用户名 -->
             <el-form-item label="用户名" prop="username">
               <el-input v-model="loginForm.username" placeholder="请输入用户名" prefix-icon="User" clearable />
@@ -203,20 +212,26 @@ onMounted(() => {
 
             <!-- 密码 -->
             <el-form-item label="密码" prop="password">
-              <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock"
-                show-password clearable />
+              <el-input
+                v-model="loginForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock"
+                show-password clearable
+              />
             </el-form-item>
 
             <!-- 验证码 -->
             <el-form-item label="验证码" prop="captcha_text">
               <div class="captcha-container">
-                <el-input v-model="loginForm.captcha_text" placeholder="请输入验证码" prefix-icon="Picture" maxlength="4"
-                  clearable class="captcha-input" />
+                <el-input
+                  v-model="loginForm.captcha_text" placeholder="请输入验证码" prefix-icon="Picture" maxlength="4"
+                  clearable class="captcha-input"
+                />
                 <div class="captcha-image-wrapper">
-                  <img v-if="captchaImage" :src="captchaImage" alt="验证码" class="captcha-image"
+                  <img
+                    v-if="captchaImage" :src="captchaImage" alt="验证码" class="captcha-image"
                     :class="{ 'captcha-loading': captchaLoading }"
-                    @click="refreshCaptcha" 
-                    :title="captchaLoading ? '正在刷新...' : '点击刷新验证码'" />
+                    :title="captchaLoading ? '正在刷新...' : '点击刷新验证码'"
+                    @click="refreshCaptcha"
+                  >
                   <div v-else class="captcha-placeholder" @click="refreshCaptcha">
                     <el-icon>
                       <Picture />
@@ -229,7 +244,7 @@ onMounted(() => {
 
             <!-- 登录按钮 -->
             <div class="form-actions">
-              <el-button type="primary" size="large" :loading="loading" @click="handleLogin" class="submit-btn">
+              <el-button type="primary" size="large" :loading="loading" class="submit-btn" @click="handleLogin">
                 <el-icon v-if="!loading">
                   <User />
                 </el-icon>

@@ -1,10 +1,86 @@
+<script setup lang="ts">
+import type { NotificationItem } from '@/types/factory'
+import {
+  Bell,
+  Clock,
+  Delete,
+  DocumentRemove,
+  Edit,
+  Refresh,
+  UserFilled,
+} from '@element-plus/icons-vue'
+import { computed } from 'vue'
+
+// Props
+interface Props {
+  data: NotificationItem[]
+  loading?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+})
+
+const emit = defineEmits<Emits>()
+
+// Emits
+interface Emits {
+  refresh: []
+  createNotice: []
+  edit: [id: number]
+  resend: [id: number]
+  resendAll: [id: number]
+  delete: [id: number]
+}
+
+// 计算属性
+const tableData = computed(() => props.data)
+
+// 方法
+function handleRefresh() {
+  emit('refresh')
+}
+
+function handleCreateNotice() {
+  emit('createNotice')
+}
+
+function handleEdit(id: number) {
+  emit('edit', id)
+}
+
+function handleResend(id: number) {
+  emit('resend', id)
+}
+
+function handleResendAll(id: number) {
+  emit('resendAll', id)
+}
+
+function handleDelete(id: number) {
+  emit('delete', id)
+}
+
+// 格式化日期
+function formatDate(dateString: string) {
+  if (!dateString)
+    return '-'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+}
+</script>
+
 <template>
   <el-card shadow="never" class="list-card flex-1 min-h-0 flex flex-col">
     <template #header>
       <div class="list-header">
         <span class="list-title">通知列表</span>
         <el-space>
-          <el-button :icon="Refresh" @click="handleRefresh" :loading="loading" size="small">
+          <el-button :icon="Refresh" :loading="loading" size="small" @click="handleRefresh">
             刷新
           </el-button>
         </el-space>
@@ -32,12 +108,12 @@
 
     <!-- 通知列表 -->
     <div v-else class="table-container flex-1 min-h-0">
-      <el-table 
-        :data="data" 
-        stripe 
-        border 
-        height="100%" 
-        :loading="loading" 
+      <el-table
+        :data="data"
+        stripe
+        border
+        height="100%"
+        :loading="loading"
         empty-text="暂无通知数据"
         class="notification-table"
       >
@@ -72,22 +148,22 @@
           <template #default="{ row }">
             <div class="action-cell">
               <el-button-group size="small" class="action-button-group">
-                <el-button type="warning" @click="handleEdit(row.id)" size="small">
+                <el-button type="warning" size="small" @click="handleEdit(row.id)">
                   <el-icon>
                     <Edit />
                   </el-icon>
                 </el-button>
-                <el-button type="primary" @click="handleResend(row.id)" size="small" title="选择用户重发">
+                <el-button type="primary" size="small" title="选择用户重发" @click="handleResend(row.id)">
                   <el-icon>
                     <UserFilled />
                   </el-icon>
                 </el-button>
-                <el-button type="success" @click="handleResendAll(row.id)" size="small" title="全部重发">
+                <el-button type="success" size="small" title="全部重发" @click="handleResendAll(row.id)">
                   <el-icon>
                     <Bell />
                   </el-icon>
                 </el-button>
-                <el-button type="danger" @click="handleDelete(row.id)" size="small">
+                <el-button type="danger" size="small" @click="handleDelete(row.id)">
                   <el-icon>
                     <Delete />
                   </el-icon>
@@ -100,81 +176,6 @@
     </div>
   </el-card>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import {
-  Refresh,
-  DocumentRemove,
-  Edit,
-  Delete,
-  Clock,
-  UserFilled,
-  Bell
-} from '@element-plus/icons-vue'
-import type { NotificationItem } from '@/types/factory'
-
-// Props
-interface Props {
-  data: NotificationItem[]
-  loading?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  loading: false
-})
-
-// Emits
-interface Emits {
-  refresh: []
-  createNotice: []
-  edit: [id: number]
-  resend: [id: number]
-  resendAll: [id: number]
-  delete: [id: number]
-}
-
-const emit = defineEmits<Emits>()
-
-// 计算属性
-const tableData = computed(() => props.data)
-
-// 方法
-const handleRefresh = () => {
-  emit('refresh')
-}
-
-const handleCreateNotice = () => {
-  emit('createNotice')
-}
-
-const handleEdit = (id: number) => {
-  emit('edit', id)
-}
-
-const handleResend = (id: number) => {
-  emit('resend', id)
-}
-
-const handleResendAll = (id: number) => {
-  emit('resendAll', id)
-}
-
-const handleDelete = (id: number) => {
-  emit('delete', id)
-}
-
-// 格式化日期
-const formatDate = (dateString: string) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  })
-}
-</script>
 
 <style scoped>
 .list-card {

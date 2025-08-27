@@ -1,14 +1,14 @@
 import type {
+  ChangePasswordRequest,
+  ChangePasswordResponse,
   GetUserDetailInfoResponse,
   UpdateUserInfoRequest,
   UpdateUserInfoResponse,
-  ChangePasswordRequest,
-  ChangePasswordResponse
 } from '@/types/factory'
 import serviceAxios from '@/http'
 
 // 获取当前用户信息
-export function getUserDetailInfo(): Promise<{ code: number; msg: string; data: GetUserDetailInfoResponse }> {
+export function getUserDetailInfo(): Promise<{ code: number, msg: string, data: GetUserDetailInfoResponse }> {
   return serviceAxios({
     url: '/hzadmin/client/auth/userinfo/',
     method: 'get',
@@ -34,7 +34,7 @@ export function changePassword(data: ChangePasswordRequest): Promise<ChangePassw
 }
 
 // 文件上传
-export function uploadFile(file: File): Promise<{ code: number; msg: string; data: { upload_path: string } }> {
+export function uploadFile(file: File): Promise<{ code: number, msg: string, data: { upload_path: string } }> {
   const formData = new FormData()
   formData.append('file', file)
 

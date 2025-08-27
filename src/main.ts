@@ -23,7 +23,8 @@ function initGlobalTheme() {
   const savedTheme = localStorage.getItem('theme')
   if (savedTheme) {
     document.documentElement.setAttribute('data-theme', savedTheme)
-  } else {
+  }
+  else {
     // 如果没有保存的主题，使用系统偏好
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const defaultTheme = prefersDark ? 'dark' : 'light'

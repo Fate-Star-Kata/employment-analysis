@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { Motion } from 'motion-v'
+import type { User, UserQueryParams } from '@/types/components/admin'
 import { ElMessage } from 'element-plus'
 import { cloneDeep } from 'lodash-es'
-import type { User, UserQueryParams } from '@/types/components/admin'
-import UserSearchForm from '@/components/pages/admin/userManage/UserSearchForm.vue'
-import UserTable from '@/components/pages/admin/userManage/UserTable.vue'
-import UserPagination from '@/components/pages/admin/userManage/UserPagination.vue'
-import EditUserDialog from '@/components/pages/admin/userManage/EditUserDialog.vue'
-import AddUserDialog from '@/components/pages/admin/userManage/AddUserDialog.vue'
+import { Motion } from 'motion-v'
+import { computed, onMounted, reactive, ref } from 'vue'
 import {
+  deleteUserAPI,
   getUsersAPI,
   userDetailAPI,
-  deleteUserAPI
 } from '@/api/admin/users'
+import AddUserDialog from '@/components/pages/admin/userManage/AddUserDialog.vue'
+import EditUserDialog from '@/components/pages/admin/userManage/EditUserDialog.vue'
+import UserPagination from '@/components/pages/admin/userManage/UserPagination.vue'
+import UserSearchForm from '@/components/pages/admin/userManage/UserSearchForm.vue'
+import UserTable from '@/components/pages/admin/userManage/UserTable.vue'
 import { useUserStore } from '@/stores/auth/user'
 
 // 动画配置
 const pageVariants = {
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: 'easeOut' }
+  transition: { duration: 0.6, ease: 'easeOut' },
 }
 
 // Store
@@ -39,60 +39,63 @@ const isAdd = ref(false)
 const params = reactive<UserQueryParams>({
   query: '',
   page: 1,
-  page_size: 10
+  page_size: 10,
 })
 
 // 计算属性
 const userId = computed(() => userStore.userInfo?.user_id)
 
 // 获取用户列表
-const getList = async () => {
+async function getList() {
   try {
     loading.value = true
     const res = await getUsersAPI(params)
     list.value = res.data.users
     total.value = res.data.total
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取数据失败:', error)
     ElMessage.error('获取用户列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
 // 搜索
-const handleSearch = (query: string) => {
+function handleSearch(query: string) {
   params.query = query
   params.page = 1
   getList()
 }
 
 // 重置参数
-const handleReset = () => {
+function handleReset() {
   params.page = 1
   params.query = ''
   getList()
 }
 
 // 添加用户
-const handleAdd = () => {
+function handleAdd() {
   addDialogVisible.value = true
 }
 
 // 查看用户详情
-const detail = async (id: number) => {
+async function detail(id: number) {
   try {
     const res = await userDetailAPI(id)
     console.log('用户详情:', res)
     ElMessage.success('查看用户详情成功')
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取用户详情失败:', error)
     ElMessage.error('获取用户详情失败')
   }
 }
 
 // 编辑用户
-const handleEdit = (id: number) => {
+function handleEdit(id: number) {
   const user = list.value.find(item => item.id === id)
   if (user) {
     currentEditUser.value = cloneDeep(user)
@@ -101,43 +104,42 @@ const handleEdit = (id: number) => {
 }
 
 // 编辑成功回调
-const handleEditSuccess = () => {
+function handleEditSuccess() {
   getList()
 }
 
 // 添加成功回调
-const handleAddSuccess = () => {
+function handleAddSuccess() {
   getList()
 }
 
-
-
 // 删除用户
-const handleDelete = async (id: number) => {
+async function handleDelete(id: number) {
   try {
     const res = await deleteUserAPI(id)
     ElMessage.success(res.msg || '删除成功')
     getList()
-  } catch (error) {
+  }
+  catch (error) {
     console.error('删除数据失败:', error)
     ElMessage.error('删除失败')
   }
 }
 
 // 分页处理
-const handleSizeChange = (size: number) => {
+function handleSizeChange(size: number) {
   params.page_size = size
   params.page = 1
   getList()
 }
 
-const handlePageChange = (page: number) => {
+function handlePageChange(page: number) {
   params.page = page
   getList()
 }
 
 // 行点击事件
-const handleRowClick = (row: User) => {
+function handleRowClick(row: User) {
   // 可以在这里添加行点击逻辑
 }
 
@@ -149,13 +151,17 @@ onMounted(() => {
 
 <template>
   <!-- @vue-ignore -->
-  <Motion :initial="pageVariants.initial" :animate="pageVariants.animate" :transition="pageVariants.transition"
-    class="user-manage h-full overflow-y-auto">
+  <Motion
+    :initial="pageVariants.initial" :animate="pageVariants.animate" :transition="pageVariants.transition"
+    class="user-manage h-full overflow-y-auto"
+  >
     <el-card>
       <!-- 搜索和操作区域 -->
-      <Motion :initial="{ opacity: 0, y: -20 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.5, delay: 0.1 }">
-        <UserSearchForm 
+      <Motion
+        :initial="{ opacity: 0, y: -20 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.5, delay: 0.1 }"
+      >
+        <UserSearchForm
           :query="params.query"
           :loading="loading"
           @search="handleSearch"
@@ -165,9 +171,11 @@ onMounted(() => {
       </Motion>
 
       <!-- 表格区域 -->
-      <Motion :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.6, delay: 0.2 }">
-        <UserTable 
+      <Motion
+        :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.6, delay: 0.2 }"
+      >
+        <UserTable
           :user-list="list"
           :loading="loading"
           :current-page="params.page"
@@ -180,9 +188,11 @@ onMounted(() => {
       </Motion>
 
       <!-- 分页区域 -->
-      <Motion :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.5, delay: 0.3 }">
-        <UserPagination 
+      <Motion
+        :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.5, delay: 0.3 }"
+      >
+        <UserPagination
           :current-page="params.page"
           :page-size="params.page_size"
           :total="total"

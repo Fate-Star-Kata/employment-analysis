@@ -1,20 +1,20 @@
-import serviceAxios from '@/http'
 import type {
+  CreateNotificationReq,
+  DeleteNotificationReq,
+  NotificationDetailResponse,
   NotificationListReq,
   NotificationListResponse,
-  CreateNotificationReq,
-  UpdateNotificationReq,
-  ReadNotificationReq,
+  NotificationResendReq,
+  NotificationResendResponse,
   NotificationResponse,
-  NotificationDetailResponse,
-  NotificationStats,
   NotificationSettings,
-  DeleteNotificationReq,
+  NotificationStats,
+  ReadNotificationReq,
   SendEmailNotificationReq,
   SendEmailNotificationResponse,
-  NotificationResendReq,
-  NotificationResendResponse
+  UpdateNotificationReq,
 } from '@/types/factory'
+import serviceAxios from '@/http'
 
 // 通知管理API
 export const notificationApi = {
@@ -22,11 +22,11 @@ export const notificationApi = {
   // 获取用户通知列表
   getUserNotificationList: (params: NotificationListReq): Promise<NotificationListResponse> => {
     return serviceAxios.get('/hzadmin/client/notification/list/', {
-      params, headers: {
-        'Content-Type': 'application/json'
-      } },
-
-    )
+      params,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
   },
 
   // 创建通知
@@ -47,7 +47,7 @@ export const notificationApi = {
   // 删除通知
   deleteNotification: (id: string | number): Promise<NotificationResponse> => {
     return serviceAxios.post('/hzadmin/admin/notification/delete/', {
-      notification_ids: [id]
+      notification_ids: [id],
     })
   },
 
@@ -71,21 +71,20 @@ export const notificationApi = {
     return serviceAxios.post('/hzadmin/admin/notification/resend/', data)
   },
 
-
   // 获取通知统计
-  getNotificationStats: (): Promise<{ code: number; msg: string; data: NotificationStats }> => {
+  getNotificationStats: (): Promise<{ code: number, msg: string, data: NotificationStats }> => {
     return serviceAxios.get('/hzadmin/admin/notification/stats/')
   },
 
   // 获取通知设置
-  getNotificationSettings: (): Promise<{ code: number; msg: string; data: NotificationSettings }> => {
+  getNotificationSettings: (): Promise<{ code: number, msg: string, data: NotificationSettings }> => {
     return serviceAxios.get('/hzadmin/notification/settings/')
   },
 
   // 更新通知设置
   updateNotificationSettings: (data: NotificationSettings): Promise<NotificationResponse> => {
     return serviceAxios.put('/hzadmin/notification/settings/', data)
-  }
+  },
 }
 
 export default notificationApi

@@ -10,33 +10,33 @@ export const userTableColumns: TableColumn[] = [
   {
     title: '用户名',
     dataIndex: 'username',
-    key: 'username'
+    key: 'username',
   },
   {
     title: '邮箱',
     dataIndex: 'email',
-    key: 'email'
+    key: 'email',
   },
   {
     title: '状态',
     dataIndex: 'is_active',
     key: 'is_active',
     align: 'center',
-    width: 150
+    width: 150,
   },
   {
     title: '工作人员权限',
     dataIndex: 'is_staff',
     key: 'is_staff',
     align: 'center',
-    width: 150
+    width: 150,
   },
   {
     title: '超级管理员权限',
     dataIndex: 'is_superuser',
     key: 'is_superuser',
     align: 'center',
-    width: 150
+    width: 150,
   },
   {
     title: '操作',
@@ -44,7 +44,7 @@ export const userTableColumns: TableColumn[] = [
     key: 'operation',
     align: 'center',
     width: 200,
-  }
+  },
 ]
 
 export default userTableColumns

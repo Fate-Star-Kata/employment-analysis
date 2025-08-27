@@ -74,14 +74,24 @@ export enum FileType {
   IMAGE = 'image',
   DOCUMENT = 'document',
   VIDEO = 'video',
-  AUDIO = 'audio'
+  AUDIO = 'audio',
 }
 
 // 支持的文件扩展名
 export const SUPPORTED_FILE_EXTENSIONS = [
-  '.jpg', '.jpeg', '.png', '.doc', '.docx',
-  '.rar', '.zip', '.7z', '.pptx', '.pdf',
-  '.mp3', '.mp4', '.avi'
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.doc',
+  '.docx',
+  '.rar',
+  '.zip',
+  '.7z',
+  '.pptx',
+  '.pdf',
+  '.mp3',
+  '.mp4',
+  '.avi',
 ] as const
 
 // 文件大小限制（字节）

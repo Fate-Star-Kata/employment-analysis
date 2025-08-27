@@ -1,23 +1,22 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
 import type {
   AiChat,
-  AiMessage,
-  AiChatListRequest,
   AiChatCreateRequest,
+  AiChatDeleteRequest,
+  AiChatListRequest,
   AiChatUpdateRequest,
-  AiMessageSendRequest,
-  AiChatDeleteRequest
+  AiMessage,
 } from '@/types/factory'
-import {
-  getAiChats,
-  createAiChat,
-  getAiChatDetail,
-  updateAiChat,
-  sendAiMessage,
-  deleteAiChats
-} from '@/api/admin/ai'
 import { ElMessage } from 'element-plus'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+import {
+  createAiChat,
+  deleteAiChats,
+  getAiChatDetail,
+  getAiChats,
+  sendAiMessage,
+  updateAiChat,
+} from '@/api/admin/ai'
 import router from '@/router'
 
 export const useAiStore = defineStore('ai', () => {
@@ -45,7 +44,7 @@ export const useAiStore = defineStore('ai', () => {
         query: searchQuery.value,
         page: page.value,
         page_size: pageSize.value,
-        ...params
+        ...params,
       })
 
       if (response.code === 200) {
@@ -59,18 +58,19 @@ export const useAiStore = defineStore('ai', () => {
         page.value = response.data.page
       }
       else if (response.code === 401) {
-          ElMessage.error('未授权，请登录后重试')
-          // 这里可以添加重定向到登录页面的逻辑
-          router.push('/auth/login')
-        return
+        ElMessage.error('未授权，请登录后重试')
+        // 这里可以添加重定向到登录页面的逻辑
+        router.push('/auth/login')
       }
       else {
         ElMessage.error(response.msg || '获取聊天列表失败')
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('获取聊天列表失败:', error)
       ElMessage.error('获取聊天列表失败')
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }
@@ -91,15 +91,18 @@ export const useAiStore = defineStore('ai', () => {
           await selectChat(newChat)
         }
         return response.data
-      } else {
+      }
+      else {
         ElMessage.error(response.msg || '创建聊天失败')
         throw new Error(response.msg)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('创建聊天失败:', error)
       ElMessage.error('创建聊天失败')
       throw error
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }
@@ -113,13 +116,16 @@ export const useAiStore = defineStore('ai', () => {
       const response = await getAiChatDetail(chat.id)
       if (response.code === 200) {
         messages.value = response.data.messages
-      } else {
+      }
+      else {
         ElMessage.error(response.msg || '获取聊天详情失败')
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('获取聊天详情失败:', error)
       ElMessage.error('获取聊天详情失败')
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }
@@ -139,11 +145,13 @@ export const useAiStore = defineStore('ai', () => {
         if (currentChat.value?.id === chatId) {
           currentChat.value.title = data.title
         }
-      } else {
+      }
+      else {
         ElMessage.error(response.msg || '更新聊天标题失败')
         throw new Error(response.msg)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('更新聊天标题失败:', error)
       ElMessage.error('更新聊天标题失败')
       throw error
@@ -162,7 +170,7 @@ export const useAiStore = defineStore('ai', () => {
 
       const response = await sendAiMessage({
         chat_id: currentChat.value.id,
-        content: message.trim()
+        content: message.trim(),
       })
 
       if (response.code === 200) {
@@ -182,15 +190,18 @@ export const useAiStore = defineStore('ai', () => {
         }
 
         return response.data
-      } else {
+      }
+      else {
         ElMessage.error(response.msg || '发送消息失败')
         throw new Error(response.msg)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('发送消息失败:', error)
       ElMessage.error('发送消息失败')
       throw error
-    } finally {
+    }
+    finally {
       sending.value = false
     }
   }
@@ -214,15 +225,18 @@ export const useAiStore = defineStore('ai', () => {
 
         // 更新总数
         total.value -= data.chat_ids.length
-      } else {
+      }
+      else {
         ElMessage.error(response.msg || '删除聊天失败')
         throw new Error(response.msg)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('删除聊天失败:', error)
       ElMessage.error('删除聊天失败')
       throw error
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }
@@ -280,6 +294,6 @@ export const useAiStore = defineStore('ai', () => {
     deleteChatList,
     searchChats,
     loadMoreChats,
-    resetState
+    resetState,
   }
 })

@@ -1,39 +1,15 @@
-<template>
-  <div class="user-info-page">
-    <div class="page-header">
-      <h1 class="page-title">个人信息</h1>
-      <p class="page-description">管理您的个人资料和账户设置</p>
-    </div>
-
-    <div class="content-wrapper">
-      <!-- 基本信息 -->
-      <BaseInfo ref="baseInfoRef" :user-info="localUserInfo" @update:userInfo="localUserInfo = $event" />
-
-      <!-- 操作按钮 -->
-      <div class="action-buttons">
-        <el-button type="primary" @click="saveUserInfo" :loading="saving">
-          保存更改
-        </el-button>
-        <el-button @click="resetForm">
-          重置
-        </el-button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import router from '@/router'
+import type { UpdateUserInfoRequest } from '@/types/apis/userinfo'
 import { ElMessage } from 'element-plus'
+import { onMounted, ref } from 'vue'
 import { getCurrentUserInfo } from '@/api/user/index'
 import { updateUserInfo } from '@/api/user/userinfo'
-import type { UpdateUserInfoRequest } from '@/types/apis/userinfo'
 import BaseInfo from '@/components/pages/userInfo/BaseInfo.vue'
+import router from '@/router'
 
 // 定义页面元数据
 defineOptions({
-  name: 'UserInfo'
+  name: 'UserInfo',
 })
 
 // 响应式数据
@@ -47,7 +23,7 @@ const baseInfoRef = ref()
 const localUserInfo = ref<any>(null)
 
 // 获取用户信息
-const fetchUserInfo = async () => {
+async function fetchUserInfo() {
   loading.value = true
   try {
     const response = await getCurrentUserInfo()
@@ -75,26 +51,28 @@ const fetchUserInfo = async () => {
 
         // 其他字段
         avatar: localUserInfo.value.user_info.avatar || '',
-        ...localUserInfo.value.user_info
+        ...localUserInfo.value.user_info,
       }
-    } else if (response.code === 401) {
+    }
+    else if (response.code === 401) {
       ElMessage.error('身份认证失败，请先登录')
       router.push('/auth/login')
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '获取用户信息失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取用户信息失败:', error)
     ElMessage.error('获取用户信息失败，请稍后重试')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
-
-
 // 保存用户信息
-const saveUserInfo = async () => {
+async function saveUserInfo() {
   if (!localUserInfo.value) {
     ElMessage.warning('没有可保存的用户信息')
     return
@@ -130,8 +108,8 @@ const saveUserInfo = async () => {
         wechat: localUserInfo.value.user_info?.wechat || '',
         qq: localUserInfo.value.user_info?.qq || '',
         weibo: localUserInfo.value.user_info?.weibo || '',
-        personal_site: localUserInfo.value.user_info?.personal_site || ''
-      }
+        personal_site: localUserInfo.value.user_info?.personal_site || '',
+      },
     }
 
     console.log('准备保存的用户信息:', updateData)
@@ -143,22 +121,25 @@ const saveUserInfo = async () => {
 
     // 重新获取最新的用户信息
     await fetchUserInfo()
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('保存用户信息失败:', error)
     ElMessage.error(error.message || '保存失败，请重试')
-  } finally {
+  }
+  finally {
     saving.value = false
   }
 }
 
 // 重置表单
-const resetForm = async () => {
+async function resetForm() {
   try {
     // 重新获取用户信息
     await fetchUserInfo()
 
     ElMessage.success('表单已重置')
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('重置表单失败:', error)
     ElMessage.error('重置失败，请重试')
   }
@@ -169,6 +150,34 @@ onMounted(() => {
   fetchUserInfo()
 })
 </script>
+
+<template>
+  <div class="user-info-page">
+    <div class="page-header">
+      <h1 class="page-title">
+        个人信息
+      </h1>
+      <p class="page-description">
+        管理您的个人资料和账户设置
+      </p>
+    </div>
+
+    <div class="content-wrapper">
+      <!-- 基本信息 -->
+      <BaseInfo ref="baseInfoRef" :user-info="localUserInfo" @update:user-info="localUserInfo = $event" />
+
+      <!-- 操作按钮 -->
+      <div class="action-buttons">
+        <el-button type="primary" :loading="saving" @click="saveUserInfo">
+          保存更改
+        </el-button>
+        <el-button @click="resetForm">
+          重置
+        </el-button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .user-info-page {

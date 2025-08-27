@@ -1,218 +1,8 @@
-<template>
-  <el-card shadow="never" class="search-card">
-    <!-- 加载状态蒙层 -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-content">
-        <el-icon class="is-loading">
-          <Loading />
-        </el-icon>
-        <span>数据更新中...</span>
-      </div>
-    </div>
-
-    <el-form :inline="true" class="search-form">
-      <el-form-item label="搜索">
-        <el-input 
-          v-model="searchForm.search" 
-          placeholder="描述 / 用户名 / 模块" 
-          :prefix-icon="Search" 
-          clearable
-          style="width: 260px" 
-          @keyup.enter.native="handleSearch" 
-        />
-      </el-form-item>
-
-      <el-form-item label="操作类型">
-        <el-select 
-          v-model="searchForm.action_type" 
-          placeholder="全部" 
-          clearable 
-          style="width: 150px"
-          @change="handleSearch"
-        >
-          <el-option 
-            v-for="(opt, idx) in actionTypeOptions" 
-            :key="idx" 
-            :label="opt[1]" 
-            :value="opt[0]" 
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="模块">
-        <el-select 
-          v-model="searchForm.module" 
-          placeholder="全部" 
-          clearable 
-          filterable 
-          style="width: 200px"
-          @change="handleSearch"
-        >
-          <el-option 
-            v-for="m in moduleOptions" 
-            :key="m" 
-            :label="m" 
-            :value="m" 
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="用户ID">
-        <el-input 
-          v-model="searchForm.user_id" 
-          placeholder="可填用户ID" 
-          clearable 
-          style="width: 140px"
-          @keyup.enter.native="handleSearch" 
-        />
-      </el-form-item>
-
-      <el-form-item label="日期范围">
-        <el-date-picker 
-          v-model="dateRange" 
-          type="daterange" 
-          range-separator="至" 
-          start-placeholder="开始日期"
-          end-placeholder="结束日期" 
-          value-format="YYYY-MM-DD" 
-          style="width: 280px" 
-          @change="onDateRangeChange" 
-        />
-      </el-form-item>
-
-      <el-form-item>
-        <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
-      </el-form-item>
-
-      <el-form-item style="margin-left: auto">
-        <el-button :icon="Refresh" @click="handleRefresh" :loading="loading">刷新</el-button>
-        <el-button 
-          type="danger" 
-          :icon="Delete" 
-          :disabled="selectedIds.length === 0"
-          @click="handleBatchDelete"
-        >
-          批量删除
-        </el-button>
-        <el-popover 
-          v-model:visible="popoverVisible" 
-          placement="bottom" 
-          trigger="manual" 
-          :width="'auto'"
-          popper-class="clear-log-popover" 
-          :hide-after="0" 
-          :persistent="true" 
-          :teleported="true"
-        >
-          <template #reference>
-            <el-button 
-              class="clear-log-trigger" 
-              type="warning" 
-              :icon="Delete" 
-              @click="togglePopover"
-            >
-              清空日志
-            </el-button>
-          </template>
-          <div class="clear-panel" @click.stop>
-            <el-radio-group v-model="clearForm.mode" class="mb-3">
-              <el-radio label="days">按天数</el-radio>
-              <el-radio label="range">按日期范围</el-radio>
-            </el-radio-group>
-
-            <!-- 按天数模式 -->
-            <div v-if="clearForm.mode === 'days'" class="days-mode">
-              <div class="mb-2">
-                <label class="text-sm text-gray-600 mb-1 block">清空天数：</label>
-                <div class="flex items-center gap-2">
-                  <el-input-number 
-                    v-model="clearForm.days" 
-                    :min="0" 
-                    :max="365" 
-                    :step="1" 
-                    size="default"
-                    class="flex-1" 
-                  />
-                  <span class="text-sm text-gray-500">天内的日志</span>
-                </div>
-                <div class="mt-1 text-xs text-gray-400">
-                  设为0则清空所有日志，结束日期为昨天
-                </div>
-              </div>
-
-              <!-- 快捷天数设置 -->
-              <div class="mb-2">
-                <label class="text-sm text-gray-600 mb-1 block">快捷设置：</label>
-                <div class="flex flex-wrap gap-1">
-                  <el-button size="small" @click.stop="clearForm.days = 1">昨天1天</el-button>
-                  <el-button size="small" @click.stop="clearForm.days = 7">近7天</el-button>
-                  <el-button size="small" @click.stop="clearForm.days = 30">近30天</el-button>
-                  <el-button size="small" @click.stop="clearForm.days = 90">近90天</el-button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 按日期范围模式 -->
-            <div v-else class="range-mode">
-              <!-- 快捷选择按钮 -->
-              <div class="mb-3">
-                <label class="text-sm text-gray-600 mb-1 block">快捷选择：</label>
-                <div class="flex flex-wrap gap-1">
-                  <el-button size="small" @click.stop="setQuickRange('yesterday')">昨天</el-button>
-                  <el-button size="small" @click.stop="setQuickRange('last7days')">近7天</el-button>
-                  <el-button size="small" @click.stop="setQuickRange('last30days')">近30天</el-button>
-                  <el-button size="small" @click.stop="setQuickRange('thisMonth')">本月</el-button>
-                  <el-button size="small" @click.stop="setQuickRange('lastMonth')">上月</el-button>
-                </div>
-              </div>
-
-              <!-- 日期选择器 -->
-              <div class="date-selectors">
-                <div class="mb-2">
-                  <label class="text-sm text-gray-600 mb-1 block">开始日期：</label>
-                  <input 
-                    v-model="clearForm.startDate" 
-                    type="date" 
-                    class="input input-bordered w-full"
-                    :max="getMaxDate()" 
-                    @change="onDateChange" 
-                    @click.stop 
-                  />
-                </div>
-
-                <div class="mb-2">
-                  <label class="text-sm text-gray-600 mb-1 block">结束日期：</label>
-                  <input 
-                    v-model="clearForm.endDate" 
-                    type="date" 
-                    class="input input-bordered w-full"
-                    :min="clearForm.startDate || undefined" 
-                    :max="getMaxDate()" 
-                    @change="onDateChange" 
-                    @click.stop 
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-4 flex justify-end gap-2">
-              <el-button size="small" @click.stop="closePopover">取消</el-button>
-              <el-button size="small" @click.stop="doClear(false)">预览参数</el-button>
-              <el-button size="small" type="warning" @click.stop="doClear(true)">确认清空</el-button>
-            </div>
-          </div>
-        </el-popover>
-      </el-form-item>
-    </el-form>
-  </el-card>
-</template>
-
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Delete, Loading } from '@element-plus/icons-vue'
 import type { OperationLogsListRequest } from '@/types/factory'
+import { Delete, Loading, Refresh, Search } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { reactive, ref, watch } from 'vue'
 
 interface Props {
   searchParams: OperationLogsListRequest
@@ -231,7 +21,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
 
 const emit = defineEmits<Emits>()
@@ -245,7 +35,7 @@ const searchForm = reactive<OperationLogsListRequest>({
   module: undefined,
   user_id: undefined,
   start_date: undefined,
-  end_date: undefined
+  end_date: undefined,
 })
 
 const dateRange = ref<string[] | null>(null)
@@ -256,7 +46,7 @@ const clearForm = reactive({
   days: 0,
   range: [] as string[] | [],
   startDate: '',
-  endDate: ''
+  endDate: '',
 })
 
 // 监听父组件传入的搜索参数变化
@@ -265,7 +55,8 @@ watch(() => props.searchParams, (newParams) => {
   // 同步日期范围
   if (newParams.start_date && newParams.end_date) {
     dateRange.value = [newParams.start_date, newParams.end_date]
-  } else {
+  }
+  else {
     dateRange.value = null
   }
 }, { immediate: true, deep: true })
@@ -282,7 +73,8 @@ function onDateChange() {
   // 同步更新 range 数组（保持兼容性）
   if (clearForm.startDate && clearForm.endDate) {
     clearForm.range = [clearForm.startDate, clearForm.endDate]
-  } else {
+  }
+  else {
     clearForm.range = []
   }
 }
@@ -345,7 +137,8 @@ function onDateRangeChange() {
   if (dateRange.value && dateRange.value.length === 2) {
     searchForm.start_date = dateRange.value[0]
     searchForm.end_date = dateRange.value[1]
-  } else {
+  }
+  else {
     searchForm.start_date = undefined
     searchForm.end_date = undefined
   }
@@ -368,7 +161,7 @@ function handleReset() {
   searchForm.start_date = undefined
   searchForm.end_date = undefined
   searchForm.page = 1
-  
+
   // 同步到父组件
   Object.assign(props.searchParams, searchForm)
   emit('reset')
@@ -405,7 +198,8 @@ function doClear(confirmDo: boolean) {
     params.days = clearForm.days
     params.start_date = startDateStr
     params.end_date = endDate
-  } else if (clearForm.mode === 'range') {
+  }
+  else if (clearForm.mode === 'range') {
     // 使用新的独立日期字段
     if (!clearForm.startDate || !clearForm.endDate) {
       ElMessage.warning('请选择完整的日期范围')
@@ -424,6 +218,250 @@ function doClear(confirmDo: boolean) {
   closePopover()
 }
 </script>
+
+<template>
+  <el-card shadow="never" class="search-card">
+    <!-- 加载状态蒙层 -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-content">
+        <el-icon class="is-loading">
+          <Loading />
+        </el-icon>
+        <span>数据更新中...</span>
+      </div>
+    </div>
+
+    <el-form :inline="true" class="search-form">
+      <el-form-item label="搜索">
+        <el-input
+          v-model="searchForm.search"
+          placeholder="描述 / 用户名 / 模块"
+          :prefix-icon="Search"
+          clearable
+          style="width: 260px"
+          @keyup.enter.native="handleSearch"
+        />
+      </el-form-item>
+
+      <el-form-item label="操作类型">
+        <el-select
+          v-model="searchForm.action_type"
+          placeholder="全部"
+          clearable
+          style="width: 150px"
+          @change="handleSearch"
+        >
+          <el-option
+            v-for="(opt, idx) in actionTypeOptions"
+            :key="idx"
+            :label="opt[1]"
+            :value="opt[0]"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="模块">
+        <el-select
+          v-model="searchForm.module"
+          placeholder="全部"
+          clearable
+          filterable
+          style="width: 200px"
+          @change="handleSearch"
+        >
+          <el-option
+            v-for="m in moduleOptions"
+            :key="m"
+            :label="m"
+            :value="m"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="用户ID">
+        <el-input
+          v-model="searchForm.user_id"
+          placeholder="可填用户ID"
+          clearable
+          style="width: 140px"
+          @keyup.enter.native="handleSearch"
+        />
+      </el-form-item>
+
+      <el-form-item label="日期范围">
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          style="width: 280px"
+          @change="onDateRangeChange"
+        />
+      </el-form-item>
+
+      <el-form-item>
+        <el-button type="primary" :icon="Search" @click="handleSearch">
+          搜索
+        </el-button>
+        <el-button @click="handleReset">
+          重置
+        </el-button>
+      </el-form-item>
+
+      <el-form-item style="margin-left: auto">
+        <el-button :icon="Refresh" :loading="loading" @click="handleRefresh">
+          刷新
+        </el-button>
+        <el-button
+          type="danger"
+          :icon="Delete"
+          :disabled="selectedIds.length === 0"
+          @click="handleBatchDelete"
+        >
+          批量删除
+        </el-button>
+        <el-popover
+          v-model:visible="popoverVisible"
+          placement="bottom"
+          trigger="manual"
+          width="auto"
+          popper-class="clear-log-popover"
+          :hide-after="0"
+          :persistent="true"
+          :teleported="true"
+        >
+          <template #reference>
+            <el-button
+              class="clear-log-trigger"
+              type="warning"
+              :icon="Delete"
+              @click="togglePopover"
+            >
+              清空日志
+            </el-button>
+          </template>
+          <div class="clear-panel" @click.stop>
+            <el-radio-group v-model="clearForm.mode" class="mb-3">
+              <el-radio label="days">
+                按天数
+              </el-radio>
+              <el-radio label="range">
+                按日期范围
+              </el-radio>
+            </el-radio-group>
+
+            <!-- 按天数模式 -->
+            <div v-if="clearForm.mode === 'days'" class="days-mode">
+              <div class="mb-2">
+                <label class="text-sm text-gray-600 mb-1 block">清空天数：</label>
+                <div class="flex items-center gap-2">
+                  <el-input-number
+                    v-model="clearForm.days"
+                    :min="0"
+                    :max="365"
+                    :step="1"
+                    size="default"
+                    class="flex-1"
+                  />
+                  <span class="text-sm text-gray-500">天内的日志</span>
+                </div>
+                <div class="mt-1 text-xs text-gray-400">
+                  设为0则清空所有日志，结束日期为昨天
+                </div>
+              </div>
+
+              <!-- 快捷天数设置 -->
+              <div class="mb-2">
+                <label class="text-sm text-gray-600 mb-1 block">快捷设置：</label>
+                <div class="flex flex-wrap gap-1">
+                  <el-button size="small" @click.stop="clearForm.days = 1">
+                    昨天1天
+                  </el-button>
+                  <el-button size="small" @click.stop="clearForm.days = 7">
+                    近7天
+                  </el-button>
+                  <el-button size="small" @click.stop="clearForm.days = 30">
+                    近30天
+                  </el-button>
+                  <el-button size="small" @click.stop="clearForm.days = 90">
+                    近90天
+                  </el-button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 按日期范围模式 -->
+            <div v-else class="range-mode">
+              <!-- 快捷选择按钮 -->
+              <div class="mb-3">
+                <label class="text-sm text-gray-600 mb-1 block">快捷选择：</label>
+                <div class="flex flex-wrap gap-1">
+                  <el-button size="small" @click.stop="setQuickRange('yesterday')">
+                    昨天
+                  </el-button>
+                  <el-button size="small" @click.stop="setQuickRange('last7days')">
+                    近7天
+                  </el-button>
+                  <el-button size="small" @click.stop="setQuickRange('last30days')">
+                    近30天
+                  </el-button>
+                  <el-button size="small" @click.stop="setQuickRange('thisMonth')">
+                    本月
+                  </el-button>
+                  <el-button size="small" @click.stop="setQuickRange('lastMonth')">
+                    上月
+                  </el-button>
+                </div>
+              </div>
+
+              <!-- 日期选择器 -->
+              <div class="date-selectors">
+                <div class="mb-2">
+                  <label class="text-sm text-gray-600 mb-1 block">开始日期：</label>
+                  <input
+                    v-model="clearForm.startDate"
+                    type="date"
+                    class="input input-bordered w-full"
+                    :max="getMaxDate()"
+                    @change="onDateChange"
+                    @click.stop
+                  >
+                </div>
+
+                <div class="mb-2">
+                  <label class="text-sm text-gray-600 mb-1 block">结束日期：</label>
+                  <input
+                    v-model="clearForm.endDate"
+                    type="date"
+                    class="input input-bordered w-full"
+                    :min="clearForm.startDate || undefined"
+                    :max="getMaxDate()"
+                    @change="onDateChange"
+                    @click.stop
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end gap-2">
+              <el-button size="small" @click.stop="closePopover">
+                取消
+              </el-button>
+              <el-button size="small" @click.stop="doClear(false)">
+                预览参数
+              </el-button>
+              <el-button size="small" type="warning" @click.stop="doClear(true)">
+                确认清空
+              </el-button>
+            </div>
+          </div>
+        </el-popover>
+      </el-form-item>
+    </el-form>
+  </el-card>
+</template>
 
 <style scoped>
 .search-card {

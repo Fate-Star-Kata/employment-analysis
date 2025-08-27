@@ -1,31 +1,6 @@
-<template>
-  <div class="pagination-container">
-    <!-- 加载状态蒙层 -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-content">
-        <el-icon class="is-loading">
-          <Loading />
-        </el-icon>
-        <span>数据更新中...</span>
-      </div>
-    </div>
-
-    <el-pagination 
-      v-model:current-page="currentPageModel" 
-      v-model:page-size="pageSizeModel"
-      :total="total" 
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper" 
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange" 
-      background 
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
+import { computed } from 'vue'
 
 interface Props {
   currentPage: number
@@ -40,7 +15,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
 
 const emit = defineEmits<Emits>()
@@ -48,13 +23,13 @@ const emit = defineEmits<Emits>()
 // 当前页码的计算属性
 const currentPageModel = computed({
   get: () => props.currentPage,
-  set: (value) => emit('currentChange', value)
+  set: value => emit('currentChange', value),
 })
 
 // 每页大小的计算属性
 const pageSizeModel = computed({
   get: () => props.pageSize,
-  set: (value) => emit('sizeChange', value)
+  set: value => emit('sizeChange', value),
 })
 
 // 页大小变化处理
@@ -67,6 +42,31 @@ function handleCurrentChange(page: number) {
   emit('currentChange', page)
 }
 </script>
+
+<template>
+  <div class="pagination-container">
+    <!-- 加载状态蒙层 -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-content">
+        <el-icon class="is-loading">
+          <Loading />
+        </el-icon>
+        <span>数据更新中...</span>
+      </div>
+    </div>
+
+    <el-pagination
+      v-model:current-page="currentPageModel"
+      v-model:page-size="pageSizeModel"
+      :total="total"
+      :page-sizes="[10, 20, 50, 100]"
+      layout="total, sizes, prev, pager, next, jumper"
+      background
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
+  </div>
+</template>
 
 <style scoped>
 .pagination-container {

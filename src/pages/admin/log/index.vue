@@ -1,70 +1,17 @@
-<template>
-  <div class="admin-log-page h-full flex flex-col">
-    <!-- 搜索和操作栏 -->
-    <LogSearchForm
-      :search-params="searchParams"
-      :action-type-options="actionTypeOptions"
-      :module-options="moduleOptions"
-      :selected-ids="selectedIds"
-      :loading="loading"
-      @search="handleSearch"
-      @reset="handleReset"
-      @refresh="handleRefresh"
-      @batch-delete="handleBatchDelete"
-      @clear="handleClear"
-    />
-
-    <!-- 列表 -->
-    <el-card shadow="never" class="list-card flex-1 min-h-0">
-      <template #header>
-        <div class="list-header">
-          <span class="list-title">操作日志</span>
-          <span class="list-sub">共 {{ pagination.total_count }} 条</span>
-        </div>
-      </template>
-
-      <LogTable
-        :log-list="list"
-        :loading="loading"
-        @selection-change="handleSelectionChange"
-        @detail="handleDetail"
-        @delete="handleDelete"
-      />
-
-      <LogPagination
-      :currentPage="searchParams.page || 1"
-      :pageSize="searchParams.page_size || 20"
-      :total="pagination.total_count || 0"
-      :loading="loading"
-      @sizeChange="handleSizeChange"
-      @currentChange="handleCurrentChange"
-    />
-    </el-card>
-
-    <!-- 详情抽屉 -->
-    <LogDetailDrawer
-      v-model="detail.visible"
-      :detail-data="detail.data"
-      :loading="detail.loading"
-      @close="detail.visible = false"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import type {
+  OperationLogDetail,
+  OperationLogItem,
+  OperationLogsListRequest,
+  OperationLogsPaginationInfo,
+} from '@/types/factory'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import { logsApi } from '@/api/admin/logs'
+import LogDetailDrawer from '@/components/pages/admin/log/LogDetailDrawer.vue'
+import LogPagination from '@/components/pages/admin/log/LogPagination.vue'
 import LogSearchForm from '@/components/pages/admin/log/LogSearchForm.vue'
 import LogTable from '@/components/pages/admin/log/LogTable.vue'
-import LogPagination from '@/components/pages/admin/log/LogPagination.vue'
-import LogDetailDrawer from '@/components/pages/admin/log/LogDetailDrawer.vue'
-import type {
-  OperationLogItem,
-  OperationLogDetail,
-  OperationLogsListRequest,
-  OperationLogsPaginationInfo
-} from '@/types/factory'
 
 const loading = ref(false)
 const list = ref<OperationLogItem[]>([])
@@ -76,7 +23,7 @@ const pagination = reactive<OperationLogsPaginationInfo>({
   total_count: 0,
   page_size: 20,
   has_next: false,
-  has_previous: false
+  has_previous: false,
 })
 
 const searchParams = reactive<OperationLogsListRequest>({
@@ -87,22 +34,16 @@ const searchParams = reactive<OperationLogsListRequest>({
   module: undefined,
   user_id: undefined,
   start_date: undefined,
-  end_date: undefined
+  end_date: undefined,
 })
 
 const selectedIds = ref<number[]>([])
 
-
-
-const detail = reactive<{ visible: boolean; loading: boolean; data: OperationLogDetail | null }>({
+const detail = reactive<{ visible: boolean, loading: boolean, data: OperationLogDetail | null }>({
   visible: false,
   loading: false,
-  data: null
+  data: null,
 })
-
-
-
-
 
 async function getList() {
   try {
@@ -114,9 +55,11 @@ async function getList() {
     actionTypeOptions.value = data.filters?.action_types || []
     const set = new Set<string>((data.filters?.modules || []).filter(Boolean))
     moduleOptions.value = Array.from(set)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     ElMessage.error(e?.message || '获取日志失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -154,8 +97,10 @@ async function handleDelete(id: number) {
     const res = await logsApi.deleteOperationLog(id)
     ElMessage.success(res.data || '删除成功')
     getList()
-  } catch (e) {
-    if (String(e).includes('cancel')) return
+  }
+  catch (e) {
+    if (String(e).includes('cancel'))
+      return
   }
 }
 
@@ -166,14 +111,16 @@ async function handleBatchDelete() {
   }
   try {
     await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条日志吗？`, '提示', {
-      type: 'warning'
+      type: 'warning',
     })
     const res = await logsApi.batchDeleteOperationLogs({ log_ids: selectedIds.value })
     ElMessage.success(res.data || '删除成功')
     selectedIds.value = []
     getList()
-  } catch (e) {
-    if (String(e).includes('cancel')) return
+  }
+  catch (e) {
+    if (String(e).includes('cancel'))
+      return
   }
 }
 
@@ -189,12 +136,12 @@ async function handleClear(params: any) {
     await logsApi.clearOperationLogs(params)
     ElMessage.success('清空完成')
     getList()
-  } catch (e) {
-    if (String(e).includes('cancel')) return
+  }
+  catch (e) {
+    if (String(e).includes('cancel'))
+      return
   }
 }
-
-
 
 async function handleDetail(id: number) {
   detail.visible = true
@@ -203,9 +150,11 @@ async function handleDetail(id: number) {
   try {
     const { data } = await logsApi.getOperationLogDetail(id)
     detail.data = data
-  } catch (e) {
+  }
+  catch (e) {
     ElMessage.error('获取详情失败')
-  } finally {
+  }
+  finally {
     detail.loading = false
   }
 }
@@ -218,6 +167,59 @@ onUnmounted(() => {
   // 组件卸载时的清理工作
 })
 </script>
+
+<template>
+  <div class="admin-log-page h-full flex flex-col">
+    <!-- 搜索和操作栏 -->
+    <LogSearchForm
+      :search-params="searchParams"
+      :action-type-options="actionTypeOptions"
+      :module-options="moduleOptions"
+      :selected-ids="selectedIds"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="handleReset"
+      @refresh="handleRefresh"
+      @batch-delete="handleBatchDelete"
+      @clear="handleClear"
+    />
+
+    <!-- 列表 -->
+    <el-card shadow="never" class="list-card flex-1 min-h-0">
+      <template #header>
+        <div class="list-header">
+          <span class="list-title">操作日志</span>
+          <span class="list-sub">共 {{ pagination.total_count }} 条</span>
+        </div>
+      </template>
+
+      <LogTable
+        :log-list="list"
+        :loading="loading"
+        @selection-change="handleSelectionChange"
+        @detail="handleDetail"
+        @delete="handleDelete"
+      />
+
+      <LogPagination
+        :current-page="searchParams.page || 1"
+        :page-size="searchParams.page_size || 20"
+        :total="pagination.total_count || 0"
+        :loading="loading"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </el-card>
+
+    <!-- 详情抽屉 -->
+    <LogDetailDrawer
+      v-model="detail.visible"
+      :detail-data="detail.data"
+      :loading="detail.loading"
+      @close="detail.visible = false"
+    />
+  </div>
+</template>
 
 <style scoped>
 .search-card {

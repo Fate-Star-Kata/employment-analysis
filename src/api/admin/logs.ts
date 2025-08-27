@@ -1,20 +1,20 @@
-import serviceAxios from '@/http'
 import type {
+  OperationLogDetailResponse,
+  OperationLogsActionResponse,
+  OperationLogsBatchDeleteRequest,
+  OperationLogsClearParams,
+  OperationLogsClearResponse,
   OperationLogsListRequest,
   OperationLogsListResponse,
-  OperationLogDetailResponse,
-  OperationLogsBatchDeleteRequest,
-  OperationLogsActionResponse,
-  OperationLogsClearParams,
-  OperationLogsClearResponse
 } from '@/types/factory'
+import serviceAxios from '@/http'
 
 export const logsApi = {
   // 获取操作日志列表
   getOperationLogs: (params: OperationLogsListRequest): Promise<OperationLogsListResponse> => {
     return serviceAxios.get('/hzadmin/admin/operation/logs/', {
       params,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     })
   },
 
@@ -36,7 +36,7 @@ export const logsApi = {
   // 清空日志（按天数或日期范围）
   clearOperationLogs: (params: OperationLogsClearParams): Promise<OperationLogsClearResponse> => {
     return serviceAxios.delete('/hzadmin/admin/operation/logs/clear/', { params })
-  }
+  },
 }
 
 export default logsApi

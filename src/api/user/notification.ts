@@ -56,8 +56,8 @@ export function getNotificationList(params: NotificationListParams = {}): Promis
     params: {
       page: params.page || 1,
       page_size: params.page_size || 10,
-      ...params
-    }
+      ...params,
+    },
   })
 }
 
@@ -65,7 +65,7 @@ export function getNotificationList(params: NotificationListParams = {}): Promis
 export function getNotificationDetail(notificationId: number): Promise<NotificationDetailResponse> {
   return serviceAxios({
     url: `/hzadmin/client/notification/detail/${notificationId}/`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -74,7 +74,7 @@ export function markNotificationRead(data: MarkReadRequest): Promise<MarkReadRes
   return serviceAxios({
     url: '/hzadmin/client/notification/read/',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -82,19 +82,19 @@ export function markNotificationRead(data: MarkReadRequest): Promise<MarkReadRes
 export function markAllNotificationRead(): Promise<MarkReadResponse> {
   return serviceAxios({
     url: '/hzadmin/client/notification/read_all/',
-    method: 'post'
+    method: 'post',
   })
 }
 
 // 获取未读通知数量
-export function getUnreadCount(): Promise<{ code: number; msg: string; data: { unread_count: number } }> {
+export function getUnreadCount(): Promise<{ code: number, msg: string, data: { unread_count: number } }> {
   return serviceAxios({
     url: '/hzadmin/client/notification/list/',
     method: 'get',
     params: {
       page: 1,
       page_size: 1,
-      is_read: false
-    }
+      is_read: false,
+    },
   })
 }

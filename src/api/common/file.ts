@@ -1,5 +1,5 @@
-import serviceAxios from '@/http'
 import type { AxiosProgressEvent } from 'axios'
+import serviceAxios from '@/http'
 
 /**
  * 上传单个文件
@@ -8,24 +8,20 @@ import type { AxiosProgressEvent } from 'axios'
  * @param onProgress 进度回调函数
  * @returns Promise<any>
  */
-export const uploadFile = (
-  file: File,
-  uploadUrl: string,
-  onProgress?: (progressEvent: AxiosProgressEvent) => void
-): Promise<any> => {
+export function uploadFile(file: File, uploadUrl: string, onProgress?: (progressEvent: AxiosProgressEvent) => void): Promise<any> {
   const formData = new FormData()
   formData.append('file', file)
 
-  console.log(formData);
+  console.log(formData)
 
   return serviceAxios({
     method: 'POST',
     url: uploadUrl,
     data: formData,
     headers: {
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': 'multipart/form-data',
     },
-    onUploadProgress: onProgress
+    onUploadProgress: onProgress,
   })
 }
 
@@ -35,7 +31,7 @@ export const uploadFile = (
  * @param uploadUrl 上传地址
  * @returns Promise<any[]>
  */
-export const uploadMultipleFiles = (files: File[], uploadUrl: string): Promise<any[]> => {
+export function uploadMultipleFiles(files: File[], uploadUrl: string): Promise<any[]> {
   const uploadPromises = files.map(file => uploadFile(file, uploadUrl))
   return Promise.all(uploadPromises)
 }

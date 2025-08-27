@@ -1,3 +1,131 @@
+<script setup lang="ts">
+import type { NotificationItem } from '@/types/factory'
+import {
+  CircleCheckFilled,
+  CircleCloseFilled,
+  Clock,
+  Delete,
+  Edit,
+  UserFilled,
+  WarningFilled,
+} from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { ref } from 'vue'
+import { notificationApi } from '@/api/admin/notification'
+
+// Props
+interface Props {
+  data: NotificationItem
+  index?: number
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  index: 0,
+})
+
+const emit = defineEmits<Emits>()
+
+// Emits
+interface Emits {
+  reload: []
+  detail: [id: string | number]
+  edit: [id: string | number]
+  delete: [id: string | number]
+}
+
+// 响应式数据
+const showConfirmDialog = ref(false)
+const confirmLoading = ref(false)
+const confirmMessage = ref('')
+const currentAction = ref<'delete' | null>(null)
+
+// 格式化日期
+function formatDate(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+  if (days === 0) {
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    if (hours === 0) {
+      const minutes = Math.floor(diff / (1000 * 60))
+      return minutes <= 0 ? '刚刚' : `${minutes}分钟前`
+    }
+    return `${hours}小时前`
+  }
+  else if (days === 1) {
+    return '昨天'
+  }
+  else if (days < 7) {
+    return `${days}天前`
+  }
+  else {
+    return date.toLocaleDateString('zh-CN')
+  }
+}
+
+// 方法
+function handleEdit() {
+  emit('edit', props.data.id)
+}
+
+function handleDeleteClick() {
+  currentAction.value = 'delete'
+  confirmMessage.value = '确认删除此通知吗？删除后无法恢复。'
+  showConfirmDialog.value = true
+}
+
+function handleCommand(command: string) {
+  switch (command) {
+    case 'detail':
+      emit('detail', props.data.id)
+      break
+    case 'delete':
+      currentAction.value = 'delete'
+      confirmMessage.value = '确认删除此通知吗？删除后无法恢复。'
+      showConfirmDialog.value = true
+      break
+  }
+}
+
+async function handleConfirm() {
+  if (!currentAction.value)
+    return
+
+  confirmLoading.value = true
+
+  try {
+    if (currentAction.value === 'delete') {
+      await deleteNotification()
+    }
+  }
+  finally {
+    confirmLoading.value = false
+    showConfirmDialog.value = false
+    currentAction.value = null
+  }
+}
+
+async function deleteNotification() {
+  try {
+    const response = await notificationApi.deleteNotification(props.data.id)
+
+    if (response.code === 200) {
+      ElMessage.success(response.msg || '删除成功')
+      emit('delete', props.data.id)
+    }
+    else {
+      ElMessage.error(response.msg || '删除失败')
+    }
+  }
+  catch (error) {
+    console.error('删除通知失败:', error)
+    ElMessage.error('删除失败，请重试')
+  }
+}
+</script>
+
 <template>
   <el-card class="notification-item" shadow="hover">
     <!-- 卡片头部 -->
@@ -49,9 +177,13 @@
     <!-- 卡片内容 -->
     <div class="card-content">
       <!-- 标题 -->
-      <h3 class="notification-title">{{ data.title }}</h3>
+      <h3 class="notification-title">
+        {{ data.title }}
+      </h3>
       <!-- 内容 -->
-      <p class="notification-content">{{ data.content }}</p>
+      <p class="notification-content">
+        {{ data.content }}
+      </p>
 
       <!-- 底部信息 -->
       <div class="notification-footer">
@@ -82,138 +214,16 @@
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="showConfirmDialog = false" class="cancel-btn">
+        <el-button class="cancel-btn" @click="showConfirmDialog = false">
           取消
         </el-button>
-        <el-button type="primary" @click="handleConfirm" :loading="confirmLoading" class="confirm-btn">
+        <el-button type="primary" :loading="confirmLoading" class="confirm-btn" @click="handleConfirm">
           确认
         </el-button>
       </div>
     </template>
   </el-dialog>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
-import {
-  Clock,
-  Delete,
-  Edit,
-  CircleCloseFilled,
-  CircleCheckFilled,
-  Lock,
-  UserFilled,
-  WarningFilled,
-} from '@element-plus/icons-vue'
-import { notificationApi } from '@/api/admin/notification'
-import type { NotificationItem } from '@/types/factory'
-
-// Props
-interface Props {
-  data: NotificationItem
-  index?: number
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  index: 0
-})
-
-// Emits
-interface Emits {
-  reload: []
-  detail: [id: string | number]
-  edit: [id: string | number]
-  delete: [id: string | number]
-}
-
-const emit = defineEmits<Emits>()
-
-// 响应式数据
-const showConfirmDialog = ref(false)
-const confirmLoading = ref(false)
-const confirmMessage = ref('')
-const currentAction = ref<'delete' | null>(null)
-
-// 格式化日期
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-  if (days === 0) {
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    if (hours === 0) {
-      const minutes = Math.floor(diff / (1000 * 60))
-      return minutes <= 0 ? '刚刚' : `${minutes}分钟前`
-    }
-    return `${hours}小时前`
-  } else if (days === 1) {
-    return '昨天'
-  } else if (days < 7) {
-    return `${days}天前`
-  } else {
-    return date.toLocaleDateString('zh-CN')
-  }
-}
-
-// 方法
-const handleEdit = () => {
-  emit('edit', props.data.id)
-}
-
-const handleDeleteClick = () => {
-  currentAction.value = 'delete'
-  confirmMessage.value = '确认删除此通知吗？删除后无法恢复。'
-  showConfirmDialog.value = true
-}
-
-const handleCommand = (command: string) => {
-  switch (command) {
-    case 'detail':
-      emit('detail', props.data.id)
-      break
-    case 'delete':
-      currentAction.value = 'delete'
-      confirmMessage.value = '确认删除此通知吗？删除后无法恢复。'
-      showConfirmDialog.value = true
-      break
-  }
-}
-
-const handleConfirm = async () => {
-  if (!currentAction.value) return
-
-  confirmLoading.value = true
-
-  try {
-    if (currentAction.value === 'delete') {
-      await deleteNotification()
-    }
-  } finally {
-    confirmLoading.value = false
-    showConfirmDialog.value = false
-    currentAction.value = null
-  }
-}
-
-const deleteNotification = async () => {
-  try {
-    const response = await notificationApi.deleteNotification(props.data.id)
-
-    if (response.code === 200) {
-      ElMessage.success(response.msg || '删除成功')
-      emit('delete', props.data.id)
-    } else {
-      ElMessage.error(response.msg || '删除失败')
-    }
-  } catch (error) {
-    console.error('删除通知失败:', error)
-    ElMessage.error('删除失败，请重试')
-  }
-}
-</script>
 
 <style scoped>
 .notification-item {

@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Motion } from 'motion-v'
 import { ElMessage } from 'element-plus'
+import { Motion } from 'motion-v'
+import { ref } from 'vue'
 
 // 动画配置
 const pageVariants = {
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: ['easeOut'] }
+  transition: { duration: 0.6, ease: ['easeOut'] },
 }
 
 const cardVariants = {
   initial: { opacity: 0, y: 20, scale: 0.95 },
   animate: { opacity: 1, y: 0, scale: 1 },
-  transition: { duration: 0.4, ease: ['easeOut'] }
+  transition: { duration: 0.4, ease: ['easeOut'] },
 }
 
 // 系统设置
@@ -22,7 +22,7 @@ const systemSettings = ref({
   siteDescription: '基于Vue3的现代化管理系统',
   theme: 'light',
   language: 'zh-CN',
-  timezone: 'Asia/Shanghai'
+  timezone: 'Asia/Shanghai',
 })
 
 // 通知设置
@@ -30,7 +30,7 @@ const notificationSettings = ref({
   emailNotification: true,
   smsNotification: false,
   browserNotification: true,
-  systemMaintenance: true
+  systemMaintenance: true,
 })
 
 // 安全设置
@@ -38,7 +38,7 @@ const securitySettings = ref({
   twoFactorAuth: false,
   sessionTimeout: 30,
   passwordExpiry: 90,
-  loginAttempts: 5
+  loginAttempts: 5,
 })
 
 // 保存设置
@@ -55,15 +55,21 @@ function saveSettings(type: string) {
       <div class="max-w-6xl mx-auto">
         <!-- 页面标题 -->
         <div class="mb-6">
-          <h1 class="text-2xl font-bold text-gray-900">系统设置</h1>
-          <p class="text-gray-600 mt-1">管理系统配置和个人偏好设置</p>
+          <h1 class="text-2xl font-bold text-gray-900">
+            系统设置
+          </h1>
+          <p class="text-gray-600 mt-1">
+            管理系统配置和个人偏好设置
+          </p>
         </div>
 
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <!-- 系统设置 -->
           <!-- @vue-ignore -->
-          <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
-            :transition="{ ...cardVariants.transition, delay: 0.1 }">
+          <Motion
+            :initial="cardVariants.initial" :animate="cardVariants.animate"
+            :transition="{ ...cardVariants.transition, delay: 0.1 }"
+          >
             <el-card class="settings-card">
               <template #header>
                 <div class="flex items-center justify-between">
@@ -116,8 +122,10 @@ function saveSettings(type: string) {
 
           <!-- 通知设置 -->
           <!-- @vue-ignore -->
-          <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
-            :transition="{ ...cardVariants.transition, delay: 0.2 }">
+          <Motion
+            :initial="cardVariants.initial" :animate="cardVariants.animate"
+            :transition="{ ...cardVariants.transition, delay: 0.2 }"
+          >
             <el-card class="settings-card">
               <template #header>
                 <div class="flex items-center justify-between">
@@ -136,8 +144,12 @@ function saveSettings(type: string) {
               <div class="space-y-4">
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900">邮件通知</div>
-                    <div class="text-sm text-gray-500">接收重要系统邮件通知</div>
+                    <div class="font-medium text-gray-900">
+                      邮件通知
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      接收重要系统邮件通知
+                    </div>
                   </div>
                   <el-switch v-model="notificationSettings.emailNotification" />
                 </div>
@@ -146,8 +158,12 @@ function saveSettings(type: string) {
 
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900">短信通知</div>
-                    <div class="text-sm text-gray-500">接收紧急事件短信提醒</div>
+                    <div class="font-medium text-gray-900">
+                      短信通知
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      接收紧急事件短信提醒
+                    </div>
                   </div>
                   <el-switch v-model="notificationSettings.smsNotification" />
                 </div>
@@ -156,8 +172,12 @@ function saveSettings(type: string) {
 
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900">浏览器通知</div>
-                    <div class="text-sm text-gray-500">显示桌面推送通知</div>
+                    <div class="font-medium text-gray-900">
+                      浏览器通知
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      显示桌面推送通知
+                    </div>
                   </div>
                   <el-switch v-model="notificationSettings.browserNotification" />
                 </div>
@@ -166,8 +186,12 @@ function saveSettings(type: string) {
 
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="font-medium text-gray-900">系统维护通知</div>
-                    <div class="text-sm text-gray-500">系统维护时发送通知</div>
+                    <div class="font-medium text-gray-900">
+                      系统维护通知
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      系统维护时发送通知
+                    </div>
                   </div>
                   <el-switch v-model="notificationSettings.systemMaintenance" />
                 </div>
@@ -177,8 +201,10 @@ function saveSettings(type: string) {
 
           <!-- 安全设置 -->
           <!-- @vue-ignore -->
-          <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
-            :transition="{ ...cardVariants.transition, delay: 0.3 }">
+          <Motion
+            :initial="cardVariants.initial" :animate="cardVariants.animate"
+            :transition="{ ...cardVariants.transition, delay: 0.3 }"
+          >
             <el-card class="settings-card">
               <template #header>
                 <div class="flex items-center justify-between">
@@ -198,8 +224,12 @@ function saveSettings(type: string) {
                 <el-form-item>
                   <template #label>
                     <div>
-                      <div class="font-medium">双因素认证</div>
-                      <div class="text-xs text-gray-500">增强账户安全性</div>
+                      <div class="font-medium">
+                        双因素认证
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        增强账户安全性
+                      </div>
                     </div>
                   </template>
                   <el-switch v-model="securitySettings.twoFactorAuth" />
@@ -231,8 +261,10 @@ function saveSettings(type: string) {
 
           <!-- 其他设置 -->
           <!-- @vue-ignore -->
-          <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
-            :transition="{ ...cardVariants.transition, delay: 0.4 }">
+          <Motion
+            :initial="cardVariants.initial" :animate="cardVariants.animate"
+            :transition="{ ...cardVariants.transition, delay: 0.4 }"
+          >
             <el-card class="settings-card">
               <template #header>
                 <div class="flex items-center">

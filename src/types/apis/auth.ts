@@ -77,12 +77,12 @@ export interface LoginResponse {
 }
 
 export interface LoginResNoToken {
-  code: number,
-  msg: "登录成功",
+  code: number
+  msg: '登录成功'
   data: {
-    user_id: number,
-    username: string,
-    login_time: Date,
+    user_id: number
+    username: string
+    login_time: Date
     ip: string
   }
 }

@@ -1,9 +1,10 @@
+import type { RouteRecordRaw } from 'vue-router'
 // src/router/index.ts
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
 import { useLoadingStore } from '@/stores/common/loading'
 
-type AutoRoute = {
+interface AutoRoute {
   path?: string
   name?: string
   component?: any
@@ -34,7 +35,7 @@ function flattenRoutes(list: AutoRoute[], basePath = ''): AutoRoute[] {
       // 保留当前有 component 的路由（作为父路由/布局）
       out.push({
         ...r,
-        path: normalizePath(fullBase)
+        path: normalizePath(fullBase),
       })
       // 若有 children，递归保留子路由（不会丢）
       if (r.children && r.children.length) {
@@ -49,7 +50,7 @@ function flattenRoutes(list: AutoRoute[], basePath = ''): AutoRoute[] {
       if (indexChild) {
         out.push({
           ...indexChild,
-          path: normalizePath(fullBase)
+          path: normalizePath(fullBase),
         })
       }
       // 处理其余子路由（排除 index）
@@ -65,7 +66,7 @@ function flattenRoutes(list: AutoRoute[], basePath = ''): AutoRoute[] {
 
 function buildRoutes() {
   const normalRoutes = flattenRoutes(
-    routes.filter(r => r.path !== '/admin' && r.path !== '/templates')
+    routes.filter(r => r.path !== '/admin' && r.path !== '/templates'),
   )
 
   const adminRoot = routes.find(r => r.path === '/admin')
@@ -81,21 +82,21 @@ function buildRoutes() {
       path: '/admin',
       component: import('@/pages/admin/index.vue'),
       redirect: '/admin/dashboard',
-      children: adminChildren
+      children: adminChildren,
     },
-    //母版组件存放特殊路径
+    // 母版组件存放特殊路径
     {
       path: '/templates',
       // @ts-ignore canFind this component
       component: () => import('@/pages/templates/index.vue'), // 可建一个 index.vue 当 layout
-      children: templatesChildren
-    }
+      children: templatesChildren,
+    },
   ]
 }
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: buildRoutes() as RouteRecordRaw[]
+  routes: buildRoutes() as RouteRecordRaw[],
 })
 
 // 全局导航守卫 - 路由加载动画

@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import serverConfig, { adminMenuItems } from '@/configs';
-import { useUserStore } from '@/stores/auth/user';
-import type { AdminHeader } from '@/types/factory';
-import { storeToRefs } from 'pinia';
-import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import type { AdminHeader } from '@/types/factory'
+import { storeToRefs } from 'pinia'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import serverConfig, { adminMenuItems } from '@/configs'
+import { useUserStore } from '@/stores/auth/user'
+
+defineProps<Props>()
+
 const store = useUserStore()
 
 const { userInfo } = storeToRefs(store)
@@ -12,8 +15,6 @@ const { userInfo } = storeToRefs(store)
 interface Props {
   isCollapse: boolean
 }
-
-defineProps<Props>()
 
 const router = useRouter()
 const route = useRoute()
@@ -27,7 +28,7 @@ const activeMenu = computed(() => route.path)
 // 默认展开的父菜单
 const defaultOpeneds = computed(() => {
   const matched = menuItems.value.find(item =>
-    item.children?.some(child => child.path === route.path)
+    item.children?.some(child => child.path === route.path),
   )
   return matched ? [matched.id] : []
 })
@@ -47,7 +48,7 @@ watch(() => route.path, () => {
 onMounted(() => {
   // 登录拦截
   if (!userInfo.value) {
-    // router.push('/auth/login')
+    router.push('/auth/login')
   }
 })
 </script>
@@ -68,18 +69,24 @@ onMounted(() => {
 
     <!-- 菜单 -->
     <div class="menu-container flex-1 overflow-y-auto">
-      <el-menu :default-active="activeMenu" :default-openeds="defaultOpeneds" :collapse="isCollapse"
+      <el-menu
+        :default-active="activeMenu" :default-openeds="defaultOpeneds" :collapse="isCollapse"
         :unique-opened="true" background-color="#ffffff" text-color="#64748b" active-text-color="#3b82f6"
-        class="border-none">
+        class="border-none"
+      >
         <template v-for="item in menuItems" :key="item.id">
           <template v-if="!item.hide">
             <!-- 无子菜单 -->
-            <el-menu-item v-if="!item.children || item.children.length === 0" :index="item.path"
-              @click="handleMenuClick(item.path)">
+            <el-menu-item
+              v-if="!item.children || item.children.length === 0" :index="item.path"
+              @click="handleMenuClick(item.path)"
+            >
               <el-icon>
                 <component :is="item.icon" />
               </el-icon>
-              <template #title>{{ item.title }}</template>
+              <template #title>
+                {{ item.title }}
+              </template>
             </el-menu-item>
 
             <!-- 有子菜单 -->
@@ -91,8 +98,10 @@ onMounted(() => {
                 <span>{{ item.title }}</span>
               </template>
 
-              <el-menu-item v-for="child in item.children" :key="child.id" :index="child.path" v-show="!child.hide"
-                @click="handleMenuClick(child.path)">
+              <el-menu-item
+                v-for="child in item.children" v-show="!child.hide" :key="child.id" :index="child.path"
+                @click="handleMenuClick(child.path)"
+              >
                 <el-icon v-if="child.icon" style="margin-right: 0;">
                   <component :is="child.icon" />
                 </el-icon>
@@ -107,13 +116,14 @@ onMounted(() => {
     <!-- 底部 -->
     <div v-if="!isCollapse" class="footer-info p-4 border-t border-gray-100">
       <div class="text-center text-gray-500 text-xs">
-        <div class="font-medium">{{ serverConfig.VITE_APP_TITLE }} {{ serverConfig.VITE_APP_VERSION }}</div>
+        <div class="font-medium">
+          {{ serverConfig.VITE_APP_TITLE }} {{ serverConfig.VITE_APP_VERSION }}
+        </div>
         <!-- <div class="mt-1 text-gray-400">© 2024 HZ Tech</div> -->
       </div>
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .admin-navbar {

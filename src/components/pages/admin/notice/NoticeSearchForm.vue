@@ -1,3 +1,77 @@
+<script setup lang="ts">
+import { Search } from '@element-plus/icons-vue'
+import { ref, watch } from 'vue'
+
+// Props
+interface Props {
+  query?: string
+  is_public?: 0 | 1 | undefined
+  loading?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  query: '',
+  is_public: undefined,
+  loading: false,
+})
+
+const emit = defineEmits<Emits>()
+
+// Emits
+interface Emits {
+  search: [params: { query: string, is_public: 0 | 1 | undefined }]
+  reset: []
+}
+
+// 响应式数据
+const searchQuery = ref(props.query)
+const isPublic = ref(props.is_public)
+
+// 监听props变化
+watch(() => props.query, (newVal) => {
+  searchQuery.value = newVal
+})
+
+watch(() => props.is_public, (newVal) => {
+  isPublic.value = newVal
+})
+
+// 防抖搜索
+let searchTimer: number | null = null
+
+function handleSearch() {
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+  }
+  searchTimer = setTimeout(() => {
+    emit('search', {
+      query: searchQuery.value,
+      is_public: isPublic.value,
+    })
+  }, 500)
+}
+
+function handleFilterChange() {
+  emit('search', {
+    query: searchQuery.value,
+    is_public: isPublic.value,
+  })
+}
+
+function handleSearchClick() {
+  emit('search', {
+    query: searchQuery.value,
+    is_public: isPublic.value,
+  })
+}
+
+function handleReset() {
+  searchQuery.value = ''
+  isPublic.value = undefined
+  emit('reset')
+}
+</script>
+
 <template>
   <el-card shadow="never" class="search-card">
     <el-form :inline="true" class="search-form">
@@ -36,80 +110,6 @@
     </el-form>
   </el-card>
 </template>
-
-<script setup lang="ts">
-import { ref, watch } from 'vue'
-import { Search } from '@element-plus/icons-vue'
-
-// Props
-interface Props {
-  query?: string
-  is_public?: 0 | 1 | undefined
-  loading?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  query: '',
-  is_public: undefined,
-  loading: false
-})
-
-// Emits
-interface Emits {
-  search: [params: { query: string; is_public: 0 | 1 | undefined }]
-  reset: []
-}
-
-const emit = defineEmits<Emits>()
-
-// 响应式数据
-const searchQuery = ref(props.query)
-const isPublic = ref(props.is_public)
-
-// 监听props变化
-watch(() => props.query, (newVal) => {
-  searchQuery.value = newVal
-})
-
-watch(() => props.is_public, (newVal) => {
-  isPublic.value = newVal
-})
-
-// 防抖搜索
-let searchTimer: number | null = null
-
-const handleSearch = () => {
-  if (searchTimer) {
-    clearTimeout(searchTimer)
-  }
-  searchTimer = setTimeout(() => {
-    emit('search', {
-      query: searchQuery.value,
-      is_public: isPublic.value
-    })
-  }, 500)
-}
-
-const handleFilterChange = () => {
-  emit('search', {
-    query: searchQuery.value,
-    is_public: isPublic.value
-  })
-}
-
-const handleSearchClick = () => {
-  emit('search', {
-    query: searchQuery.value,
-    is_public: isPublic.value
-  })
-}
-
-const handleReset = () => {
-  searchQuery.value = ''
-  isPublic.value = undefined
-  emit('reset')
-}
-</script>
 
 <style scoped>
 .search-card {

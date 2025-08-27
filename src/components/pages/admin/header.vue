@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { ElMessageBox, ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/auth/user'
-import { storeToRefs } from 'pinia'
-import { adminMenuItems } from '@/configs'
 import type { AdminHeader } from '@/types/factory'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { storeToRefs } from 'pinia'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { adminMenuItems } from '@/configs'
+import { useUserStore } from '@/stores/auth/user'
 import { useCommonStore } from '@/stores/common'
 
 interface Props {
@@ -31,7 +31,7 @@ const avatar = getUserAvatar
 // 动态面包屑数据
 const breadcrumbs = computed(() => {
   const currentPath = route.path
-  const breadcrumbItems: { label: string; path?: string }[] = [{ label: '首页' }]
+  const breadcrumbItems: { label: string, path?: string }[] = [{ label: '首页' }]
 
   // 递归查找菜单项
   const findMenuItem = (items: AdminHeader[], path: string): AdminHeader | null => {
@@ -73,19 +73,20 @@ const breadcrumbs = computed(() => {
     const menuPath = buildBreadcrumb(adminMenuItems, currentPath)
     if (menuPath.length > 0) {
       // 添加找到的菜单路径到面包屑
-      menuPath.forEach(item => {
+      menuPath.forEach((item) => {
         breadcrumbItems.push({
           label: item.title,
-          path: item.path as string
+          path: item.path as string,
         })
       })
-    } else {
+    }
+    else {
       // 如果没找到匹配的菜单项，使用当前路由信息
       const pathSegments = currentPath.split('/').filter(Boolean)
       if (pathSegments.length > 1) {
         breadcrumbItems.push({
           label: pathSegments[pathSegments.length - 1],
-          path: currentPath as string
+          path: currentPath as string,
         })
       }
     }
@@ -103,7 +104,7 @@ const userMenuItems = ref([
     href: '/admin/profile',
     event: () => {
       router.push('/admin/profile')
-    }
+    },
   },
   {
     command: 'logout',
@@ -113,8 +114,8 @@ const userMenuItems = ref([
     divided: true,
     event: () => {
       handleLogout()
-    }
-  }
+    },
+  },
 ])
 
 // 切换侧边栏
@@ -129,7 +130,8 @@ function handleCommand(command: string) {
     if (menuItem.event) {
       // 如果有自定义事件处理函数，执行它
       menuItem.event()
-    } else if (menuItem.href) {
+    }
+    else if (menuItem.href) {
       // 如果有href属性，进行路由跳转
       router.push(menuItem.href)
     }
@@ -145,7 +147,7 @@ function handleLogout() {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
-    }
+    },
   ).then(() => {
     ElMessage.success('退出成功')
     router.push('/auth/login')
@@ -158,7 +160,8 @@ function handleLogout() {
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen()
-  } else {
+  }
+  else {
     document.exitFullscreen()
   }
 }
@@ -169,7 +172,7 @@ function toggleFullscreen() {
     <!-- 左侧区域 -->
     <div class="flex items-center">
       <!-- 菜单切换按钮 -->
-      <el-button type="text" size="large" @click="handleToggleSidebar" class="mr-4">
+      <el-button type="text" size="large" class="mr-4" @click="handleToggleSidebar">
         <el-icon size="18">
           <Fold v-if="!isCollapse" />
           <Expand v-else />
@@ -201,7 +204,7 @@ function toggleFullscreen() {
 
       <!-- 通知按钮 -->
       <el-tooltip content="通知" placement="bottom">
-        <el-badge class="item" :offset="[-10, 10]" v-show="false">
+        <el-badge v-show="false" class="item" :offset="[-10, 10]">
           <el-button type="text" size="large">
             <el-icon size="18">
               <Bell />
@@ -211,12 +214,16 @@ function toggleFullscreen() {
       </el-tooltip>
 
       <!-- 用户信息下拉菜单 -->
-      <el-dropdown @command="handleCommand" trigger="click">
+      <el-dropdown trigger="click" @command="handleCommand">
         <div class="flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
           <el-avatar :size="32" :src="avatar" class="mr-2" />
           <div class="text-sm">
-            <div class="font-medium text-gray-900">{{ userInfo?.username || '用户' }}</div>
-            <div class="text-gray-500 text-xs">{{ userInfo?.role || '管理员' }}</div>
+            <div class="font-medium text-gray-900">
+              {{ userInfo?.username || '用户' }}
+            </div>
+            <div class="text-gray-500 text-xs">
+              {{ userInfo?.role || '管理员' }}
+            </div>
           </div>
           <el-icon class="ml-2 text-gray-400">
             <ArrowDown />
@@ -225,8 +232,10 @@ function toggleFullscreen() {
 
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item v-for="item in userMenuItems" :key="item.command" :command="item.command"
-              :divided="item.divided">
+            <el-dropdown-item
+              v-for="item in userMenuItems" :key="item.command" :command="item.command"
+              :divided="item.divided"
+            >
               <el-icon class="mr-2">
                 <component :is="item.icon" />
               </el-icon>
@@ -248,4 +257,3 @@ function toggleFullscreen() {
   margin-right: 8px;
 }
 </style>
-

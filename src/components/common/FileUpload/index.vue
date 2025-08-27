@@ -1,70 +1,11 @@
-<template>
-  <div class="file-upload-container">
-    <el-upload ref="uploadRef" class="upload-demo" :drag="drag" :action="action" :accept="accept" :disabled="disabled"
-      :auto-upload="autoUpload" :show-file-list="true" :multiple="multiple" :before-upload="handleBeforeUpload"
-      v-model:file-list="fileList">
-      <div class="upload-content">
-        <div class="upload-icon">
-          <el-icon class="el-icon--upload">
-            <upload-filled />
-          </el-icon>
-        </div>
-        <div class="upload-text">
-          <div class="el-upload__text">
-            拖拽文件到此处或<em>点击上传</em>
-          </div>
-          <div class="el-upload__tip">
-            支持格式: {{ acceptText }}
-          </div>
-        </div>
-      </div>
-    </el-upload>
-
-    <!-- 上传进度显示 -->
-    <div class="upload-progress-section" v-if="uploadProgress.size > 0">
-      <div class="progress-title">上传进度</div>
-      <div class="progress-list">
-        <div v-for="[fileId, progress] in uploadProgress" :key="fileId" class="progress-item">
-          <div class="progress-info">
-            <div class="file-name">{{ progress.name }}</div>
-            <div class="progress-status">
-              <span class="progress-text">{{ progress.progress }}%</span>
-              <el-icon v-if="progress.status === 'success'" class="status-icon success">
-                <Check />
-              </el-icon>
-              <el-icon v-else-if="progress.status === 'error'" class="status-icon error">
-                <Close />
-              </el-icon>
-            </div>
-          </div>
-          <el-progress :percentage="progress.progress"
-            :status="progress.status === 'success' ? 'success' : progress.status === 'error' ? 'exception' : undefined"
-            :stroke-width="6" :show-text="false" />
-        </div>
-      </div>
-    </div>
-
-    <!-- 操作按钮 -->
-    <div class="upload-actions">
-      <el-button type="primary" @click="submitUpload" :loading="isUploading"
-        :disabled="fileList.length === 0 || disabled">
-        {{ isUploading ? '上传中...' : '开始上传' }}
-      </el-button>
-      <el-button @click="clearFiles" :disabled="isUploading" v-if="fileList.length > 0">
-        清空文件
-      </el-button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { UploadFilled, Check, Close } from '@element-plus/icons-vue'
-import type { UploadUserFile, ElUpload } from 'element-plus'
-import serverConfig from '@/configs'
-import { uploadFile } from '@/api/common/file'
 import type { AxiosProgressEvent } from 'axios'
+import type { ElUpload, UploadUserFile } from 'element-plus'
+import { Check, Close, UploadFilled } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { computed, ref, watch } from 'vue'
+import { uploadFile } from '@/api/common/file'
+import serverConfig from '@/configs'
 
 // 文件上传进度接口
 interface FileProgress {
@@ -91,8 +32,10 @@ const props = withDefaults(defineProps<Props>(), {
   action: serverConfig.FileUploadUrl,
   autoUpload: false,
   drag: true,
-  multiple: true
+  multiple: true,
 })
+
+const emit = defineEmits<Emits>()
 
 // 定义事件
 interface Emits {
@@ -102,8 +45,6 @@ interface Emits {
   (e: 'progress', progress: FileProgress): void
 }
 
-const emit = defineEmits<Emits>()
-
 // 响应式数据
 const uploadRef = ref<InstanceType<typeof ElUpload>>()
 const fileList = ref<UploadUserFile[]>([])
@@ -112,30 +53,32 @@ const uploadProgress = ref<Map<string, FileProgress>>(new Map())
 
 // 计算属性
 const acceptText = computed(() => {
-  if (!props.accept) return '图片、文档、视频等所有格式'
+  if (!props.accept)
+    return '图片、文档、视频等所有格式'
   return props.accept.split(',').map(type => type.trim().replace('.', '')).join(', ')
 })
 
 // 方法
-const handleBeforeUpload = (rawFile: File) => {
+function handleBeforeUpload(rawFile: File) {
   // 阻止自动上传，只添加到文件列表
   return false
 }
 
 // 监听文件列表变化，触发 change 事件
 watch(fileList, (newFileList) => {
-  console.log('fileList', newFileList);
+  console.log('fileList', newFileList)
 
   emit('change', newFileList)
 }, { deep: true })
 
-const submitUpload = async () => {
+async function submitUpload() {
   if (fileList.value.length === 0) {
     ElMessage.warning('请先选择文件')
     return
   }
 
-  if (isUploading.value) return
+  if (isUploading.value)
+    return
 
   isUploading.value = true
 
@@ -147,15 +90,17 @@ const submitUpload = async () => {
       }
     }
     ElMessage.success('所有文件上传成功')
-  } catch (error) {
+  }
+  catch (error) {
     ElMessage.error('文件上传失败')
     console.error('Upload error:', error)
-  } finally {
+  }
+  finally {
     isUploading.value = false
   }
 }
 
-const uploadSingleFile = (file: UploadUserFile): Promise<void> => {
+function uploadSingleFile(file: UploadUserFile): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!(file.raw instanceof File)) {
       reject(new Error('文件数据不存在'))
@@ -170,7 +115,7 @@ const uploadSingleFile = (file: UploadUserFile): Promise<void> => {
       name: file.name || '',
       progress: 0,
       status: 'uploading',
-      file: file
+      file,
     }
     uploadProgress.value.set(fileId, progressInfo)
 
@@ -189,7 +134,7 @@ const uploadSingleFile = (file: UploadUserFile): Promise<void> => {
     }
 
     uploadFile(file.raw, props.action, onProgress)
-      .then(data => {
+      .then((data) => {
         file.status = 'success'
         const currentProgress = uploadProgress.value.get(fileId)
         if (currentProgress) {
@@ -200,7 +145,7 @@ const uploadSingleFile = (file: UploadUserFile): Promise<void> => {
         emit('success', data, file)
         resolve()
       })
-      .catch(error => {
+      .catch((error) => {
         file.status = 'fail'
         const currentProgress = uploadProgress.value.get(fileId)
         if (currentProgress) {
@@ -213,14 +158,82 @@ const uploadSingleFile = (file: UploadUserFile): Promise<void> => {
   })
 }
 
-
-const clearFiles = () => {
+function clearFiles() {
   fileList.value = []
   uploadProgress.value.clear()
   uploadRef.value?.clearFiles()
   emit('change', [])
 }
 </script>
+
+<template>
+  <div class="file-upload-container">
+    <el-upload
+      ref="uploadRef" v-model:file-list="fileList" class="upload-demo" :drag="drag" :action="action" :accept="accept"
+      :disabled="disabled" :auto-upload="autoUpload" :show-file-list="true" :multiple="multiple"
+      :before-upload="handleBeforeUpload"
+    >
+      <div class="upload-content">
+        <div class="upload-icon">
+          <el-icon class="el-icon--upload">
+            <UploadFilled />
+          </el-icon>
+        </div>
+        <div class="upload-text">
+          <div class="el-upload__text">
+            拖拽文件到此处或<em>点击上传</em>
+          </div>
+          <div class="el-upload__tip">
+            支持格式: {{ acceptText }}
+          </div>
+        </div>
+      </div>
+    </el-upload>
+
+    <!-- 上传进度显示 -->
+    <div v-if="uploadProgress.size > 0" class="upload-progress-section">
+      <div class="progress-title">
+        上传进度
+      </div>
+      <div class="progress-list">
+        <div v-for="[fileId, progress] in uploadProgress" :key="fileId" class="progress-item">
+          <div class="progress-info">
+            <div class="file-name">
+              {{ progress.name }}
+            </div>
+            <div class="progress-status">
+              <span class="progress-text">{{ progress.progress }}%</span>
+              <el-icon v-if="progress.status === 'success'" class="status-icon success">
+                <Check />
+              </el-icon>
+              <el-icon v-else-if="progress.status === 'error'" class="status-icon error">
+                <Close />
+              </el-icon>
+            </div>
+          </div>
+          <el-progress
+            :percentage="progress.progress"
+            :status="progress.status === 'success' ? 'success' : progress.status === 'error' ? 'exception' : undefined"
+            :stroke-width="6" :show-text="false"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="upload-actions">
+      <el-button
+        type="primary" :loading="isUploading" :disabled="fileList.length === 0 || disabled"
+        @click="submitUpload"
+      >
+        {{ isUploading ? '上传中...' : '开始上传' }}
+      </el-button>
+      <el-button v-if="fileList.length > 0" :disabled="isUploading" @click="clearFiles">
+        清空文件
+      </el-button>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .file-upload-container {

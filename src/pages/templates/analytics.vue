@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Motion } from 'motion-v'
-import { ElMessage } from 'element-plus'
-import VChart from 'vue-echarts'
+import {
+  ArrowUp,
+  ChatDotRound,
+  Location,
+  MapLocation,
+  Refresh,
+  Star,
+  User,
+} from '@element-plus/icons-vue'
+import { LineChart } from 'echarts/charts'
+import { GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { LineChart } from 'echarts/charts'
-import { TitleComponent, TooltipComponent, LegendComponent, GridComponent } from 'echarts/components'
-import {
-  User,
-  MapLocation,
-  Location,
-  ArrowUp,
-  Refresh,
-  ChatDotRound,
-  Star
-} from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Motion } from 'motion-v'
+import { computed, ref } from 'vue'
+import VChart from 'vue-echarts'
 
 // 注册 ECharts 组件
 use([CanvasRenderer, LineChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent])
@@ -80,12 +80,12 @@ interface AnalyticsData {
 const pageVariants = {
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: 'easeOut' }
+  transition: { duration: 0.6, ease: 'easeOut' },
 }
 const cardVariants = {
   initial: { opacity: 0, scale: 0.9 },
   animate: { opacity: 1, scale: 1 },
-  transition: { duration: 0.5, ease: 'easeOut' }
+  transition: { duration: 0.5, ease: 'easeOut' },
 }
 
 // 假数据
@@ -95,37 +95,37 @@ const analyticsData = ref<AnalyticsData>({
     total: 123456,
     active: 98654,
     new_this_month: 2345,
-    inactive: 2468
+    inactive: 2468,
   },
   tripStats: {
     total: 5432,
     totalBookings: 8765,
     completed: 3210,
     ongoing: 1234,
-    planning: 988
+    planning: 988,
   },
   attractionStats: {
     total: 345,
     active: 300,
     inactive: 45,
-    avg_rating: 4.5
+    avg_rating: 4.5,
   },
   reviewStats: {
     total: 1290,
     avg_rating: 4.2,
-    rating_distribution: { '5': 800, '4': 300, '3': 120, '2': 50, '1': 20 },
+    rating_distribution: { 5: 800, 4: 300, 3: 120, 2: 50, 1: 20 },
     pending_reviews: 10,
     approved_reviews: 1250,
     rejected_reviews: 30,
     today_reviews: 15,
-    weekly_growth: 8
+    weekly_growth: 8,
   },
   revenueStats: {
-    total: 9876543
+    total: 9876543,
   },
   userGrowthTrend: Array.from({ length: 30 }, (_, i) => ({
     date: new Date(Date.now() - (29 - i) * 86400000).toISOString(),
-    count: Math.floor(Math.random() * 200) + 50
+    count: Math.floor(Math.random() * 200) + 50,
   })),
   hotAttractions: Array.from({ length: 10 }, (_, i) => ({
     name: `景点 ${i + 1}`,
@@ -134,43 +134,51 @@ const analyticsData = ref<AnalyticsData>({
     city: '示例市',
     province: '示例省',
     address: `示例地址 ${i + 1}`,
-    description: i % 2 === 0 ? '这是一个示例景点描述' : ''
-  }))
+    description: i % 2 === 0 ? '这是一个示例景点描述' : '',
+  })),
 })
 
 // 刷新数据（假数据直接提示）
-const refreshData = () => {
+function refreshData() {
   ElMessage.success('假数据已刷新')
 }
 
 // 格式化方法
-const formatNumber = (num: number | undefined) => {
-  if (num === undefined || num === null) return '0'
-  if (num >= 10000) return (num / 10000).toFixed(1) + '万'
+function formatNumber(num: number | undefined) {
+  if (num === undefined || num === null)
+    return '0'
+  if (num >= 10000)
+    return `${(num / 10000).toFixed(1)}万`
   return num.toLocaleString()
 }
-const getLocationText = (row: any) => {
+function getLocationText(row: any) {
   const parts: string[] = []
-  if (row.city) parts.push(row.city)
-  if (row.province && row.province !== row.city) parts.push(row.province)
-  if (row.address) parts.push(row.address)
+  if (row.city)
+    parts.push(row.city)
+  if (row.province && row.province !== row.city)
+    parts.push(row.province)
+  if (row.address)
+    parts.push(row.address)
   return parts.join(', ') || '未知位置'
 }
-const formatCurrency = (amount: number | undefined) => {
-  if (amount === undefined || amount === null) return '¥0'
-  if (amount >= 10000) return '¥' + (amount / 10000).toFixed(1) + '万'
-  return '¥' + amount.toLocaleString()
+function formatCurrency(amount: number | undefined) {
+  if (amount === undefined || amount === null)
+    return '¥0'
+  if (amount >= 10000)
+    return `¥${(amount / 10000).toFixed(1)}万`
+  return `¥${amount.toLocaleString()}`
 }
-const formatPercentage = (rate: number | undefined) => {
-  if (rate === undefined || rate === null) return '0%'
+function formatPercentage(rate: number | undefined) {
+  if (rate === undefined || rate === null)
+    return '0%'
   const sign = rate >= 0 ? '+' : ''
-  return sign + rate.toFixed(1) + '%'
+  return `${sign + rate.toFixed(1)}%`
 }
 
 // 用户增长图表
 const userGrowthChartOption = computed(() => {
   const chartData = analyticsData.value.userGrowthTrend || []
-  const dates = chartData.map(item => {
+  const dates = chartData.map((item) => {
     const d = new Date(item.date)
     return `${d.getMonth() + 1}/${d.getDate()}`
   })
@@ -179,7 +187,7 @@ const userGrowthChartOption = computed(() => {
     title: { text: '用户增长趋势（最近30天）', textStyle: { fontSize: 14, fontWeight: 'normal' } },
     tooltip: {
       trigger: 'axis',
-      formatter: (params: any) => `${params[0].axisValue}<br/>新增用户: ${params[0].value}人`
+      formatter: (params: any) => `${params[0].axisValue}<br/>新增用户: ${params[0].value}人`,
     },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
     xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 12 } },
@@ -193,55 +201,72 @@ const userGrowthChartOption = computed(() => {
       itemStyle: { color: '#409EFF' },
       areaStyle: {
         color: {
-          type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
           colorStops: [
             { offset: 0, color: 'rgba(64, 158, 255, 0.3)' },
-            { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
-          ]
-        }
-      }
-    }]
+            { offset: 1, color: 'rgba(64, 158, 255, 0.1)' },
+          ],
+        },
+      },
+    }],
   }
 })
 
 // 评论统计辅助
-const getRatingColor = (rating: number) => {
+function getRatingColor(rating: number) {
   const colors: Record<number, string> = {
-    5: '#67C23A', 4: '#95D475', 3: '#E6A23C', 2: '#F78989', 1: '#F56C6C'
+    5: '#67C23A',
+    4: '#95D475',
+    3: '#E6A23C',
+    2: '#F78989',
+    1: '#F56C6C',
   }
   return colors[rating] || '#909399'
 }
-const getRatingCount = (rating: number) =>
-  analyticsData.value.reviewStats.rating_distribution?.[rating.toString()] || 0
-const getRatingPercentage = (rating: number) => {
+function getRatingCount(rating: number) {
+  return analyticsData.value.reviewStats.rating_distribution?.[rating.toString()] || 0
+}
+function getRatingPercentage(rating: number) {
   const reviewStats = analyticsData.value.reviewStats
-  if (!reviewStats?.total) return 0
+  if (!reviewStats?.total)
+    return 0
   const count = getRatingCount(rating)
   return reviewStats.total > 0 ? Math.round((count / reviewStats.total) * 100) : 0
 }
-const getWeeklyGrowth = () => {
+function getWeeklyGrowth() {
   const growth = analyticsData.value.reviewStats.weekly_growth || 0
   return growth > 0 ? `+${growth}%` : `${growth}%`
 }
 </script>
 
-
 <template>
-  <Motion :initial="pageVariants.initial" :animate="pageVariants.animate" :transition="pageVariants.transition as any"
-    class="analytics-page">
+  <Motion
+    :initial="pageVariants.initial" :animate="pageVariants.animate" :transition="pageVariants.transition as any"
+    class="analytics-page"
+  >
     <div class="analytics-container">
       <!-- 页面头部 -->
-      <Motion :initial="{ opacity: 0, y: -20 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.5, delay: 0.1 }">
+      <Motion
+        :initial="{ opacity: 0, y: -20 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.5, delay: 0.1 }"
+      >
         <div class="page-header">
           <div class="header-left">
-            <h2 class="page-title">数据分析</h2>
-            <p class="page-subtitle">智能旅游平台运营数据概览</p>
+            <h2 class="page-title">
+              数据分析
+            </h2>
+            <p class="page-subtitle">
+              智能旅游平台运营数据概览
+            </p>
           </div>
           <div class="header-right">
             <el-space>
-              <Motion :whileHover="{ scale: 1.05 }" :whileTap="{ scale: 0.95 }">
-                <el-button @click="refreshData" :loading="loading">
+              <Motion :while-hover="{ scale: 1.05 }" :while-tap="{ scale: 0.95 }">
+                <el-button :loading="loading" @click="refreshData">
                   <el-icon>
                     <Refresh />
                   </el-icon>
@@ -254,8 +279,10 @@ const getWeeklyGrowth = () => {
       </Motion>
 
       <!-- 核心指标卡片 -->
-      <Motion :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.6, delay: 0.2 }">
+      <Motion
+        :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.6, delay: 0.2 }"
+      >
         <el-row :gutter="24" class="metrics-row">
           <!-- 用户统计 -->
           <el-col :xs="24" :sm="12" :md="8">
@@ -268,8 +295,12 @@ const getWeeklyGrowth = () => {
                     </el-icon>
                   </div>
                   <div class="metric-info">
-                    <h3 class="metric-title">总用户数</h3>
-                    <p class="metric-value">{{ formatNumber(analyticsData.userStats.total) }}</p>
+                    <h3 class="metric-title">
+                      总用户数
+                    </h3>
+                    <p class="metric-value">
+                      {{ formatNumber(analyticsData.userStats.total) }}
+                    </p>
                     <p class="metric-change positive">
                       <el-icon>
                         <ArrowUp />
@@ -297,8 +328,12 @@ const getWeeklyGrowth = () => {
                     </el-icon>
                   </div>
                   <div class="metric-info">
-                    <h3 class="metric-title">总预订数</h3>
-                    <p class="metric-value">{{ formatNumber(analyticsData.tripStats.totalBookings) }}</p>
+                    <h3 class="metric-title">
+                      总预订数
+                    </h3>
+                    <p class="metric-value">
+                      {{ formatNumber(analyticsData.tripStats.totalBookings) }}
+                    </p>
                     <p class="metric-change positive">
                       <el-icon>
                         <ArrowUp />
@@ -326,8 +361,12 @@ const getWeeklyGrowth = () => {
                     </el-icon>
                   </div>
                   <div class="metric-info">
-                    <h3 class="metric-title">景点总数</h3>
-                    <p class="metric-value">{{ formatNumber(analyticsData.attractionStats.total) }}</p>
+                    <h3 class="metric-title">
+                      景点总数
+                    </h3>
+                    <p class="metric-value">
+                      {{ formatNumber(analyticsData.attractionStats.total) }}
+                    </p>
                     <p class="metric-change positive">
                       <el-icon>
                         <ArrowUp />
@@ -347,8 +386,10 @@ const getWeeklyGrowth = () => {
       </Motion>
 
       <!-- 图表区域 -->
-      <Motion :initial="{ opacity: 0, y: 30 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.6, delay: 0.4 }">
+      <Motion
+        :initial="{ opacity: 0, y: 30 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.6, delay: 0.4 }"
+      >
         <el-row :gutter="24" class="charts-row">
           <!-- 用户增长趋势 -->
           <el-col :xs="24" :lg="16">
@@ -356,10 +397,12 @@ const getWeeklyGrowth = () => {
               <template #header>
                 <div class="card-header">
                   <h3>用户增长趋势</h3>
-                  <el-tag type="info" size="small">近30天</el-tag>
+                  <el-tag type="info" size="small">
+                    近30天
+                  </el-tag>
                 </div>
               </template>
-              <div class="chart-container" v-loading="loading">
+              <div v-loading="loading" class="chart-container">
                 <div class="trend-chart">
                   <VChart :option="userGrowthChartOption" style="height: 450px; width: 100%;" autoresize />
                 </div>
@@ -373,10 +416,12 @@ const getWeeklyGrowth = () => {
               <template #header>
                 <div class="card-header">
                   <h3>评论统计分析</h3>
-                  <el-tag type="success" size="small">实时</el-tag>
+                  <el-tag type="success" size="small">
+                    实时
+                  </el-tag>
                 </div>
               </template>
-              <div class="review-analytics-container" v-loading="loading">
+              <div v-loading="loading" class="review-analytics-container">
                 <!-- 核心指标 -->
                 <div class="review-metrics">
                   <div class="metric-item total-reviews">
@@ -386,8 +431,12 @@ const getWeeklyGrowth = () => {
                       </el-icon>
                     </div>
                     <div class="metric-content">
-                      <div class="metric-number">{{ formatNumber(analyticsData.reviewStats.total) }}</div>
-                      <div class="metric-label">总评论数</div>
+                      <div class="metric-number">
+                        {{ formatNumber(analyticsData.reviewStats.total) }}
+                      </div>
+                      <div class="metric-label">
+                        总评论数
+                      </div>
                     </div>
                   </div>
 
@@ -398,15 +447,21 @@ const getWeeklyGrowth = () => {
                       </el-icon>
                     </div>
                     <div class="metric-content">
-                      <div class="metric-number">{{ analyticsData.reviewStats.avg_rating || 0 }}</div>
-                      <div class="metric-label">平均评分</div>
+                      <div class="metric-number">
+                        {{ analyticsData.reviewStats.avg_rating || 0 }}
+                      </div>
+                      <div class="metric-label">
+                        平均评分
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <!-- 评分分布 -->
                 <div class="rating-distribution">
-                  <h4 class="section-title">评分分布</h4>
+                  <h4 class="section-title">
+                    评分分布
+                  </h4>
                   <div class="rating-bars">
                     <div v-for="rating in [5, 4, 3, 2, 1]" :key="rating" class="rating-bar">
                       <div class="rating-label">
@@ -414,10 +469,12 @@ const getWeeklyGrowth = () => {
                       </div>
                       <div class="rating-progress">
                         <div class="progress-bg">
-                          <div class="progress-fill" :style="{
-                            width: getRatingPercentage(rating) + '%',
-                            backgroundColor: getRatingColor(rating)
-                          }"></div>
+                          <div
+                            class="progress-fill" :style="{
+                              width: `${getRatingPercentage(rating)}%`,
+                              backgroundColor: getRatingColor(rating),
+                            }"
+                          />
                         </div>
                         <span class="rating-count">{{ getRatingCount(rating) }}</span>
                       </div>
@@ -444,18 +501,22 @@ const getWeeklyGrowth = () => {
       </Motion>
 
       <!-- 热门景点排行 -->
-      <Motion :initial="{ opacity: 0, y: 30 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.6, delay: 0.6 }">
+      <Motion
+        :initial="{ opacity: 0, y: 30 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.6, delay: 0.6 }"
+      >
         <el-row :gutter="24" class="tables-row">
           <el-col :xs="24">
             <el-card class="table-card" shadow="hover">
               <template #header>
                 <div class="card-header">
                   <h3>热门景点排行</h3>
-                  <el-tag type="warning" size="small">TOP 10</el-tag>
+                  <el-tag type="warning" size="small">
+                    TOP 10
+                  </el-tag>
                 </div>
               </template>
-              <div class="table-container" v-loading="loading">
+              <div v-loading="loading" class="table-container">
                 <el-table :data="analyticsData.hotAttractions.slice(0, 10)" stripe>
                   <el-table-column label="排名" width="80" align="center">
                     <template #default="{ $index }">
@@ -491,8 +552,6 @@ const getWeeklyGrowth = () => {
               </div>
             </el-card>
           </el-col>
-
-
         </el-row>
       </Motion>
     </div>

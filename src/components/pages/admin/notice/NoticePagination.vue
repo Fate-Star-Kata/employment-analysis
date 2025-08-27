@@ -1,19 +1,3 @@
-<template>
-  <div class="pagination-container">
-    <el-pagination 
-      v-model:current-page="currentPageModel" 
-      v-model:page-size="pageSizeModel" 
-      :total="total"
-      :page-sizes="[10, 20, 50, 100]" 
-      layout="total, sizes, prev, pager, next, jumper" 
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange" 
-      background 
-      :disabled="loading"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue'
 
@@ -26,8 +10,10 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
+
+const emit = defineEmits<Emits>()
 
 // Emits
 interface Emits {
@@ -35,32 +21,46 @@ interface Emits {
   currentChange: [page: number]
 }
 
-const emit = defineEmits<Emits>()
-
 // 计算属性
 const currentPageModel = computed({
   get: () => props.currentPage,
   set: (value: number) => {
     emit('currentChange', value)
-  }
+  },
 })
 
 const pageSizeModel = computed({
   get: () => props.pageSize,
   set: (value: number) => {
     emit('sizeChange', value)
-  }
+  },
 })
 
 // 方法
-const handleSizeChange = (size: number) => {
+function handleSizeChange(size: number) {
   emit('sizeChange', size)
 }
 
-const handleCurrentChange = (page: number) => {
+function handleCurrentChange(page: number) {
   emit('currentChange', page)
 }
 </script>
+
+<template>
+  <div class="pagination-container">
+    <el-pagination
+      v-model:current-page="currentPageModel"
+      v-model:page-size="pageSizeModel"
+      :total="total"
+      :page-sizes="[10, 20, 50, 100]"
+      layout="total, sizes, prev, pager, next, jumper"
+      background
+      :disabled="loading"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
+  </div>
+</template>
 
 <style scoped>
 .pagination-container {

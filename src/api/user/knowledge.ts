@@ -1,9 +1,9 @@
 import type {
-  KnowledgeCategoriesResponse,
+  KnowledgeArticleDetailResponse,
+  KnowledgeArticleLikeResponse,
   KnowledgeArticlesRequest,
   KnowledgeArticlesResponse,
-  KnowledgeArticleDetailResponse,
-  KnowledgeArticleLikeResponse
+  KnowledgeCategoriesResponse,
 } from '@/types/factory'
 import serviceAxios from '@/http'
 

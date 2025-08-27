@@ -1,14 +1,156 @@
+<script setup lang="ts">
+import type { FormInstance, FormRules } from 'element-plus'
+import type { CreateNotificationReq, NotificationItem } from '@/types/factory'
+import { Edit, Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { computed, reactive, ref, watch } from 'vue'
+
+// Props
+interface Props {
+  visible: boolean
+  editingData?: NotificationItem | null
+  submitting?: boolean
+  userOptions?: Array<{ id: number, username: string }>
+  userSearchLoading?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  editingData: null,
+  submitting: false,
+  userOptions: () => [],
+  userSearchLoading: false,
+})
+
+const emit = defineEmits<Emits>()
+
+// Emits
+interface Emits {
+  'update:visible': [value: boolean]
+  'submit': [data: CreateNotificationReq]
+  'searchUsers': [query: string]
+  'loadAllUsers': []
+}
+
+// 响应式数据
+const formRef = ref<FormInstance>()
+const formData = reactive<CreateNotificationReq>({
+  title: '',
+  content: '',
+  is_public: true,
+  is_active: true,
+  notify_all: false,
+  email_notification: false,
+  recipient_user_ids: [],
+})
+
+// 计算属性
+const isEditing = computed(() => !!props.editingData)
+
+// 方法
+function resetForm() {
+  Object.assign(formData, {
+    title: '',
+    content: '',
+    is_public: true,
+    is_active: true,
+    notify_all: false,
+    email_notification: false,
+    recipient_user_ids: [],
+  })
+  formRef.value?.resetFields()
+}
+
+// 表单验证规则
+const formRules: FormRules = {
+  title: [
+    { required: true, message: '请输入通知标题', trigger: 'blur' },
+    { min: 2, max: 100, message: '标题长度在 2 到 100 个字符', trigger: 'blur' },
+  ],
+  content: [
+    { required: true, message: '请输入通知内容', trigger: 'blur' },
+    { min: 5, max: 500, message: '内容长度在 5 到 500 个字符', trigger: 'blur' },
+  ],
+  recipient_user_ids: [
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        callback()
+      },
+      trigger: 'change',
+    },
+  ],
+}
+
+// 监听编辑数据变化
+watch(() => props.editingData, (newData) => {
+  if (newData) {
+    Object.assign(formData, {
+      title: newData.title || '',
+      content: newData.content || '',
+      is_public: newData.is_public ?? true,
+      is_active: newData.is_active ?? true,
+      notify_all: false,
+      email_notification: false,
+      recipient_user_ids: [],
+    })
+  }
+  else {
+    resetForm()
+  }
+}, { immediate: true })
+
+// 监听visible变化
+watch(() => props.visible, (newVal) => {
+  if (!newVal) {
+    resetForm()
+  }
+})
+
+function handleNotifyAllChange(value: boolean) {
+  if (value) {
+    formData.recipient_user_ids = []
+  }
+  setTimeout(() => {
+    formRef.value?.validateField('recipient_user_ids')
+  }, 100)
+}
+
+function searchUsers(query: string) {
+  emit('searchUsers', query)
+}
+
+function loadAllUsers() {
+  emit('loadAllUsers')
+}
+
+function handleClose() {
+  emit('update:visible', false)
+}
+
+async function handleSubmit() {
+  if (!formRef.value)
+    return
+
+  try {
+    await formRef.value.validate()
+    emit('submit', { ...formData })
+  }
+  catch (error) {
+    ElMessage.error('请检查表单输入')
+  }
+}
+</script>
+
 <template>
-  <el-dialog 
-    :model-value="visible" 
-    @update:model-value="$emit('update:visible', $event)"
-    :title="isEditing ? '编辑通知' : '发布通知'" 
+  <el-dialog
+    :model-value="visible"
+    :title="isEditing ? '编辑通知' : '发布通知'"
     width="650px"
-    :close-on-click-modal="false" 
-    :close-on-press-escape="false" 
-    destroy-on-close 
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    destroy-on-close
     class="notification-dialog"
     align-center
+    @update:model-value="$emit('update:visible', $event)"
     @close="handleClose"
   >
     <template #header="{ titleId, titleClass }">
@@ -26,95 +168,99 @@
     </template>
 
     <div class="dialog-content">
-      <el-form 
-        ref="formRef" 
-        :model="formData" 
-        :rules="formRules" 
+      <el-form
+        ref="formRef"
+        :model="formData"
+        :rules="formRules"
         label-width="100px"
-        label-position="left" 
-        size="default" 
+        label-position="left"
+        size="default"
         class="notification-form"
       >
         <div class="form-section">
-          <h4 class="section-title">基本信息</h4>
+          <h4 class="section-title">
+            基本信息
+          </h4>
           <el-form-item label="通知标题" prop="title" class="form-item">
-            <el-input 
-              v-model="formData.title" 
-              placeholder="请输入通知标题" 
-              maxlength="100" 
-              show-word-limit 
+            <el-input
+              v-model="formData.title"
+              placeholder="请输入通知标题"
+              maxlength="100"
+              show-word-limit
               clearable
-              class="form-input" 
+              class="form-input"
             />
           </el-form-item>
 
           <el-form-item label="通知内容" prop="content" class="form-item">
-            <el-input 
-              v-model="formData.content" 
-              type="textarea" 
-              :rows="6" 
+            <el-input
+              v-model="formData.content"
+              type="textarea"
+              :rows="6"
               placeholder="请输入通知内容"
-              maxlength="1000" 
-              show-word-limit 
-              resize="vertical" 
-              class="form-textarea" 
+              maxlength="1000"
+              show-word-limit
+              resize="vertical"
+              class="form-textarea"
             />
           </el-form-item>
         </div>
 
         <div class="form-section">
-          <h4 class="section-title">通知设置</h4>
+          <h4 class="section-title">
+            通知设置
+          </h4>
           <div class="switch-group">
             <el-form-item label="是否启用" class="switch-item">
-              <el-switch 
-                v-model="formData.is_active" 
-                active-text="启用" 
+              <el-switch
+                v-model="formData.is_active"
+                active-text="启用"
                 inactive-text="未启用"
-                active-color="var(--el-color-success)" 
-                inactive-color="var(--el-color-info)" 
-                size="default" 
+                active-color="var(--el-color-success)"
+                inactive-color="var(--el-color-info)"
+                size="default"
               />
             </el-form-item>
 
             <el-form-item label="通知所有人" class="switch-item">
-              <el-switch 
-                v-model="formData.notify_all" 
-                active-text="是" 
+              <el-switch
+                v-model="formData.notify_all"
+                active-text="是"
                 inactive-text="否"
-                active-color="var(--el-color-primary)" 
-                inactive-color="var(--el-color-info)" 
+                active-color="var(--el-color-primary)"
+                inactive-color="var(--el-color-info)"
                 size="default"
-                @change="handleNotifyAllChange" 
+                @change="handleNotifyAllChange"
               />
             </el-form-item>
           </div>
           <br>
           <!-- 指定用户选择 -->
-          <el-form-item 
-            v-if="!formData.notify_all" 
-            label="指定用户" 
-            prop="recipient_user_ids" 
+          <el-form-item
+            v-if="!formData.notify_all"
+            label="指定用户"
+            prop="recipient_user_ids"
             class="form-item"
           >
-            <el-select 
-              v-model="formData.recipient_user_ids" 
-              multiple 
-              filterable 
-              remote 
+            <el-select
+              v-model="formData.recipient_user_ids"
+              multiple
+              filterable
+              remote
               reserve-keyword
-              placeholder="请选择要通知的用户" 
-              :remote-method="searchUsers" 
-              :loading="userSearchLoading" 
+              placeholder="请选择要通知的用户"
+              :remote-method="searchUsers"
+              :loading="userSearchLoading"
               class="form-select"
-              @focus="loadAllUsers" 
-              collapse-tags 
+              collapse-tags
               collapse-tags-tooltip
+              @focus="loadAllUsers"
             >
-              <el-option 
-                v-for="user in userOptions" 
-                :key="user.id" 
-                :label="user.username" 
-                :value="user.id" 
+              <el-option
+                v-for="user in userOptions"
+                :key="user.id"
+                :label="user.username"
+                :value="user.id"
               />
             </el-select>
           </el-form-item>
@@ -124,15 +270,15 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button size="large" @click="handleClose" class="cancel-btn">
+        <el-button size="large" class="cancel-btn" @click="handleClose">
           取消
         </el-button>
-        <el-button 
-          type="primary" 
-          size="large" 
-          :loading="submitting" 
-          @click="handleSubmit" 
+        <el-button
+          type="primary"
+          size="large"
+          :loading="submitting"
           class="submit-btn"
+          @click="handleSubmit"
         >
           <el-icon v-if="!submitting" class="btn-icon">
             <Edit v-if="isEditing" />
@@ -144,145 +290,6 @@
     </template>
   </el-dialog>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
-import { Plus, Edit } from '@element-plus/icons-vue'
-import type { CreateNotificationReq, NotificationItem } from '@/types/factory'
-
-// Props
-interface Props {
-  visible: boolean
-  editingData?: NotificationItem | null
-  submitting?: boolean
-  userOptions?: Array<{ id: number; username: string }>
-  userSearchLoading?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  editingData: null,
-  submitting: false,
-  userOptions: () => [],
-  userSearchLoading: false
-})
-
-// Emits
-interface Emits {
-  'update:visible': [value: boolean]
-  submit: [data: CreateNotificationReq]
-  searchUsers: [query: string]
-  loadAllUsers: []
-}
-
-const emit = defineEmits<Emits>()
-
-// 响应式数据
-const formRef = ref<FormInstance>()
-const formData = reactive<CreateNotificationReq>({
-  title: '',
-  content: '',
-  is_public: true,
-  is_active: true,
-  notify_all: false,
-  email_notification: false,
-  recipient_user_ids: []
-})
-
-// 计算属性
-const isEditing = computed(() => !!props.editingData)
-
-// 方法
-const resetForm = () => {
-  Object.assign(formData, {
-    title: '',
-    content: '',
-    is_public: true,
-    is_active: true,
-    notify_all: false,
-    email_notification: false,
-    recipient_user_ids: []
-  })
-  formRef.value?.resetFields()
-}
-
-// 表单验证规则
-const formRules: FormRules = {
-  title: [
-    { required: true, message: '请输入通知标题', trigger: 'blur' },
-    { min: 2, max: 100, message: '标题长度在 2 到 100 个字符', trigger: 'blur' }
-  ],
-  content: [
-    { required: true, message: '请输入通知内容', trigger: 'blur' },
-    { min: 5, max: 500, message: '内容长度在 5 到 500 个字符', trigger: 'blur' }
-  ],
-  recipient_user_ids: [
-    {
-      validator: (rule: any, value: any, callback: any) => {
-        callback()
-      },
-      trigger: 'change'
-    }
-  ]
-}
-
-// 监听编辑数据变化
-watch(() => props.editingData, (newData) => {
-  if (newData) {
-    Object.assign(formData, {
-      title: newData.title || '',
-      content: newData.content || '',
-      is_public: newData.is_public ?? true,
-      is_active: newData.is_active ?? true,
-      notify_all: false,
-      email_notification: false,
-      recipient_user_ids: []
-    })
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
-
-// 监听visible变化
-watch(() => props.visible, (newVal) => {
-  if (!newVal) {
-    resetForm()
-  }
-})
-
-const handleNotifyAllChange = (value: boolean) => {
-  if (value) {
-    formData.recipient_user_ids = []
-  }
-  setTimeout(() => {
-    formRef.value?.validateField('recipient_user_ids')
-  }, 100)
-}
-
-const searchUsers = (query: string) => {
-  emit('searchUsers', query)
-}
-
-const loadAllUsers = () => {
-  emit('loadAllUsers')
-}
-
-const handleClose = () => {
-  emit('update:visible', false)
-}
-
-const handleSubmit = async () => {
-  if (!formRef.value) return
-
-  try {
-    await formRef.value.validate()
-    emit('submit', { ...formData })
-  } catch (error) {
-    ElMessage.error('请检查表单输入')
-  }
-}
-</script>
 
 <style scoped>
 .notification-dialog {

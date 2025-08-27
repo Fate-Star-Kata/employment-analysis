@@ -1,6 +1,67 @@
+<script setup lang="ts">
+import type { FormInstance, FormRules } from 'element-plus'
+import { computed, ref } from 'vue'
+
+// 定义组件名称
+defineOptions({
+  name: 'PersonalDetails',
+})
+
+const props = defineProps<Props>()
+
+const emit = defineEmits<Emits>()
+
+// Props
+interface Props {
+  userInfo?: any
+}
+
+// Emits
+interface Emits {
+  'update:user-info': [userInfo: any]
+}
+
+// 表单引用
+const formRef = ref<FormInstance>()
+
+// 本地用户信息（用于双向绑定）
+const localUserInfo = computed({
+  get: () => props.userInfo,
+  set: (value) => {
+    emit('update:user-info', value)
+  },
+})
+
+// 表单验证规则
+const rules: FormRules = {
+  phone: [
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+  ],
+  address: [
+    { max: 200, message: '详细地址不能超过200个字符', trigger: 'blur' },
+  ],
+  bio: [
+    { max: 500, message: '个人简介不能超过500个字符', trigger: 'blur' },
+  ],
+}
+
+// 更新用户信息
+function updateUserInfo() {
+  if (localUserInfo.value) {
+    emit('update:user-info', { ...localUserInfo.value })
+  }
+}
+
+// 暴露表单验证方法给父组件
+defineExpose({
+  validate: () => formRef.value?.validate(),
+  resetFields: () => formRef.value?.resetFields(),
+})
+</script>
+
 <template>
   <div class="personal-details">
-    <el-form ref="formRef" :model="localUserInfo" :rules="rules" label-width="100px" v-if="localUserInfo">
+    <el-form v-if="localUserInfo" ref="formRef" :model="localUserInfo" :rules="rules" label-width="100px">
       <!-- 手机号 -->
       <el-form-item label="手机号" prop="phone">
         <el-input v-model="localUserInfo.phone" placeholder="请输入手机号" @input="updateUserInfo" />
@@ -9,9 +70,15 @@
       <!-- 性别 -->
       <el-form-item label="性别" prop="gender">
         <el-radio-group v-model="localUserInfo.gender" @change="updateUserInfo">
-          <el-radio label="male">男</el-radio>
-          <el-radio label="female">女</el-radio>
-          <el-radio label="other">其他</el-radio>
+          <el-radio label="male">
+            男
+          </el-radio>
+          <el-radio label="female">
+            女
+          </el-radio>
+          <el-radio label="other">
+            其他
+          </el-radio>
         </el-radio-group>
       </el-form-item>
 
@@ -23,12 +90,10 @@
           placeholder="请选择生日"
           format="YYYY-MM-DD"
           value-format="YYYY-MM-DD"
-          @change="updateUserInfo"
           style="width: 100%"
+          @change="updateUserInfo"
         />
       </el-form-item>
-
-
 
       <!-- 详细地址 -->
       <el-form-item label="详细地址" prop="address">
@@ -59,67 +124,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { FormInstance, FormRules } from 'element-plus'
-
-// 定义组件名称
-defineOptions({
-  name: 'PersonalDetails'
-})
-
-// Props
-interface Props {
-  userInfo?: any
-}
-
-const props = defineProps<Props>()
-
-// Emits
-interface Emits {
-  'update:user-info': [userInfo: any]
-}
-
-const emit = defineEmits<Emits>()
-
-// 表单引用
-const formRef = ref<FormInstance>()
-
-// 本地用户信息（用于双向绑定）
-const localUserInfo = computed({
-  get: () => props.userInfo,
-  set: (value) => {
-    emit('update:user-info', value)
-  }
-})
-
-// 表单验证规则
-const rules: FormRules = {
-  phone: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
-  ],
-  address: [
-    { max: 200, message: '详细地址不能超过200个字符', trigger: 'blur' }
-  ],
-  bio: [
-    { max: 500, message: '个人简介不能超过500个字符', trigger: 'blur' }
-  ]
-}
-
-// 更新用户信息
-const updateUserInfo = () => {
-  if (localUserInfo.value) {
-    emit('update:user-info', { ...localUserInfo.value })
-  }
-}
-
-// 暴露表单验证方法给父组件
-defineExpose({
-  validate: () => formRef.value?.validate(),
-  resetFields: () => formRef.value?.resetFields()
-})
-</script>
 
 <style scoped>
 .personal-details {

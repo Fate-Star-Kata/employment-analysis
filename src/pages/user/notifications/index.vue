@@ -1,98 +1,13 @@
-<template>
-  <div class="notifications-page" :class="{ compact: compact }" ref="rootRef">
-    <div class="page-header">
-      <h2>我的通知</h2>
-      <div class="header-actions">
-        <el-button v-if="unreadCount > 0" type="primary" size="small" @click="markAllRead" :loading="markingAllRead">
-          全部标记已读
-        </el-button>
-        <el-badge :value="unreadCount" :hidden="unreadCount === 0">
-          <el-button size="small" @click="refreshList">
-            <el-icon>
-              <Refresh />
-            </el-icon>
-            刷新
-          </el-button>
-        </el-badge>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <el-radio-group v-model="filterStatus" @change="handleFilterChange">
-        <el-radio-button label="all">全部</el-radio-button>
-        <el-radio-button label="unread">未读</el-radio-button>
-        <el-radio-button label="read">已读</el-radio-button>
-      </el-radio-group>
-    </div>
-
-    <div class="notifications-list" v-loading="loading">
-      <div v-if="notifications.length === 0" class="empty-state">
-        <el-empty description="暂无通知" />
-      </div>
-
-      <div v-else>
-        <div v-for="notification in notifications" :key="notification.id" class="notification-item"
-          :class="{ 'unread': !notification.is_read }" :data-id="notification.id"
-          @click="handleNotificationClick(notification)">
-          <div class="notification-content">
-            <div class="notification-header">
-              <h4 class="notification-title">{{ notification.title }}</h4>
-              <div class="notification-meta">
-                <span class="notification-time">{{ formatTime(notification.created_at) }}</span>
-                <el-tag v-if="!notification.is_read" type="danger" size="small">未读</el-tag>
-              </div>
-            </div>
-            <p class="notification-text">{{ notification.content }}</p>
-          </div>
-          <div class="notification-actions">
-            <el-button v-if="!notification.is_read" type="primary" size="small"
-              @click.stop="markAsRead([notification.id])" :loading="markingRead.includes(notification.id)">
-              标记已读
-            </el-button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="pagination-wrapper" v-if="total > 0">
-      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50]"
-        :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
-        @current-change="handleCurrentChange" />
-    </div>
-
-    <!-- 通知详情弹窗 -->
-    <el-dialog v-model="detailDialogVisible" :title="selectedNotification?.title" width="600px"
-      @close="handleDetailClose">
-      <div class="notification-detail">
-        <div class="detail-meta">
-          <span>发布时间：{{ formatTime(selectedNotification?.created_at || '') }}</span>
-          <el-tag v-if="selectedNotification && !selectedNotification.is_read" type="danger" size="small">未读</el-tag>
-        </div>
-        <div class="detail-content" v-html="selectedNotification?.content"></div>
-      </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="detailDialogVisible = false">关闭</el-button>
-          <el-button v-if="selectedNotification && !selectedNotification.is_read" type="primary"
-            @click="markAsRead([selectedNotification.id])" :loading="markingRead.includes(selectedNotification.id)">
-            标记已读
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import type { NotificationItem, NotificationListParams } from '@/api/user/notification'
 import { Refresh } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { computed, onMounted, ref } from 'vue'
 import {
   getNotificationList,
-  markNotificationRead,
   markAllNotificationRead,
-  type NotificationItem,
-  type NotificationListParams
+  markNotificationRead,
+
 } from '@/api/user/notification'
 
 // 新增：用于侧边栏/抽屉的紧凑展示控制（默认在抽屉中使用）
@@ -116,12 +31,12 @@ const detailDialogVisible = ref(false)
 const selectedNotification = ref<NotificationItem | null>(null)
 
 // 获取通知列表
-const fetchNotifications = async () => {
+async function fetchNotifications() {
   try {
     loading.value = true
     const params: NotificationListParams = {
       page: currentPage.value,
-      page_size: pageSize.value
+      page_size: pageSize.value,
     }
 
     if (filterStatus.value !== 'all') {
@@ -133,25 +48,28 @@ const fetchNotifications = async () => {
       notifications.value = response.data.notifications
       total.value = response.data.total
       unreadCount.value = response.data.unread_count
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '获取通知列表失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取通知列表失败:', error)
     ElMessage.error('获取通知列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
 // 标记已读
-const markAsRead = async (notificationIds: number[]) => {
+async function markAsRead(notificationIds: number[]) {
   try {
     markingRead.value.push(...notificationIds)
     const response = await markNotificationRead({ notification_ids: notificationIds })
     if (response.code === 200) {
       // 更新本地状态
-      notifications.value.forEach(notification => {
+      notifications.value.forEach((notification) => {
         if (notificationIds.includes(notification.id)) {
           notification.is_read = true
         }
@@ -166,19 +84,22 @@ const markAsRead = async (notificationIds: number[]) => {
       unreadCount.value = Math.max(0, unreadCount.value - notificationIds.length)
 
       ElMessage.success('标记成功')
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '标记失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('标记已读失败:', error)
     ElMessage.error('标记失败')
-  } finally {
+  }
+  finally {
     markingRead.value = markingRead.value.filter(id => !notificationIds.includes(id))
   }
 }
 
 // 标记全部已读
-const markAllRead = async () => {
+async function markAllRead() {
   try {
     await ElMessageBox.confirm(
       `确定要将所有 ${unreadCount.value} 条未读通知标记为已读吗？`,
@@ -186,34 +107,37 @@ const markAllRead = async () => {
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
-      }
+        type: 'warning',
+      },
     )
 
     markingAllRead.value = true
     const response = await markAllNotificationRead()
     if (response.code === 200) {
       // 更新本地状态
-      notifications.value.forEach(notification => {
+      notifications.value.forEach((notification) => {
         notification.is_read = true
       })
       unreadCount.value = 0
       ElMessage.success(response.msg || '全部标记成功')
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '标记失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     if (error !== 'cancel') {
       console.error('标记全部已读失败:', error)
       ElMessage.error('标记失败')
     }
-  } finally {
+  }
+  finally {
     markingAllRead.value = false
   }
 }
 
 // 处理通知点击
-const handleNotificationClick = async (notification: NotificationItem) => {
+async function handleNotificationClick(notification: NotificationItem) {
   selectedNotification.value = notification
   detailDialogVisible.value = true
 
@@ -224,37 +148,38 @@ const handleNotificationClick = async (notification: NotificationItem) => {
 }
 
 // 处理详情弹窗关闭
-const handleDetailClose = () => {
+function handleDetailClose() {
   selectedNotification.value = null
 }
 
 // 处理筛选变化
-const handleFilterChange = () => {
+function handleFilterChange() {
   currentPage.value = 1
   fetchNotifications()
 }
 
 // 处理页码变化
-const handleCurrentChange = (page: number) => {
+function handleCurrentChange(page: number) {
   currentPage.value = page
   fetchNotifications()
 }
 
 // 处理页大小变化
-const handleSizeChange = (size: number) => {
+function handleSizeChange(size: number) {
   pageSize.value = size
   currentPage.value = 1
   fetchNotifications()
 }
 
 // 刷新列表
-const refreshList = () => {
+function refreshList() {
   fetchNotifications()
 }
 
 // 格式化时间
-const formatTime = (timeStr: string) => {
-  if (!timeStr) return ''
+function formatTime(timeStr: string) {
+  if (!timeStr)
+    return ''
 
   const time = new Date(timeStr)
   const now = new Date()
@@ -266,21 +191,26 @@ const formatTime = (timeStr: string) => {
 
   if (diff < minute) {
     return '刚刚'
-  } else if (diff < hour) {
+  }
+  else if (diff < hour) {
     return `${Math.floor(diff / minute)}分钟前`
-  } else if (diff < day) {
+  }
+  else if (diff < day) {
     return `${Math.floor(diff / hour)}小时前`
-  } else if (diff < 2 * day) {
+  }
+  else if (diff < 2 * day) {
     return '昨天'
-  } else if (diff < 7 * day) {
+  }
+  else if (diff < 7 * day) {
     return `${Math.floor(diff / day)}天前`
-  } else {
+  }
+  else {
     return time.toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 }
@@ -306,15 +236,18 @@ function isElementVisible(el: HTMLElement, container?: HTMLElement | null) {
 async function markVisibleUnreadAsRead(container?: HTMLElement) {
   try {
     const root = rootRef.value
-    if (!root) return
+    if (!root)
+      return
     const nodeList = root.querySelectorAll('.notification-item')
     const idsToMark: number[] = []
     nodeList.forEach((el) => {
       const idStr = (el as HTMLElement).getAttribute('data-id')
-      const id = idStr ? Number(idStr) : NaN
-      if (!Number.isFinite(id)) return
+      const id = idStr ? Number(idStr) : Number.NaN
+      if (!Number.isFinite(id))
+        return
       const n = notifications.value.find(n => n.id === id)
-      if (!n || n.is_read) return
+      if (!n || n.is_read)
+        return
       if (isElementVisible(el as HTMLElement, container)) {
         idsToMark.push(id)
       }
@@ -322,16 +255,128 @@ async function markVisibleUnreadAsRead(container?: HTMLElement) {
     if (idsToMark.length > 0) {
       await markAsRead(idsToMark)
     }
-  } catch (err) {
+  }
+  catch (err) {
     console.error('markVisibleUnreadAsRead error:', err)
   }
 }
 
 // 对外暴露方法，供外层抽屉关闭时调用
 // 也暴露刷新列表方法，便于外层在打开时主动刷新
-// eslint-disable-next-line no-undef
+
 defineExpose({ markVisibleUnreadAsRead, refreshList })
 </script>
+
+<template>
+  <div ref="rootRef" class="notifications-page" :class="{ compact }">
+    <div class="page-header">
+      <h2>我的通知</h2>
+      <div class="header-actions">
+        <el-button v-if="unreadCount > 0" type="primary" size="small" :loading="markingAllRead" @click="markAllRead">
+          全部标记已读
+        </el-button>
+        <el-badge :value="unreadCount" :hidden="unreadCount === 0">
+          <el-button size="small" @click="refreshList">
+            <el-icon>
+              <Refresh />
+            </el-icon>
+            刷新
+          </el-button>
+        </el-badge>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <el-radio-group v-model="filterStatus" @change="handleFilterChange">
+        <el-radio-button label="all">
+          全部
+        </el-radio-button>
+        <el-radio-button label="unread">
+          未读
+        </el-radio-button>
+        <el-radio-button label="read">
+          已读
+        </el-radio-button>
+      </el-radio-group>
+    </div>
+
+    <div v-loading="loading" class="notifications-list">
+      <div v-if="notifications.length === 0" class="empty-state">
+        <el-empty description="暂无通知" />
+      </div>
+
+      <div v-else>
+        <div
+          v-for="notification in notifications" :key="notification.id" class="notification-item"
+          :class="{ unread: !notification.is_read }" :data-id="notification.id"
+          @click="handleNotificationClick(notification)"
+        >
+          <div class="notification-content">
+            <div class="notification-header">
+              <h4 class="notification-title">
+                {{ notification.title }}
+              </h4>
+              <div class="notification-meta">
+                <span class="notification-time">{{ formatTime(notification.created_at) }}</span>
+                <el-tag v-if="!notification.is_read" type="danger" size="small">
+                  未读
+                </el-tag>
+              </div>
+            </div>
+            <p class="notification-text">
+              {{ notification.content }}
+            </p>
+          </div>
+          <div class="notification-actions">
+            <el-button
+              v-if="!notification.is_read" type="primary" size="small"
+              :loading="markingRead.includes(notification.id)" @click.stop="markAsRead([notification.id])"
+            >
+              标记已读
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="total > 0" class="pagination-wrapper">
+      <el-pagination
+        v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50]"
+        :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
+
+    <!-- 通知详情弹窗 -->
+    <el-dialog
+      v-model="detailDialogVisible" :title="selectedNotification?.title" width="600px"
+      @close="handleDetailClose"
+    >
+      <div class="notification-detail">
+        <div class="detail-meta">
+          <span>发布时间：{{ formatTime(selectedNotification?.created_at || '') }}</span>
+          <el-tag v-if="selectedNotification && !selectedNotification.is_read" type="danger" size="small">
+            未读
+          </el-tag>
+        </div>
+        <div class="detail-content" v-html="selectedNotification?.content" />
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="detailDialogVisible = false">
+            关闭
+          </el-button>
+          <el-button
+            v-if="selectedNotification && !selectedNotification.is_read" type="primary"
+            :loading="markingRead.includes(selectedNotification.id)" @click="markAsRead([selectedNotification.id])"
+          >
+            标记已读
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+</template>
 
 <style scoped>
 .notifications-page {

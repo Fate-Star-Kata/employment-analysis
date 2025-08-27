@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import { provide, ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed, nextTick, onMounted, onUnmounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import router from '@/router'
-import LanguageSwitch from './btns/LanguageSwitch.vue'
-import Search from './btns/search.vue'
-import ThemeSwitch from './btns/ThemeSwitch.vue'
-import NotificationBell from './btns/NotificationBell.vue'
-import MenuItems from './MenuItems.vue'
-import NotificationsPanel from '@/pages/user/notifications/index.vue'
-import serverConfig, { defaultMenuItems } from '@/configs'
-import { useUserStore } from '@/stores/auth/user'
-import { storeToRefs } from "pinia"
-import { MAX_FILE_SIZE } from '../../types/apis/files';
 import { getNotificationList } from '@/api/user/notification'
+import serverConfig, { defaultMenuItems } from '@/configs'
+import NotificationsPanel from '@/pages/user/notifications/index.vue'
+import router from '@/router'
+import { useUserStore } from '@/stores/auth/user'
+import NotificationBell from './btns/NotificationBell.vue'
+import Search from './btns/search.vue'
+import MenuItems from './MenuItems.vue'
 
 const { t } = useI18n()
 const expandedMenus = ref<Set<string>>(new Set())
@@ -34,50 +31,54 @@ const drawerScrollRef = ref<HTMLElement | null>(null)
 const unreadCount = ref(0)
 let pollTimer: number | null = null
 
-const handleBeforeClose = async (done: () => void) => {
+async function handleBeforeClose(done: () => void) {
   try {
     await notifyRef.value?.markVisibleUnreadAsRead?.(drawerScrollRef.value as HTMLElement | undefined)
     // 关闭抽屉后刷新未读数量
     await fetchUnreadCount()
-  } catch (e) {
+  }
+  catch (e) {
     console.error('auto mark visible unread failed:', e)
-  } finally {
+  }
+  finally {
     done()
   }
 }
 
-const handleOpen = async () => {
+async function handleOpen() {
   // 打开时刷新列表，确保展示最新消息
   try {
     await nextTick()
     await notifyRef.value?.refreshList?.()
     // 刷新未读数量
     await fetchUnreadCount()
-  } catch (e) {
+  }
+  catch (e) {
     console.error('refresh notifications on open failed:', e)
   }
 }
 
 // 获取未读消息数量
-const fetchUnreadCount = async () => {
+async function fetchUnreadCount() {
   try {
     const response = await getNotificationList({ page: 1, page_size: 1, is_read: false })
     if (response.code === 200) {
       unreadCount.value = response.data.unread_count || 0
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取未读消息数量失败:', error)
   }
 }
 
 // 开始轮询未读消息数量
-const startPolling = () => {
+function startPolling() {
   fetchUnreadCount()
   pollTimer = setInterval(fetchUnreadCount, 30000) // 每30秒轮询一次
 }
 
 // 停止轮询
-const stopPolling = () => {
+function stopPolling() {
   if (pollTimer) {
     clearInterval(pollTimer)
     pollTimer = null
@@ -93,7 +94,7 @@ const userMenuItems = ref([
     event: () => {
       console.log('跳转到个人资料页面')
       router.push('/userInfo')
-    }
+    },
   },
   {
     title: '设置',
@@ -103,16 +104,16 @@ const userMenuItems = ref([
     event: () => {
       console.log('跳转到设置页面')
       // router.push('/settings')
-    }
+    },
   },
   {
     title: '退出登录',
     class: '',
     event: () => {
       console.log('执行退出登录')
-      router.push("/auth/login")
-    }
-  }
+      router.push('/auth/login')
+    },
+  },
 ])
 
 // 从configs获取菜单项并应用国际化
@@ -121,7 +122,7 @@ const menuItems = computed(() => {
     return items.map(item => ({
       ...item,
       label: t(item.label),
-      children: item.children ? applyI18n(item.children) : undefined
+      children: item.children ? applyI18n(item.children) : undefined,
     }))
   }
   return applyI18n(defaultMenuItems)
@@ -181,19 +182,18 @@ onUnmounted(() => {
     </div>
     <div class="navbar-end">
       <div class="flex items-center gap-2">
-
         <!-- 铃铛按钮组件 -->
         <NotificationBell v-if="userInfo?.username" :unread-count="unreadCount" @click="showNotify = true" />
 
         <!-- 用户头像显示区域 -->
-        <div class="dropdown dropdown-end" v-if="userInfo?.username">
+        <div v-if="userInfo?.username" class="dropdown dropdown-end">
           <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar avatar-online">
             <div class="w-10 rounded-full">
-              <img alt="用户头像" height="30" :src="avatar" />
+              <img alt="用户头像" height="30" :src="avatar">
             </div>
           </div>
           <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-            <li v-for="(item, index) in userMenuItems" :key="index" v-show="!item.hide">
+            <li v-for="(item, index) in userMenuItems" v-show="!item.hide" :key="index">
               <a :class="item.class" :title="item.title" @click="item.event">
                 {{ item.title }}
                 <span v-if="item.badge" class="badge">{{ item.badge }}</span>
@@ -215,8 +215,10 @@ onUnmounted(() => {
   </div>
 
   <!-- 右侧消息抽屉：点击遮罩自动关闭，在关闭前自动标记视口内未读为已读 -->
-  <el-drawer v-model="showNotify" :with-header="false" direction="rtl" size="420px" :append-to-body="true"
-    :before-close="handleBeforeClose" :close-on-click-modal="true" @open="handleOpen">
+  <el-drawer
+    v-model="showNotify" :with-header="false" direction="rtl" size="420px" :append-to-body="true"
+    :before-close="handleBeforeClose" :close-on-click-modal="true" @open="handleOpen"
+  >
     <div ref="drawerScrollRef" class="drawer-body-scroll">
       <NotificationsPanel ref="notifyRef" :in-drawer="true" />
     </div>

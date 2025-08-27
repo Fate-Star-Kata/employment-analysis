@@ -9,8 +9,6 @@ import { defineConfig, loadEnv, mergeConfig } from 'vite'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { devConfig } from './vite.config.dev'
 import { prodConfig } from './vite.config.prod'
-import autoprefixer from 'autoprefixer';
-
 
 // 基础配置
 const baseConfig: UserConfig = {
@@ -63,7 +61,7 @@ export default defineConfig(({ command, mode }) => {
   // 从环境变量获取后端地址
   const backendUrl = env.VITE_SERVER_PATH || 'localhost:8000'
 
-  console.log(backendUrl);
+  console.log(backendUrl)
 
   const envConfig = {
     ...devConfig,
