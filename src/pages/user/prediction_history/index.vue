@@ -1,15 +1,15 @@
 <template>
-  <div class="min-h-screen bg-base-100 text-base-content">
+  <div class="min-h-screen bg-gray-50 text-gray-800">
     <!-- 页面头部 -->
-    <div class="bg-white text-gray-800 py-12 border-b border-base-200">
+    <div class="bg-white text-gray-800 py-12 border-b border-gray-200">
       <div class="container mx-auto px-4 text-center">
         <RevealMotion :delay="0">
-          <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+          <h1 class="text-4xl md:text-5xl font-light tracking-tight mb-4 text-gray-900">
             📊 预测历史记录
           </h1>
         </RevealMotion>
         <RevealMotion :delay="0.1">
-          <p class="text-lg opacity-70 max-w-2xl mx-auto text-gray-600">
+          <p class="text-lg max-w-2xl mx-auto text-gray-600">
             查看您的历史预测记录，分析预测准确性和趋势变化
           </p>
         </RevealMotion>
@@ -20,39 +20,39 @@
       <!-- 统计概览 -->
       <RevealMotion :delay="0.2">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-lg">
-            <div class="card-body text-center">
+          <div class="card bg-white border border-gray-200 shadow-sm">
+            <div class="card-body text-center p-6">
               <div class="text-3xl mb-2">📈</div>
-              <h3 class="text-lg font-semibold mb-2">总预测次数</h3>
-              <div class="text-2xl font-bold">{{ statistics.totalPredictions }}</div>
-              <div class="text-sm opacity-80">累计预测记录</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-800">总预测次数</h3>
+              <div class="text-2xl font-medium text-gray-900">{{ statistics.totalPredictions }}</div>
+              <div class="text-sm text-gray-600">累计预测记录</div>
             </div>
           </div>
           
-          <div class="card bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content shadow-lg">
-            <div class="card-body text-center">
+          <div class="card bg-white border border-gray-200 shadow-sm">
+            <div class="card-body text-center p-6">
               <div class="text-3xl mb-2">🎯</div>
-              <h3 class="text-lg font-semibold mb-2">平均准确率</h3>
-              <div class="text-2xl font-bold">{{ statistics.averageAccuracy }}%</div>
-              <div class="text-sm opacity-80">预测准确度</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-800">平均准确率</h3>
+              <div class="text-2xl font-medium text-gray-900">{{ statistics.averageAccuracy }}%</div>
+              <div class="text-sm text-gray-600">预测准确度</div>
             </div>
           </div>
           
-          <div class="card bg-gradient-to-br from-accent to-accent-focus text-accent-content shadow-lg">
-            <div class="card-body text-center">
+          <div class="card bg-white border border-gray-200 shadow-sm">
+            <div class="card-body text-center p-6">
               <div class="text-3xl mb-2">✅</div>
-              <h3 class="text-lg font-semibold mb-2">成功预测</h3>
-              <div class="text-2xl font-bold">{{ statistics.successfulPredictions }}</div>
-              <div class="text-sm opacity-80">准确预测数量</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-800">成功预测</h3>
+              <div class="text-2xl font-medium text-gray-900">{{ statistics.successfulPredictions }}</div>
+              <div class="text-sm text-gray-600">准确预测数量</div>
             </div>
           </div>
           
-          <div class="card bg-gradient-to-br from-info to-info-focus text-info-content shadow-lg">
-            <div class="card-body text-center">
+          <div class="card bg-white border border-gray-200 shadow-sm">
+            <div class="card-body text-center p-6">
               <div class="text-3xl mb-2">📅</div>
-              <h3 class="text-lg font-semibold mb-2">最近预测</h3>
-              <div class="text-2xl font-bold">{{ statistics.lastPredictionDays }}</div>
-              <div class="text-sm opacity-80">天前</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-800">最近预测</h3>
+              <div class="text-2xl font-medium text-gray-900">{{ statistics.lastPredictionDays }}</div>
+              <div class="text-sm text-gray-600">天前</div>
             </div>
           </div>
         </div>
@@ -60,9 +60,9 @@
 
       <!-- 筛选和搜索 -->
       <RevealMotion :delay="0.3">
-        <div class="card bg-base-200 shadow-sm">
+        <div class="card bg-white border border-gray-200 shadow-sm">
           <div class="card-body p-6">
-            <h2 class="card-title text-xl mb-6">🔍 筛选条件</h2>
+            <h2 class="text-xl font-medium mb-6 text-gray-800">🔍 筛选条件</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div class="form-control">
                 <label class="label">
@@ -116,9 +116,9 @@
             </div>
             
             <div class="flex gap-3">
-              <button class="btn btn-primary" @click="applyFilters">🔍 应用筛选</button>
-              <button class="btn btn-secondary" @click="resetFilters">🔄 重置筛选</button>
-              <button class="btn btn-info" @click="exportData">📊 导出数据</button>
+              <button class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-colors" @click="applyFilters">🔍 应用筛选</button>
+              <button class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition-colors" @click="resetFilters">🔄 重置筛选</button>
+              <button class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition-colors" @click="exportData">📊 导出数据</button>
             </div>
           </div>
         </div>
@@ -126,9 +126,9 @@
 
       <!-- 预测记录列表 -->
       <RevealMotion :delay="0.4">
-        <div class="card bg-base-200 shadow-sm">
+        <div class="card bg-white border border-gray-200 shadow-sm">
           <div class="card-body p-6">
-            <h2 class="card-title text-xl mb-6">📋 预测记录</h2>
+            <h2 class="text-xl font-medium mb-6 text-gray-800">📋 预测记录</h2>
             <div class="overflow-x-auto">
               <table class="table table-zebra w-full">
                 <thead>
@@ -200,20 +200,20 @@
                     <td>
                       <div class="flex gap-1">
                         <button 
-                          class="btn btn-xs btn-info" 
+                          class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs border border-gray-300 transition-colors" 
                           @click="viewDetails(record.id)"
                         >
                           详情
                         </button>
                         <button 
                           v-if="record.status === 'pending'" 
-                          class="btn btn-xs btn-success" 
+                          class="px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded text-xs border border-green-300 transition-colors" 
                           @click="verifyResult(record.id)"
                         >
                           验证
                         </button>
                         <button 
-                          class="btn btn-xs btn-secondary" 
+                          class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs border border-gray-300 transition-colors" 
                           @click="compareResult(record.id)"
                         >
                           对比
@@ -227,21 +227,27 @@
             
             <!-- 分页 -->
             <div class="flex justify-center mt-6">
-              <div class="join">
+              <div class="flex gap-1">
                 <button 
-                  class="join-item btn btn-sm" 
-                  :disabled="currentPage === 1"
+                  class="px-3 py-2 rounded-lg border border-gray-300 transition-colors" 
+                  :class="currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50 text-gray-700'"
                   @click="currentPage--"
+                  :disabled="currentPage === 1"
                 >
-                  «
+                  上一页
                 </button>
-                <button class="join-item btn btn-sm btn-active">{{ currentPage }}</button>
                 <button 
-                  class="join-item btn btn-sm" 
-                  :disabled="currentPage === totalPages"
-                  @click="currentPage++"
+                  class="px-3 py-2 rounded-lg border border-gray-300 transition-colors bg-gray-900 text-white"
                 >
-                  »
+                  {{ currentPage }}
+                </button>
+                <button 
+                  class="px-3 py-2 rounded-lg border border-gray-300 transition-colors" 
+                  :class="currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50 text-gray-700'"
+                  @click="currentPage++"
+                  :disabled="currentPage === totalPages"
+                >
+                  下一页
                 </button>
               </div>
             </div>
@@ -333,14 +339,18 @@
     </div>
 
     <!-- 页脚 -->
-    <footer class="border-t border-base-200 py-6 text-center text-sm opacity-70">
-      {{ footerText }}
+    <footer class="text-center p-10 bg-white border-t border-gray-200 mt-12">
+      <div class="text-center">
+        <p class="text-sm text-gray-600">
+          © 2024 就业分析与预测系统. 数据仅供参考，实际结果可能有所差异。
+        </p>
+      </div>
     </footer>
 
     <!-- 详情模态框 -->
     <dialog ref="detailModal" class="modal">
-      <div class="modal-box w-11/12 max-w-2xl">
-        <h3 class="font-bold text-lg mb-4">预测详情</h3>
+      <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-4xl mx-auto p-6">
+        <h3 class="font-medium text-lg mb-4 text-gray-800">📊 预测详情</h3>
         <div v-if="selectedRecord" class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -375,8 +385,8 @@
           </div>
         </div>
         
-        <div class="modal-action">
-          <button class="btn" @click="closeDetailModal">关闭</button>
+        <div class="flex justify-end mt-6">
+          <button class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition-colors" @click="closeDetailModal">关闭</button>
         </div>
       </div>
     </dialog>

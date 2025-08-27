@@ -1,15 +1,15 @@
 <template>
-  <div class="min-h-screen bg-base-100 text-base-content">
+  <div class="min-h-screen bg-gray-50 text-gray-800">
     <!-- 页面头部 -->
-    <div class="bg-white text-gray-800 py-12 border-b border-base-200">
+    <div class="bg-white text-gray-800 py-12 border-b border-gray-200">
       <div class="container mx-auto px-4 text-center">
         <RevealMotion :delay="0">
-          <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+          <h1 class="text-4xl md:text-5xl font-light tracking-tight mb-4 text-gray-900">
             🔮 个人就业预测
           </h1>
         </RevealMotion>
         <RevealMotion :delay="0.1">
-          <p class="text-lg opacity-70 max-w-2xl mx-auto text-gray-600">
+          <p class="text-lg max-w-2xl mx-auto text-gray-600">
             基于大数据分析，为您预测职业发展前景和薪资水平
           </p>
         </RevealMotion>
@@ -20,39 +20,39 @@
       <!-- 预测概览 -->
       <RevealMotion :delay="0.2">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-lg">
+          <div class="card bg-white border border-gray-200 text-gray-800 shadow-sm hover:shadow-md transition-shadow">
             <div class="card-body text-center">
-              <div class="text-3xl mb-2">💰</div>
-              <h3 class="text-lg font-semibold mb-2">预测薪资范围</h3>
-              <div class="text-2xl font-bold">{{ predictedSalary.range }}</div>
-              <div class="text-sm opacity-80">置信度: {{ predictedSalary.confidence }}%</div>
+              <div class="text-3xl mb-2 text-gray-600">💰</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-700">预测薪资范围</h3>
+              <div class="text-2xl font-semibold text-gray-900">{{ predictedSalary.range }}</div>
+              <div class="text-sm text-gray-500">置信度: {{ predictedSalary.confidence }}%</div>
             </div>
           </div>
           
-          <div class="card bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content shadow-lg">
+          <div class="card bg-white border border-gray-200 text-gray-800 shadow-sm hover:shadow-md transition-shadow">
             <div class="card-body text-center">
-              <div class="text-3xl mb-2">⏰</div>
-              <h3 class="text-lg font-semibold mb-2">预计求职时长</h3>
-              <div class="text-2xl font-bold">{{ jobSearchDuration.estimate }}</div>
-              <div class="text-sm opacity-80">基于当前市场状况</div>
+              <div class="text-3xl mb-2 text-gray-600">⏰</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-700">预计求职时长</h3>
+              <div class="text-2xl font-semibold text-gray-900">{{ jobSearchDuration.estimate }}</div>
+              <div class="text-sm text-gray-500">基于当前市场状况</div>
             </div>
           </div>
           
-          <div class="card bg-gradient-to-br from-accent to-accent-focus text-accent-content shadow-lg">
+          <div class="card bg-white border border-gray-200 text-gray-800 shadow-sm hover:shadow-md transition-shadow">
             <div class="card-body text-center">
-              <div class="text-3xl mb-2">📈</div>
-              <h3 class="text-lg font-semibold mb-2">职业发展指数</h3>
-              <div class="text-2xl font-bold">{{ careerIndex.score }}/100</div>
-              <div class="text-sm opacity-80">{{ careerIndex.level }}</div>
+              <div class="text-3xl mb-2 text-gray-600">📈</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-700">职业发展指数</h3>
+              <div class="text-2xl font-semibold text-gray-900">{{ careerIndex.score }}/100</div>
+              <div class="text-sm text-gray-500">{{ careerIndex.level }}</div>
             </div>
           </div>
           
-          <div class="card bg-gradient-to-br from-info to-info-focus text-info-content shadow-lg">
+          <div class="card bg-white border border-gray-200 text-gray-800 shadow-sm hover:shadow-md transition-shadow">
             <div class="card-body text-center">
-              <div class="text-3xl mb-2">🎯</div>
-              <h3 class="text-lg font-semibold mb-2">匹配职位数</h3>
-              <div class="text-2xl font-bold">{{ matchingJobs.count }}</div>
-              <div class="text-sm opacity-80">当前市场可选职位</div>
+              <div class="text-3xl mb-2 text-gray-600">🎯</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-700">匹配职位数</h3>
+              <div class="text-2xl font-semibold text-gray-900">{{ matchingJobs.count }}</div>
+              <div class="text-sm text-gray-500">当前市场可选职位</div>
             </div>
           </div>
         </div>
@@ -60,9 +60,9 @@
 
       <!-- 技能评估雷达图 -->
       <RevealMotion :delay="0.3">
-        <div class="card bg-base-200 shadow-sm">
+        <div class="card bg-white border border-gray-200 shadow-sm">
           <div class="card-body p-6">
-            <h2 class="card-title text-xl mb-6">🎯 技能评估雷达图</h2>
+            <h2 class="text-xl font-medium mb-6 text-gray-800">🎯 技能评估雷达图</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div class="flex justify-center">
                 <div class="relative w-80 h-80">
@@ -133,7 +133,7 @@
                 </div>
                 
                 <div class="mt-6">
-                  <button class="btn btn-primary btn-sm" @click="updateSkillAssessment">🔄 重新评估</button>
+                  <button class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg border border-gray-300 transition-colors" @click="updateSkillAssessment">🔄 重新评估</button>
                 </div>
               </div>
             </div>
@@ -143,14 +143,14 @@
 
       <!-- 能力提升建议 -->
       <RevealMotion :delay="0.4">
-        <div class="card bg-base-200 shadow-sm">
+        <div class="card bg-white border border-gray-200 shadow-sm">
           <div class="card-body p-6">
-            <h2 class="card-title text-xl mb-6">🚀 能力提升建议</h2>
+            <h2 class="text-xl font-medium mb-6 text-gray-800">🚀 能力提升建议</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div 
                 v-for="suggestion in improvementSuggestions" 
                 :key="suggestion.category"
-                class="card bg-base-100 shadow-sm"
+                class="card bg-gray-50 border border-gray-200 shadow-sm"
               >
                 <div class="card-body p-4">
                   <div class="text-center mb-4">
@@ -162,7 +162,7 @@
                     <div 
                       v-for="item in suggestion.items" 
                       :key="item.name"
-                      class="border border-base-300 rounded-lg p-3"
+                      class="border border-gray-200 rounded-lg p-3 bg-white"
                     >
                       <div class="flex justify-between items-center mb-2">
                         <span class="font-medium text-sm">{{ item.name }}</span>
@@ -189,33 +189,28 @@
 
       <!-- SWOT分析 -->
       <RevealMotion :delay="0.5">
-        <div class="card bg-base-200 shadow-sm">
+        <div class="card bg-white border border-gray-200 shadow-sm">
           <div class="card-body p-6">
-            <h2 class="card-title text-xl mb-6">📊 个人竞争力SWOT分析</h2>
+            <h2 class="text-xl font-medium mb-6 text-gray-800">📊 个人竞争力SWOT分析</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div 
                 v-for="swot in swotAnalysis" 
                 :key="swot.type"
-                :class="[
-                  'card shadow-sm',
-                  swot.type === 'strengths' ? 'bg-success text-success-content' :
-                  swot.type === 'weaknesses' ? 'bg-error text-error-content' :
-                  swot.type === 'opportunities' ? 'bg-info text-info-content' : 'bg-warning text-warning-content'
-                ]"
+                class="card bg-gray-50 border border-gray-200 shadow-sm"
               >
                 <div class="card-body p-4">
                   <div class="flex items-center gap-3 mb-4">
-                    <div class="text-2xl">{{ swot.icon }}</div>
-                    <h3 class="text-lg font-semibold">{{ swot.title }}</h3>
+                    <div class="text-2xl text-gray-600">{{ swot.icon }}</div>
+                    <h3 class="text-lg font-medium text-gray-800">{{ swot.title }}</h3>
                   </div>
                   
                   <ul class="space-y-2">
                     <li 
                       v-for="item in swot.items" 
                       :key="item"
-                      class="flex items-start gap-2 text-sm"
+                      class="flex items-start gap-2 text-sm text-gray-700"
                     >
-                      <span class="text-xs mt-1">•</span>
+                      <span class="text-xs mt-1 text-gray-400">•</span>
                       <span>{{ item }}</span>
                     </li>
                   </ul>
@@ -228,30 +223,30 @@
 
       <!-- 预测准确性说明 -->
       <RevealMotion :delay="0.6">
-        <div class="card bg-base-200 shadow-sm">
+        <div class="card bg-white border border-gray-200 shadow-sm">
           <div class="card-body p-6">
-            <h2 class="card-title text-xl mb-6">📈 预测模型说明</h2>
+            <h2 class="text-xl font-medium mb-6 text-gray-800">📈 预测模型说明</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div class="text-center">
-                <div class="text-3xl mb-3">🤖</div>
-                <h4 class="font-semibold mb-2">机器学习算法</h4>
-                <p class="text-sm opacity-70">基于历史数据训练的深度学习模型</p>
+                <div class="text-3xl mb-3 text-gray-600">🤖</div>
+                <h4 class="font-medium mb-2 text-gray-800">机器学习算法</h4>
+                <p class="text-sm text-gray-600">基于历史数据训练的深度学习模型</p>
               </div>
               <div class="text-center">
-                <div class="text-3xl mb-3">📊</div>
-                <h4 class="font-semibold mb-2">大数据分析</h4>
-                <p class="text-sm opacity-70">整合多维度就业市场数据</p>
+                <div class="text-3xl mb-3 text-gray-600">📊</div>
+                <h4 class="font-medium mb-2 text-gray-800">大数据分析</h4>
+                <p class="text-sm text-gray-600">整合多维度就业市场数据</p>
               </div>
               <div class="text-center">
-                <div class="text-3xl mb-3">🎯</div>
-                <h4 class="font-semibold mb-2">个性化预测</h4>
-                <p class="text-sm opacity-70">结合个人背景和市场趋势</p>
+                <div class="text-3xl mb-3 text-gray-600">🎯</div>
+                <h4 class="font-medium mb-2 text-gray-800">个性化预测</h4>
+                <p class="text-sm text-gray-600">结合个人背景和市场趋势</p>
               </div>
             </div>
             
-            <div class="mt-6 p-4 bg-base-100 rounded-lg">
-              <h4 class="font-semibold mb-2">📝 预测准确性声明</h4>
-              <p class="text-sm opacity-70">
+            <div class="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h4 class="font-medium mb-2 text-gray-800">📝 预测准确性声明</h4>
+              <p class="text-sm text-gray-600">
                 本预测结果基于当前市场数据和历史趋势分析得出，仅供参考。实际就业情况可能受多种因素影响，
                 包括但不限于市场变化、个人努力程度、机遇等。建议将预测结果作为职业规划的参考依据之一。
               </p>
@@ -262,7 +257,7 @@
     </div>
 
     <!-- 页脚 -->
-    <footer class="border-t border-base-200 py-6 text-center text-sm opacity-70">
+    <footer class="border-t border-gray-200 py-6 text-center text-sm text-gray-500">
       {{ footerText }}
     </footer>
   </div>
