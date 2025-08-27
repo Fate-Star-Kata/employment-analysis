@@ -47,7 +47,25 @@ export const defaultMenuItems: MenuItem[] = [
   {
     id: "trend",
     label: "趋势分析",
-    href: "/user/trend-analysis",
+    href: "/user/trend_analysis",
+    icon: null,
+  },
+  {
+    id: "prediction",
+    label: "就业预测",
+    href: "/user/personal_prediction",
+    icon: null,
+  },
+  {
+    id: "recommendation",
+    label: "职位推荐",
+    href: "/user/job_recommendation",
+    icon: null,
+  },
+  {
+    id: "history",
+    label: "历史记录",
+    href: "/user/prediction_history",
     icon: null,
   },
   {
@@ -55,6 +73,7 @@ export const defaultMenuItems: MenuItem[] = [
     label: "知识库",
     href: "/user/knowledge",
     icon: null,
+    hide: true,
   },
   {
     id: "admin",

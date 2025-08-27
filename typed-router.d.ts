@@ -38,10 +38,13 @@ declare module 'vue-router/auto-routes' {
     '/templates/knowledge': RouteRecordInfo<'/templates/knowledge', '/templates/knowledge', Record<never, never>, Record<never, never>>,
     '/templates/stats': RouteRecordInfo<'/templates/stats', '/templates/stats', Record<never, never>, Record<never, never>>,
     '/templates/websocket': RouteRecordInfo<'/templates/websocket', '/templates/websocket', Record<never, never>, Record<never, never>>,
+    '/user/job_recommendation/': RouteRecordInfo<'/user/job_recommendation/', '/user/job_recommendation', Record<never, never>, Record<never, never>>,
     '/user/knowledge/': RouteRecordInfo<'/user/knowledge/', '/user/knowledge', Record<never, never>, Record<never, never>>,
     '/user/notifications/': RouteRecordInfo<'/user/notifications/', '/user/notifications', Record<never, never>, Record<never, never>>,
+    '/user/personal_prediction/': RouteRecordInfo<'/user/personal_prediction/', '/user/personal_prediction', Record<never, never>, Record<never, never>>,
+    '/user/prediction_history/': RouteRecordInfo<'/user/prediction_history/', '/user/prediction_history', Record<never, never>, Record<never, never>>,
     '/user/system_film/': RouteRecordInfo<'/user/system_film/', '/user/system_film', Record<never, never>, Record<never, never>>,
-    '/user/trend-analysis/': RouteRecordInfo<'/user/trend-analysis/', '/user/trend-analysis', Record<never, never>, Record<never, never>>,
+    '/user/trend_analysis/': RouteRecordInfo<'/user/trend_analysis/', '/user/trend_analysis', Record<never, never>, Record<never, never>>,
     '/userInfo/': RouteRecordInfo<'/userInfo/', '/userInfo', Record<never, never>, Record<never, never>>,
   }
 
@@ -136,6 +139,10 @@ declare module 'vue-router/auto-routes' {
       routes: '/templates/websocket'
       views: never
     }
+    'src/pages/user/job_recommendation/index.vue': {
+      routes: '/user/job_recommendation/'
+      views: never
+    }
     'src/pages/user/knowledge/index.vue': {
       routes: '/user/knowledge/'
       views: never
@@ -144,12 +151,20 @@ declare module 'vue-router/auto-routes' {
       routes: '/user/notifications/'
       views: never
     }
+    'src/pages/user/personal_prediction/index.vue': {
+      routes: '/user/personal_prediction/'
+      views: never
+    }
+    'src/pages/user/prediction_history/index.vue': {
+      routes: '/user/prediction_history/'
+      views: never
+    }
     'src/pages/user/system_film/index.vue': {
       routes: '/user/system_film/'
       views: never
     }
-    'src/pages/user/trend-analysis/index.vue': {
-      routes: '/user/trend-analysis/'
+    'src/pages/user/trend_analysis/index.vue': {
+      routes: '/user/trend_analysis/'
       views: never
     }
     'src/pages/userInfo/index.vue': {
