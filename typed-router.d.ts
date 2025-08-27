@@ -22,9 +22,11 @@ declare module 'vue-router/auto-routes' {
     '/admin/': RouteRecordInfo<'/admin/', '/admin', Record<never, never>, Record<never, never>>,
     '/admin/ai/': RouteRecordInfo<'/admin/ai/', '/admin/ai', Record<never, never>, Record<never, never>>,
     '/admin/dashboard/': RouteRecordInfo<'/admin/dashboard/', '/admin/dashboard', Record<never, never>, Record<never, never>>,
+    '/admin/dataManage/': RouteRecordInfo<'/admin/dataManage/', '/admin/dataManage', Record<never, never>, Record<never, never>>,
     '/admin/knowledge/': RouteRecordInfo<'/admin/knowledge/', '/admin/knowledge', Record<never, never>, Record<never, never>>,
     '/admin/log/': RouteRecordInfo<'/admin/log/', '/admin/log', Record<never, never>, Record<never, never>>,
     '/admin/notice/': RouteRecordInfo<'/admin/notice/', '/admin/notice', Record<never, never>, Record<never, never>>,
+    '/admin/predictionHistory/': RouteRecordInfo<'/admin/predictionHistory/', '/admin/predictionHistory', Record<never, never>, Record<never, never>>,
     '/admin/profile/': RouteRecordInfo<'/admin/profile/', '/admin/profile', Record<never, never>, Record<never, never>>,
     '/admin/settings/': RouteRecordInfo<'/admin/settings/', '/admin/settings', Record<never, never>, Record<never, never>>,
     '/admin/systemConfig/': RouteRecordInfo<'/admin/systemConfig/', '/admin/systemConfig', Record<never, never>, Record<never, never>>,
@@ -73,6 +75,10 @@ declare module 'vue-router/auto-routes' {
       routes: '/admin/dashboard/'
       views: never
     }
+    'src/pages/admin/dataManage/index.vue': {
+      routes: '/admin/dataManage/'
+      views: never
+    }
     'src/pages/admin/knowledge/index.vue': {
       routes: '/admin/knowledge/'
       views: never
@@ -83,6 +89,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/admin/notice/index.vue': {
       routes: '/admin/notice/'
+      views: never
+    }
+    'src/pages/admin/predictionHistory/index.vue': {
+      routes: '/admin/predictionHistory/'
       views: never
     }
     'src/pages/admin/profile/index.vue': {

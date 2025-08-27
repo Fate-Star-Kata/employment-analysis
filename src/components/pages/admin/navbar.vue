@@ -47,7 +47,7 @@ watch(() => route.path, () => {
 onMounted(() => {
   // 登录拦截
   if (!userInfo.value) {
-    router.push('/auth/login')
+    // router.push('/auth/login')
   }
 })
 </script>
