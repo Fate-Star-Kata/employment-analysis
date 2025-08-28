@@ -1,19 +1,65 @@
+<script setup lang="ts">
+import type { User } from '@/types/components/admin'
+import { Delete, Edit } from '@element-plus/icons-vue'
+import { Motion } from 'motion-v'
+
+// Props
+const props = defineProps({
+  userList: {
+    type: Array as () => User[],
+    default: () => [],
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  currentPage: {
+    type: Number,
+    default: 1,
+  },
+  pageSize: {
+    type: Number,
+    default: 10,
+  },
+  currentUserId: {
+    type: Number,
+    default: null,
+  },
+})
+
+// Emits
+const emit = defineEmits(['row-click', 'edit', 'delete'])
+
+// 事件处理
+function handleRowClick(row: User) {
+  emit('row-click', row)
+}
+
+function handleEdit(id: number) {
+  emit('edit', id)
+}
+
+function handleDelete(id: number) {
+  emit('delete', id)
+}
+</script>
+
 <template>
   <div class="user-table-wrapper relative">
     <!-- 加载蒙层 -->
     <div v-if="loading" class="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-lg">
       <div class="flex flex-col items-center">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2" />
         <span class="text-sm text-gray-600">数据加载中...</span>
       </div>
     </div>
-    
-    <el-table 
-      :data="userList" 
-      v-loading="loading" 
-      border 
-      stripe 
-      class="user-table" 
+
+    <el-table
+      v-loading="loading"
+      :data="userList"
+      border
+      stripe
+      class="user-table"
       @row-click="handleRowClick"
     >
       <el-table-column label="序号" width="80" align="center">
@@ -63,11 +109,11 @@
       <el-table-column label="操作" width="200" align="center" fixed="right">
         <template #default="{ row }">
           <el-space>
-            <Motion :whileHover="{ scale: 1.1 }" :whileTap="{ scale: 0.9 }">
-              <el-button 
-                type="primary" 
-                size="small" 
-                :disabled="currentUserId === row.id || loading" 
+            <Motion :while-hover="{ scale: 1.1 }" :while-tap="{ scale: 0.9 }">
+              <el-button
+                type="primary"
+                size="small"
+                :disabled="currentUserId === row.id || loading"
                 @click="handleEdit(row.id)"
               >
                 <el-icon>
@@ -76,12 +122,12 @@
                 编辑
               </el-button>
             </Motion>
-            <Motion :whileHover="{ scale: 1.1 }" :whileTap="{ scale: 0.9 }">
-              <el-popconfirm 
-                v-if="currentUserId !== row.id" 
-                title="确认删除吗?" 
+            <Motion :while-hover="{ scale: 1.1 }" :while-tap="{ scale: 0.9 }">
+              <el-popconfirm
+                v-if="currentUserId !== row.id"
+                title="确认删除吗?"
                 confirm-button-text="确认"
-                cancel-button-text="取消" 
+                cancel-button-text="取消"
                 @confirm="handleDelete(row.id)"
               >
                 <template #reference>
@@ -100,52 +146,6 @@
     </el-table>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Motion } from 'motion-v'
-import { Edit, Delete } from '@element-plus/icons-vue'
-import type { User } from '@/types/components/admin'
-
-// Props
-const props = defineProps({
-  userList: {
-    type: Array as () => User[],
-    default: () => []
-  },
-  loading: {
-    type: Boolean,
-    default: false
-  },
-  currentPage: {
-    type: Number,
-    default: 1
-  },
-  pageSize: {
-    type: Number,
-    default: 10
-  },
-  currentUserId: {
-    type: Number,
-    default: null
-  }
-})
-
-// Emits
-const emit = defineEmits(['row-click', 'edit', 'delete'])
-
-// 事件处理
-const handleRowClick = (row: User) => {
-  emit('row-click', row)
-}
-
-const handleEdit = (id: number) => {
-  emit('edit', id)
-}
-
-const handleDelete = (id: number) => {
-  emit('delete', id)
-}
-</script>
 
 <style scoped lang="scss">
 .user-table-wrapper {

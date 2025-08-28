@@ -1,94 +1,3 @@
-<template>
-  <Teleport to="body">
-    <Transition name="modal" appear>
-      <div v-if="visible" class="file-upload-modal-overlay" @click="handleOverlayClick">
-        <div class="file-upload-modal" @click.stop>
-          <!-- 装饰性背景 -->
-          <div class="modal-decoration">
-            <div class="decoration-circle decoration-circle-1"></div>
-            <div class="decoration-circle decoration-circle-2"></div>
-            <div class="decoration-circle decoration-circle-3"></div>
-          </div>
-
-          <!-- 头部 -->
-          <div class="modal-header">
-            <div class="header-content">
-              <div class="header-icon">
-                <div class="icon-wrapper">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor"
-                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round" />
-                    <line x1="12" y1="18" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round" />
-                    <line x1="9" y1="15" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round" />
-                    <line x1="15" y1="15" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round" />
-                  </svg>
-                </div>
-              </div>
-              <div class="title-section">
-                <h3 class="modal-title">文件上传</h3>
-                <p class="modal-subtitle">拖拽文件到此处或点击选择文件</p>
-              </div>
-            </div>
-            <button class="close-button" @click="handleClose">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  stroke-linejoin="round" />
-                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  stroke-linejoin="round" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- 内容区 -->
-          <div class="modal-content">
-            <FileUpload :max-size="maxSize" :accept="accept" :multiple="multiple" @upload="handleFileUpload"
-              @success="handleUploadSuccess" @error="handleUploadError" @progress="handleUploadProgress" />
-          </div>
-
-          <!-- 底部信息 -->
-          <div class="modal-footer">
-            <div class="footer-info">
-              <div class="info-grid">
-                <div class="info-card">
-                  <div class="info-icon">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">最大大小</span>
-                    <span class="info-value">{{ formatFileSize(maxSize) }}</span>
-                  </div>
-                </div>
-                <div class="info-card">
-                  <div class="info-icon">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                      <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    </svg>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">支持格式</span>
-                    <span class="info-value">{{ acceptedTypesText }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue'
 import FileUpload from '../FileUpload/index.vue'
@@ -104,8 +13,10 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   maxSize: 10 * 1024 * 1024, // 10MB
   accept: '',
-  multiple: true
+  multiple: true,
 })
+
+const emit = defineEmits<Emits>()
 
 // 定义事件
 interface Emits {
@@ -116,53 +27,171 @@ interface Emits {
   (e: 'progress', progress: any): void
 }
 
-const emit = defineEmits<Emits>()
-
 // 计算属性
 const acceptedTypes = computed(() => {
-  if (!props.accept) return []
+  if (!props.accept)
+    return []
   return props.accept.split(',').map(type => type.trim().replace('.', ''))
 })
 
 const acceptedTypesText = computed(() => {
-  if (acceptedTypes.value.length === 0) return '所有格式'
+  if (acceptedTypes.value.length === 0)
+    return '所有格式'
   return acceptedTypes.value.join(', ')
 })
 
 // 方法
-const handleClose = () => {
+function handleClose() {
   emit('update:visible', false)
 }
 
-const handleOverlayClick = () => {
+function handleOverlayClick() {
   handleClose()
 }
 
-const handleFileUpload = (files: File[]) => {
+function handleFileUpload(files: File[]) {
   emit('upload', files)
 }
 
-const handleUploadSuccess = (response: any) => {
+function handleUploadSuccess(response: any) {
   emit('success', response)
 }
 
-const handleUploadError = (error: any) => {
+function handleUploadError(error: any) {
   emit('error', error)
 }
 
-const handleUploadProgress = (progress: any) => {
+function handleUploadProgress(progress: any) {
   emit('progress', progress)
 }
 
 // 格式化文件大小
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
+function formatFileSize(bytes: number): string {
+  if (bytes === 0)
+    return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
 }
 </script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="modal" appear>
+      <div v-if="visible" class="file-upload-modal-overlay" @click="handleOverlayClick">
+        <div class="file-upload-modal" @click.stop>
+          <!-- 装饰性背景 -->
+          <div class="modal-decoration">
+            <div class="decoration-circle decoration-circle-1" />
+            <div class="decoration-circle decoration-circle-2" />
+            <div class="decoration-circle decoration-circle-3" />
+          </div>
+
+          <!-- 头部 -->
+          <div class="modal-header">
+            <div class="header-content">
+              <div class="header-icon">
+                <div class="icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    />
+                    <polyline
+                      points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <line
+                      x1="12" y1="18" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <line
+                      x1="9" y1="15" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <line
+                      x1="15" y1="15" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div class="title-section">
+                <h3 class="modal-title">
+                  文件上传
+                </h3>
+                <p class="modal-subtitle">
+                  拖拽文件到此处或点击选择文件
+                </p>
+              </div>
+            </div>
+            <button class="close-button" @click="handleClose">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line
+                  x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <line
+                  x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <!-- 内容区 -->
+          <div class="modal-content">
+            <FileUpload
+              :max-size="maxSize" :accept="accept" :multiple="multiple" @upload="handleFileUpload"
+              @success="handleUploadSuccess" @error="handleUploadError" @progress="handleUploadProgress"
+            />
+          </div>
+
+          <!-- 底部信息 -->
+          <div class="modal-footer">
+            <div class="footer-info">
+              <div class="info-grid">
+                <div class="info-card">
+                  <div class="info-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div class="info-content">
+                    <span class="info-label">最大大小</span>
+                    <span class="info-value">{{ formatFileSize(maxSize) }}</span>
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="info-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      />
+                      <polyline
+                        points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div class="info-content">
+                    <span class="info-label">支持格式</span>
+                    <span class="info-value">{{ acceptedTypesText }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
 
 <style scoped>
 /* 装饰性背景动画 */

@@ -28,7 +28,7 @@ serviceAxios.interceptors.request.use(
         // 如果不是 FormData，转换为 FormData
         const formData = new FormData()
         if (config.data && typeof config.data === 'object') {
-          Object.keys(config.data).forEach(key => {
+          Object.keys(config.data).forEach((key) => {
             formData.append(key, config.data[key])
           })
         }
@@ -42,14 +42,15 @@ serviceAxios.interceptors.request.use(
       // 设置默认请求头
       if (config.method === 'post' || config.method === 'put') {
         config.headers['content-type'] = 'application/json'
-      } else {
+      }
+      else {
         config.headers['content-type'] = 'application/x-www-form-urlencoded'
       }
     }
 
     // 如果是对象且Content-Type为application/json，序列化为JSON字符串
-    if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData) &&
-      (config.headers['content-type'] === 'application/json' || config.headers['Content-Type'] === 'application/json')) {
+    if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData)
+      && (config.headers['content-type'] === 'application/json' || config.headers['Content-Type'] === 'application/json')) {
       config.data = JSON.stringify(config.data)
     }
 
@@ -71,10 +72,11 @@ serviceAxios.interceptors.response.use(
     // 处理自己的业务逻辑，比如判断 token 是否过期等等
     // 代码块
     if (data.code === 401) {
-      router.push("/auth/login")
-      console.error("未登录或登录过期，请重新登录")
-    } else if (data.code === 500) {
-      throw new Error("服务器处理异常")
+      router.push('/auth/login')
+      console.error('未登录或登录过期，请重新登录')
+    }
+    else if (data.code === 500) {
+      throw new Error('服务器处理异常')
     }
 
     return data
@@ -94,7 +96,7 @@ serviceAxios.interceptors.response.use(
           message = '参数不正确！'
           break
         case 401:
-          router.push("/auth/login")
+          router.push('/auth/login')
           message = '您未登录，或者登录已经超时，请先登录！'
           break
         case 403:

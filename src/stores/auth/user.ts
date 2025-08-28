@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { svgToBase64 } from '@/utils/tools'
 import type { UserInfoNoToken } from '@/types/apis/auth'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+import { svgToBase64 } from '@/utils/tools'
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息对象
@@ -52,6 +52,6 @@ export const useUserStore = defineStore('user', () => {
     getUserAvatar,
   }
 }, {
-  //开启持久化
+  // 开启持久化
   persist: true,
 })

@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import type { AdminArticleStatisticsResponse } from '@/types/factory'
+import { Plus, Refresh } from '@element-plus/icons-vue'
+
+// Props
+defineProps<{
+  stats: AdminArticleStatisticsResponse['data']
+  loading: boolean
+}>()
+
+// Emits
+defineEmits<{
+  create: []
+  refresh: []
+}>()
+</script>
+
 <template>
   <el-card shadow="never" class="stats-card">
     <template #header>
@@ -7,7 +24,7 @@
           <el-button type="primary" :icon="Plus" @click="$emit('create')">
             新建文章
           </el-button>
-          <el-button :icon="Refresh" @click="$emit('refresh')" :loading="loading">
+          <el-button :icon="Refresh" :loading="loading" @click="$emit('refresh')">
             刷新
           </el-button>
         </el-space>
@@ -42,23 +59,6 @@
     </el-row>
   </el-card>
 </template>
-
-<script setup lang="ts">
-import { Plus, Refresh } from '@element-plus/icons-vue'
-import type { AdminArticleStatisticsResponse } from '@/types/factory'
-
-// Props
-defineProps<{
-  stats: AdminArticleStatisticsResponse['data']
-  loading: boolean
-}>()
-
-// Emits
-defineEmits<{
-  create: []
-  refresh: []
-}>()
-</script>
 
 <style scoped>
 .stats-header {

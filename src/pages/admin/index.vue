@@ -1,7 +1,7 @@
 <!-- 关闭这个页面 Motion 组件的所有ts检测 -->
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Motion } from 'motion-v'
+import { ref } from 'vue'
 import AdminHeader from '@/components/pages/admin/header.vue'
 import AdminNavbar from '@/components/pages/admin/navbar.vue'
 
@@ -17,26 +17,26 @@ function toggleSidebar() {
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: ['easeOut'] }
+  transition: { duration: 0.6, ease: ['easeOut'] },
 }
 
 const sidebarVariants = {
   initial: { x: -200, opacity: 0 },
   animate: { x: 0, opacity: 1 },
-  transition: { duration: 0.5, ease: ['easeOut'] }
+  transition: { duration: 0.5, ease: ['easeOut'] },
 }
 
 // 侧边栏宽度动画配置
 const sidebarWidthVariants = {
   expanded: { width: '200px' },
   collapsed: { width: '64px' },
-  transition: { duration: 0.3, ease: 'easeOut' }
+  transition: { duration: 0.3, ease: 'easeOut' },
 }
 
 const headerVariants = {
   initial: { y: -60, opacity: 0 },
   animate: { y: 0, opacity: 1 },
-  transition: { duration: 0.5, delay: 0.2, ease: ['easeOut'] }
+  transition: { duration: 0.5, delay: 0.2, ease: ['easeOut'] },
 }
 
 const cardVariants = {
@@ -45,9 +45,9 @@ const cardVariants = {
   whileHover: {
     scale: 1.02,
     y: -5,
-    transition: { duration: 0.2, ease: ['easeOut'] }
+    transition: { duration: 0.2, ease: ['easeOut'] },
   },
-  transition: { duration: 0.4, ease: ['easeOut'] }
+  transition: { duration: 0.4, ease: ['easeOut'] },
 }
 
 const statsCardVariants = {
@@ -56,9 +56,9 @@ const statsCardVariants = {
   whileHover: {
     scale: 1.05,
     y: -8,
-    transition: { duration: 0.3, ease: ['easeOut'] }
+    transition: { duration: 0.3, ease: ['easeOut'] },
   },
-  transition: { duration: 0.5, ease: ['easeOut'] }
+  transition: { duration: 0.5, ease: ['easeOut'] },
 }
 
 const iconVariants = {
@@ -67,24 +67,28 @@ const iconVariants = {
   whileHover: {
     scale: 1.2,
     rotate: 10,
-    transition: { duration: 0.2, ease: ['easeOut'] }
+    transition: { duration: 0.2, ease: ['easeOut'] },
   },
-  transition: { duration: 0.6, delay: 0.3, ease: ['easeOut'] }
+  transition: { duration: 0.6, delay: 0.3, ease: ['easeOut'] },
 }
 </script>
 
-
 <template>
-  <Motion :initial="pageVariants.initial" :animate="pageVariants.animate" :transition="pageVariants.transition as any"
-    class="admin-layout">
+  <Motion
+    :initial="pageVariants.initial" :animate="pageVariants.animate" :transition="pageVariants.transition as any"
+    class="admin-layout"
+  >
     <el-container class="h-screen">
-
       <!-- 侧边栏 -->
-      <Motion :animate="isCollapse ? sidebarWidthVariants.collapsed : sidebarWidthVariants.expanded"
-        :transition="sidebarWidthVariants.transition as any" class="el-aside-wrapper">
+      <Motion
+        :animate="isCollapse ? sidebarWidthVariants.collapsed : sidebarWidthVariants.expanded"
+        :transition="sidebarWidthVariants.transition as any" class="el-aside-wrapper"
+      >
         <el-aside class="el-aside h-full">
-          <Motion :initial="sidebarVariants.initial" :animate="sidebarVariants.animate"
-            :transition="sidebarVariants.transition as any">
+          <Motion
+            :initial="sidebarVariants.initial" :animate="sidebarVariants.animate"
+            :transition="sidebarVariants.transition as any"
+          >
             <AdminNavbar :is-collapse="isCollapse" />
           </Motion>
         </el-aside>
@@ -93,12 +97,15 @@ const iconVariants = {
       <!-- 主内容区域 -->
       <el-container class="main-content-transition">
         <!-- 头部 -->
-        <el-header class="el-header border-b border-gray-200"
-          style="overflow: visible; position: relative; z-index: 50;height: max-content;">
-
-          <Motion :initial="headerVariants.initial" :animate="headerVariants.animate"
-            :transition="headerVariants.transition as any" class="h-full">
-            <AdminHeader @toggle-sidebar="toggleSidebar" :is-collapse="isCollapse" />
+        <el-header
+          class="el-header border-b border-gray-200"
+          style="overflow: visible; position: relative; z-index: 50;height: max-content;"
+        >
+          <Motion
+            :initial="headerVariants.initial" :animate="headerVariants.animate"
+            :transition="headerVariants.transition as any" class="h-full"
+          >
+            <AdminHeader :is-collapse="isCollapse" @toggle-sidebar="toggleSidebar" />
           </Motion>
         </el-header>
 
@@ -106,8 +113,10 @@ const iconVariants = {
         <el-main class="bg-gray-50 flex flex-col">
           <div class="flex-1 p-6 min-h-0 ">
             <!-- 子路由内容 -->
-            <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
-              :transition="{ ...cardVariants.transition, delay: 0.2 } as any">
+            <Motion
+              :initial="cardVariants.initial" :animate="cardVariants.animate"
+              :transition="{ ...cardVariants.transition, delay: 0.2 } as any"
+            >
               <router-view />
             </Motion>
           </div>

@@ -17,8 +17,8 @@ const toggleSubmenu = inject<(id: string) => void>('toggleSubmenu')!
     <!-- 无子菜单的项目 -->
     <li v-if="!item.children" v-show="!item.hide">
       <RouterLink :to="item.href as string" class="flex items-center">
-        <i v-if="typeof item.icon === 'string'" v-text="item.icon" class="mr-2" />
-        <component v-else-if="item.icon !== null" :is="item.icon" class="mr-2" />
+        <i v-if="typeof item.icon === 'string'" class="mr-2" v-text="item.icon" />
+        <component :is="item.icon" v-else-if="item.icon !== null" class="mr-2" />
         {{ item.label }}
       </RouterLink>
     </li>
@@ -26,15 +26,17 @@ const toggleSubmenu = inject<(id: string) => void>('toggleSubmenu')!
     <li v-else v-show="!item.hide">
       <details :open="isMenuExpanded(item.id)">
         <summary class="flex items-center" @click.prevent="toggleSubmenu(item.id)">
-          <i v-if="typeof item.icon === 'string'" v-text="item.icon" class="mr-2" />
-          <component v-else-if="item.icon !== null" :is="item.icon" class="mr-2" />
+          <i v-if="typeof item.icon === 'string'" class="mr-2" v-text="item.icon" />
+          <component :is="item.icon" v-else-if="item.icon !== null" class="mr-2" />
           {{ item.label }}
         </summary>
         <ul style="width: max-content;">
           <template v-for="child in item.children" :key="child.id">
             <!-- 二级菜单无子项 -->
             <li v-if="!child.children" v-show="!child.hide">
-              <RouterLink :to="child.href as string">{{ child.label }}</RouterLink>
+              <RouterLink :to="child.href as string">
+                {{ child.label }}
+              </RouterLink>
             </li>
             <!-- 二级菜单有子项 -->
             <li v-else v-show="!child.hide">
@@ -43,7 +45,7 @@ const toggleSubmenu = inject<(id: string) => void>('toggleSubmenu')!
                   {{ child.label }}
                 </summary>
                 <ul>
-                  <li v-for="grandchild in child.children" :key="grandchild.id" v-show="!grandchild.hide">
+                  <li v-for="grandchild in child.children" v-show="!grandchild.hide" :key="grandchild.id">
                     <RouterLink :to="grandchild.href as string">
                       {{ grandchild.label }}
                     </RouterLink>

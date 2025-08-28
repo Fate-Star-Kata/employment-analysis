@@ -150,8 +150,10 @@ onMounted(() => {
 
       <!-- 主题色选项 -->
       <li v-for="theme in colorThemes" :key="theme.name">
-        <button class="flex items-center gap-3 p-2 rounded-lg hover:bg-base-200 w-full"
-          :class="{ 'bg-base-200': currentColorTheme === theme.name }" @click="setColorTheme(theme.name)">
+        <button
+          class="flex items-center gap-3 p-2 rounded-lg hover:bg-base-200 w-full"
+          :class="{ 'bg-base-200': currentColorTheme === theme.name }" @click="setColorTheme(theme.name)"
+        >
           <!-- 主题色预览 -->
           <div class="flex gap-1">
             <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: theme.primary }" />

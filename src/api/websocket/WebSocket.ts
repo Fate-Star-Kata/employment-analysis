@@ -1,5 +1,5 @@
 // WebSocketClient.ts
-type WebSocketCallbacks = {
+interface WebSocketCallbacks {
   onOpen?: () => void // 连接成功回调
   onMessage?: (data: string | ArrayBuffer | Blob) => void // 收到消息回调
   onClose?: (event: CloseEvent) => void // 连接关闭回调
@@ -111,7 +111,8 @@ export default class WebSocketClient {
 
     if (typeof data === 'object' && !(data instanceof ArrayBuffer) && !(data instanceof Blob)) {
       this.ws.send(JSON.stringify(data)) // 对象自动转 JSON
-    } else {
+    }
+    else {
       this.ws.send(data)
     }
   }

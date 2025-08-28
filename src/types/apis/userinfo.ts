@@ -93,7 +93,7 @@ export interface UploadFileResponse {
 
 // 用户信息表单验证规则类型
 export interface UserInfoFormRules {
-  email: UserInfoFormValidationRule[]
+  'email': UserInfoFormValidationRule[]
   'user_info.phone': UserInfoFormValidationRule[]
   'user_info.gender': UserInfoFormValidationRule[]
 }

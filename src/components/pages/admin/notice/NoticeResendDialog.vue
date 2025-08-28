@@ -1,7 +1,154 @@
+<script setup lang="ts">
+import type { FormInstance, FormRules } from 'element-plus'
+import type { NotificationItem } from '@/types/factory'
+import { Refresh } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { reactive, ref, watch } from 'vue'
+
+// Props
+interface Props {
+  visible: boolean
+  noticeData?: Partial<NotificationItem> | null
+  submitting?: boolean
+  userOptions?: Array<{ id: number, username: string }>
+  userSearchLoading?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  noticeData: null,
+  submitting: false,
+  userOptions: () => [],
+  userSearchLoading: false,
+})
+
+const emit = defineEmits<Emits>()
+
+// Emits
+interface Emits {
+  'update:visible': [value: boolean]
+  'submit': [data: {
+    notice_id: number
+    resend_type: string
+    recipient_user_ids?: number[]
+    reason?: string
+  }]
+  'searchUsers': [query: string]
+  'loadAllUsers': []
+}
+
+// 响应式数据
+const formRef = ref<FormInstance>()
+const formData = reactive({
+  resend_type: 'all',
+  recipient_user_ids: [] as number[],
+  reason: '',
+})
+
+// 表单验证规则
+const formRules: FormRules = {
+  resend_type: [
+    { required: true, message: '请选择重发类型', trigger: 'change' },
+  ],
+  recipient_user_ids: [
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (formData.resend_type === 'custom' && (!value || value.length === 0)) {
+          callback(new Error('请选择要重发的用户'))
+        }
+        else {
+          callback()
+        }
+      },
+      trigger: 'change',
+    },
+  ],
+}
+
+// 监听visible变化
+watch(() => props.visible, (newVal) => {
+  if (!newVal) {
+    resetForm()
+  }
+})
+
+// 方法
+function resetForm() {
+  Object.assign(formData, {
+    resend_type: 'all',
+    recipient_user_ids: [],
+    reason: '',
+  })
+  formRef.value?.resetFields()
+}
+
+function formatDate(dateStr?: string) {
+  if (!dateStr)
+    return '未知'
+  try {
+    return new Date(dateStr).toLocaleString('zh-CN')
+  }
+  catch {
+    return '未知'
+  }
+}
+
+function handleResendTypeChange(value: string) {
+  if (value !== 'custom') {
+    formData.recipient_user_ids = []
+  }
+  setTimeout(() => {
+    formRef.value?.validateField('recipient_user_ids')
+  }, 100)
+}
+
+function searchUsers(query: string) {
+  emit('searchUsers', query)
+}
+
+function loadAllUsers() {
+  emit('loadAllUsers')
+}
+
+function handleClose() {
+  emit('update:visible', false)
+}
+
+async function handleSubmit() {
+  if (!formRef.value || !props.noticeData)
+    return
+
+  try {
+    await formRef.value.validate()
+
+    const submitData: {
+      notice_id: number
+      resend_type: string
+      recipient_user_ids?: number[]
+      reason?: string
+    } = {
+      notice_id: props.noticeData.id as number,
+      resend_type: formData.resend_type,
+    }
+
+    if (formData.reason) {
+      submitData.reason = formData.reason
+    }
+
+    if (formData.resend_type === 'custom') {
+      submitData.recipient_user_ids = formData.recipient_user_ids
+    }
+
+    emit('submit', submitData)
+  }
+  catch (error) {
+    ElMessage.error('请检查表单输入')
+  }
+}
+</script>
+
 <template>
   <el-dialog
     :model-value="visible"
-    @update:model-value="$emit('update:visible', $event)"
     title="重发通知"
     width="500px"
     :close-on-click-modal="false"
@@ -9,6 +156,7 @@
     destroy-on-close
     class="resend-dialog"
     align-center
+    @update:model-value="$emit('update:visible', $event)"
     @close="handleClose"
   >
     <template #header="{ titleId, titleClass }">
@@ -26,7 +174,9 @@
 
     <div class="dialog-content">
       <div class="notice-info">
-        <h4 class="info-title">通知信息</h4>
+        <h4 class="info-title">
+          通知信息
+        </h4>
         <div class="info-item">
           <span class="label">标题：</span>
           <span class="value">{{ noticeData?.title || '未知' }}</span>
@@ -51,7 +201,9 @@
         class="resend-form"
       >
         <div class="form-section">
-          <h4 class="section-title">重发设置</h4>
+          <h4 class="section-title">
+            重发设置
+          </h4>
 
           <el-form-item label="重发类型" prop="resend_type" class="form-item">
             <el-radio-group v-model="formData.resend_type" @change="handleResendTypeChange">
@@ -84,9 +236,9 @@
               :remote-method="searchUsers"
               :loading="userSearchLoading"
               class="form-select"
-              @focus="loadAllUsers"
               collapse-tags
               collapse-tags-tooltip
+              @focus="loadAllUsers"
             >
               <el-option
                 v-for="user in userOptions"
@@ -123,9 +275,15 @@
             <div class="alert-content">
               <p>• 重发操作将向选定的用户再次发送此通知</p>
               <p>• 请确认通知内容的准确性和必要性</p>
-              <p v-if="formData.resend_type === 'all'">• 将向所有用户重新发送通知</p>
-              <p v-else-if="formData.resend_type === 'failed'">• 仅向之前发送失败的用户重新发送</p>
-              <p v-else-if="formData.resend_type === 'custom'">• 将向您选择的用户发送通知</p>
+              <p v-if="formData.resend_type === 'all'">
+                • 将向所有用户重新发送通知
+              </p>
+              <p v-else-if="formData.resend_type === 'failed'">
+                • 仅向之前发送失败的用户重新发送
+              </p>
+              <p v-else-if="formData.resend_type === 'custom'">
+                • 将向您选择的用户发送通知
+              </p>
             </div>
           </template>
         </el-alert>
@@ -134,15 +292,15 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button size="large" @click="handleClose" class="cancel-btn">
+        <el-button size="large" class="cancel-btn" @click="handleClose">
           取消
         </el-button>
         <el-button
           type="primary"
           size="large"
           :loading="submitting"
-          @click="handleSubmit"
           class="submit-btn"
+          @click="handleSubmit"
         >
           <el-icon v-if="!submitting" class="btn-icon">
             <Refresh />
@@ -153,149 +311,6 @@
     </template>
   </el-dialog>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
-import { Refresh } from '@element-plus/icons-vue'
-import type { NotificationItem } from '@/types/factory'
-
-// Props
-interface Props {
-  visible: boolean
-  noticeData?: Partial<NotificationItem> | null
-  submitting?: boolean
-  userOptions?: Array<{ id: number; username: string }>
-  userSearchLoading?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  noticeData: null,
-  submitting: false,
-  userOptions: () => [],
-  userSearchLoading: false
-})
-
-// Emits
-interface Emits {
-  'update:visible': [value: boolean]
-  submit: [data: {
-    notice_id: number
-    resend_type: string
-    recipient_user_ids?: number[]
-    reason?: string
-  }]
-  searchUsers: [query: string]
-  loadAllUsers: []
-}
-
-const emit = defineEmits<Emits>()
-
-// 响应式数据
-const formRef = ref<FormInstance>()
-const formData = reactive({
-  resend_type: 'all',
-  recipient_user_ids: [] as number[],
-  reason: ''
-})
-
-// 表单验证规则
-const formRules: FormRules = {
-  resend_type: [
-    { required: true, message: '请选择重发类型', trigger: 'change' }
-  ],
-  recipient_user_ids: [
-    {
-      validator: (rule: any, value: any, callback: any) => {
-        if (formData.resend_type === 'custom' && (!value || value.length === 0)) {
-          callback(new Error('请选择要重发的用户'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'change'
-    }
-  ]
-}
-
-// 监听visible变化
-watch(() => props.visible, (newVal) => {
-  if (!newVal) {
-    resetForm()
-  }
-})
-
-// 方法
-const resetForm = () => {
-  Object.assign(formData, {
-    resend_type: 'all',
-    recipient_user_ids: [],
-    reason: ''
-  })
-  formRef.value?.resetFields()
-}
-
-const formatDate = (dateStr?: string) => {
-  if (!dateStr) return '未知'
-  try {
-    return new Date(dateStr).toLocaleString('zh-CN')
-  } catch {
-    return '未知'
-  }
-}
-
-const handleResendTypeChange = (value: string) => {
-  if (value !== 'custom') {
-    formData.recipient_user_ids = []
-  }
-  setTimeout(() => {
-    formRef.value?.validateField('recipient_user_ids')
-  }, 100)
-}
-
-const searchUsers = (query: string) => {
-  emit('searchUsers', query)
-}
-
-const loadAllUsers = () => {
-  emit('loadAllUsers')
-}
-
-const handleClose = () => {
-  emit('update:visible', false)
-}
-
-const handleSubmit = async () => {
-  if (!formRef.value || !props.noticeData) return
-
-  try {
-    await formRef.value.validate()
-
-    const submitData: {
-      notice_id: number
-      resend_type: string
-      recipient_user_ids?: number[]
-      reason?: string
-    } = {
-      notice_id: props.noticeData.id as number,
-      resend_type: formData.resend_type
-    }
-
-    if (formData.reason) {
-      submitData.reason = formData.reason
-    }
-
-    if (formData.resend_type === 'custom') {
-      submitData.recipient_user_ids = formData.recipient_user_ids
-    }
-
-    emit('submit', submitData)
-  } catch (error) {
-    ElMessage.error('请检查表单输入')
-  }
-}
-</script>
 
 <style scoped>
 .resend-dialog {

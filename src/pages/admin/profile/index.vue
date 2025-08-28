@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted } from 'vue'
-import { Motion } from 'motion-v'
-import { useUserStore } from '@/stores/auth/user'
-import { storeToRefs } from 'pinia'
+import type { UpdateUserInfoRequest } from '@/types/factory'
+import { Edit, Message, User } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, Message, Edit } from '@element-plus/icons-vue'
+import { Motion } from 'motion-v'
+import { storeToRefs } from 'pinia'
+import { onMounted, ref } from 'vue'
 import { getCurrentUserInfo } from '@/api/user/index'
 import { updateUserInfo } from '@/api/user/userinfo'
-import type { UpdateUserInfoRequest } from '@/types/factory'
+import { useUserStore } from '@/stores/auth/user'
 
 const userStore = useUserStore()
 const { userInfo, getUserAvatar } = storeToRefs(userStore)
@@ -28,8 +28,8 @@ if (!userInfo.value) {
     last_name: '',
     is_active: true,
     user_info: {
-      avatar: ''
-    }
+      avatar: '',
+    },
   }
 }
 
@@ -37,13 +37,13 @@ if (!userInfo.value) {
 const pageVariants = {
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: ['easeOut'] }
+  transition: { duration: 0.6, ease: ['easeOut'] },
 }
 
 const cardVariants = {
   initial: { opacity: 0, y: 20, scale: 0.95 },
   animate: { opacity: 1, y: 0, scale: 1 },
-  transition: { duration: 0.4, ease: ['easeOut'] }
+  transition: { duration: 0.4, ease: ['easeOut'] },
 }
 
 // 保存状态
@@ -51,29 +51,32 @@ const loading = ref(false)
 const saving = ref(false)
 
 // 初始化用户详细信息
-const initUserInfo = () => {
+function initUserInfo() {
   if (userInfo.value && !userInfo.value.user_info) {
     userInfo.value.user_info = {
-      avatar: ''
+      avatar: '',
     }
   }
 }
 
 // 获取用户信息
-const fetchUserInfo = async () => {
+async function fetchUserInfo() {
   loading.value = true
   try {
     const response = await getCurrentUserInfo()
     if (response.code === 200) {
       userInfo.value = response.data
       initUserInfo() // 初始化用户详细信息
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '获取用户信息失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取用户信息失败:', error)
     ElMessage.error('获取用户信息失败，请稍后重试')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -95,7 +98,7 @@ async function saveProfile() {
       return
     }
 
-    if (userInfo.value.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.value.email)) {
+    if (userInfo.value.email && !/^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(userInfo.value.email)) {
       ElMessage.error('请输入有效的邮箱地址')
       return
     }
@@ -109,8 +112,8 @@ async function saveProfile() {
       last_name: userInfo.value.last_name || '',
       is_active: userInfo.value.is_active as boolean,
       user_info: {
-        avatar: userInfo.value.user_info?.avatar || ''
-      }
+        avatar: userInfo.value.user_info?.avatar || '',
+      },
     }
 
     // 调用更新用户信息API
@@ -119,12 +122,15 @@ async function saveProfile() {
     if (response.code === 200) {
       await userStore.setUserInfo(userInfo.value)
       ElMessage.success('个人信息保存成功')
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '保存失败，请稍后重试')
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     ElMessage.error(`保存失败：${error.message || '请检查网络连接后重试'}`)
-  } finally {
+  }
+  finally {
     saving.value = false
   }
 }
@@ -140,7 +146,7 @@ function resetForm() {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
-    }
+    },
   ).then(() => {
     if (userInfo.value) {
       userInfo.value.username = userInfo.value.username || ''
@@ -165,15 +171,21 @@ onMounted(() => {
       <div class="max-w-4xl mx-auto">
         <!-- 页面标题 -->
         <div class="mb-6">
-          <h1 class="text-2xl font-bold text-gray-900">个人中心</h1>
-          <p class="text-gray-600 mt-1">管理您的个人信息和账户设置</p>
+          <h1 class="text-2xl font-bold text-gray-900">
+            个人中心
+          </h1>
+          <p class="text-gray-600 mt-1">
+            管理您的个人信息和账户设置
+          </p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- 左侧个人信息卡片 -->
           <!-- @vue-ignore -->
-          <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
-            :transition="{ ...cardVariants.transition, delay: 0.1 }">
+          <Motion
+            :initial="cardVariants.initial" :animate="cardVariants.animate"
+            :transition="{ ...cardVariants.transition, delay: 0.1 }"
+          >
             <el-card class="profile-card">
               <template #header>
                 <div class="flex items-center">
@@ -191,12 +203,16 @@ onMounted(() => {
                     ? `${userInfo.first_name} ${userInfo.last_name}`
                     : userInfo?.username || '未知用户' }}
                 </h3>
-                <p class="text-gray-500">{{ userInfo?.username || '未设置用户名' }}</p>
-                <p class="text-sm text-gray-400 mt-2">{{ userInfo?.user_info?.bio || '暂无个人简介' }}</p>
+                <p class="text-gray-500">
+                  {{ userInfo?.username || '未设置用户名' }}
+                </p>
+                <p class="text-sm text-gray-400 mt-2">
+                  {{ userInfo?.user_info?.bio || '暂无个人简介' }}
+                </p>
               </div>
 
               <div class="space-y-3">
-                <div class="flex items-center text-sm" v-if="userInfo?.email">
+                <div v-if="userInfo?.email" class="flex items-center text-sm">
                   <el-icon class="mr-2 text-gray-400">
                     <Message />
                   </el-icon>
@@ -209,8 +225,10 @@ onMounted(() => {
           <!-- 右侧编辑表单 -->
           <div class="lg:col-span-2">
             <!-- @vue-ignore -->
-            <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
-              :transition="{ ...cardVariants.transition, delay: 0.2 }">
+            <Motion
+              :initial="cardVariants.initial" :animate="cardVariants.animate"
+              :transition="{ ...cardVariants.transition, delay: 0.2 }"
+            >
               <el-card>
                 <template #header>
                   <div class="flex items-center justify-between">
@@ -221,24 +239,28 @@ onMounted(() => {
                       <span class="font-medium">编辑信息</span>
                     </div>
                     <div class="flex space-x-2">
-                      <el-button @click="resetForm" :disabled="saving">
+                      <el-button :disabled="saving" @click="resetForm">
                         重置
                       </el-button>
-                      <el-button type="primary" @click="saveProfile" :loading="saving">
+                      <el-button type="primary" :loading="saving" @click="saveProfile">
                         {{ saving ? '保存中...' : '保存更改' }}
                       </el-button>
                     </div>
                   </div>
                 </template>
 
-                <el-form :model="userInfo" label-width="100px" v-if="userInfo && userInfo.user_info"
-                  class="profile-form">
+                <el-form
+                  v-if="userInfo && userInfo.user_info" :model="userInfo" label-width="100px"
+                  class="profile-form"
+                >
                   <!-- 基本信息 -->
                   <div class="form-section">
-                    <h4 class="section-title">基本信息</h4>
+                    <h4 class="section-title">
+                      基本信息
+                    </h4>
 
                     <el-form-item label="用户名">
-                      <el-input disabled v-model="userInfo.username" placeholder="请输入用户名" />
+                      <el-input v-model="userInfo.username" disabled placeholder="请输入用户名" />
                     </el-form-item>
 
                     <el-form-item label="邮箱">
@@ -269,7 +291,6 @@ onMounted(() => {
                       </div>
                     </el-form-item>
                   </div>
-
                 </el-form>
                 <div v-else class="text-center py-8 text-gray-500">
                   用户信息加载中...

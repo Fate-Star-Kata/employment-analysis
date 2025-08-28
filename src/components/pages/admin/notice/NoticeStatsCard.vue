@@ -1,3 +1,36 @@
+<script setup lang="ts">
+import type { NotificationStats } from '@/types/factory'
+import { Bell, Calendar, Plus, TrendCharts } from '@element-plus/icons-vue'
+import { computed } from 'vue'
+
+// Props
+interface Props {
+  stats: NotificationStats
+  loading?: boolean
+  showStats?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+  showStats: true,
+})
+
+const emit = defineEmits<Emits>()
+
+// Emits
+interface Emits {
+  createNotice: []
+}
+
+// 计算属性
+const statsData = computed(() => props.stats)
+
+// 方法
+function handleCreateNotice() {
+  emit('createNotice')
+}
+</script>
+
 <template>
   <el-card shadow="never" class="stats-card">
     <template #header>
@@ -8,9 +41,9 @@
         </el-button>
       </div>
     </template>
-    
+
     <div v-loading="loading" class="stats-content">
-      <el-row :gutter="16" class="stats-row" v-if="showStats">
+      <el-row v-if="showStats" :gutter="16" class="stats-row">
         <el-col :xs="24" :sm="12" :md="6">
           <el-card shadow="hover" class="stat-card">
             <el-statistic title="总通知数" :value="stats.total">
@@ -59,46 +92,15 @@
           </el-card>
         </el-col>
       </el-row>
-      
+
       <div v-if="!showStats" class="stats-placeholder">
-        <el-text type="info">统计数据已隐藏</el-text>
+        <el-text type="info">
+          统计数据已隐藏
+        </el-text>
       </div>
     </div>
   </el-card>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import { Plus, Bell, Calendar, TrendCharts } from '@element-plus/icons-vue'
-import type { NotificationStats } from '@/types/factory'
-
-// Props
-interface Props {
-  stats: NotificationStats
-  loading?: boolean
-  showStats?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  loading: false,
-  showStats: true
-})
-
-// Emits
-interface Emits {
-  createNotice: []
-}
-
-const emit = defineEmits<Emits>()
-
-// 计算属性
-const statsData = computed(() => props.stats)
-
-// 方法
-const handleCreateNotice = () => {
-  emit('createNotice')
-}
-</script>
 
 <style scoped>
 .stats-card {

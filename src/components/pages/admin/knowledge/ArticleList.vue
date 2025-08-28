@@ -1,13 +1,96 @@
+<script setup lang="ts">
+import type { KnowledgeArticle } from '@/types/factory'
+import { Clock, Delete, DocumentRemove, Edit, Plus, Promotion, VideoPause } from '@element-plus/icons-vue'
+import { reactive, ref, watch } from 'vue'
+
+// Props
+const props = defineProps<{
+  articles: KnowledgeArticle[]
+  loading: boolean
+  total: number
+  pagination: { page: number, page_size: number }
+}>()
+
+// Emits
+const emit = defineEmits<{
+  create: []
+  edit: [id: number]
+  delete: [article: KnowledgeArticle]
+  publish: [article: KnowledgeArticle]
+  unpublish: [article: KnowledgeArticle]
+  batchDelete: [articles: KnowledgeArticle[]]
+  sizeChange: [size: number]
+  currentChange: [page: number]
+}>()
+
+// 本地分页状态
+const localPagination = reactive({
+  page: props.pagination.page,
+  page_size: props.pagination.page_size,
+})
+
+// 监听外部分页变化
+watch(() => props.pagination, (newPagination) => {
+  localPagination.page = newPagination.page
+  localPagination.page_size = newPagination.page_size
+}, { deep: true })
+
+// 选择的文章
+const multipleSelection = ref<KnowledgeArticle[]>([])
+
+// 处理选择变化
+function handleSelectionChange(rows: KnowledgeArticle[]) {
+  multipleSelection.value = rows
+}
+
+// 处理分页变化
+function handleSizeChange(size: number) {
+  localPagination.page_size = size
+  emit('sizeChange', size)
+}
+
+function handleCurrentChange(page: number) {
+  localPagination.page = page
+  emit('currentChange', page)
+}
+
+// 工具函数
+function formatDate(s?: string | null) {
+  if (!s)
+    return '-'
+  try { return new Date(s).toLocaleString() }
+  catch { return String(s) }
+}
+
+function statusText(s: string) {
+  const statusMap: Record<string, string> = {
+    draft: '草稿',
+    published: '已发布',
+    archived: '已归档',
+  }
+  return statusMap[s] || s
+}
+
+function statusTagType(s: string) {
+  const typeMap: Record<string, any> = {
+    draft: 'info',
+    published: 'success',
+    archived: 'warning',
+  }
+  return typeMap[s] || 'info'
+}
+</script>
+
 <template>
   <el-card shadow="never" class="list-card">
     <template #header>
       <div class="list-header">
         <span class="list-title">文章列表</span>
         <el-space>
-          <el-button 
-            :icon="Delete" 
-            type="danger" 
-            :disabled="multipleSelection.length === 0" 
+          <el-button
+            :icon="Delete"
+            type="danger"
+            :disabled="multipleSelection.length === 0"
             @click="$emit('batchDelete', multipleSelection)"
           >
             批量删除
@@ -27,17 +110,19 @@
             <DocumentRemove />
           </el-icon>
         </template>
-        <el-button type="primary" :icon="Plus" @click="$emit('create')">新建文章</el-button>
+        <el-button type="primary" :icon="Plus" @click="$emit('create')">
+          新建文章
+        </el-button>
       </el-empty>
     </div>
 
     <div v-else class="table-container">
-      <el-table 
-        :data="articles" 
-        border 
-        stripe 
-        style="width: 100%" 
-        :loading="loading" 
+      <el-table
+        :data="articles"
+        border
+        stripe
+        style="width: 100%"
+        :loading="loading"
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="50" align="center" />
@@ -46,7 +131,9 @@
           <template #default="{ row }">
             <div class="title-cell">
               <span class="title-text">{{ row.title }}</span>
-              <el-tag v-if="row.is_featured" type="warning" size="small" class="ml-2">精选</el-tag>
+              <el-tag v-if="row.is_featured" type="warning" size="small" class="ml-2">
+                精选
+              </el-tag>
             </div>
           </template>
         </el-table-column>
@@ -55,7 +142,9 @@
 
         <el-table-column label="状态" width="110" align="center">
           <template #default="{ row }">
-            <el-tag :type="statusTagType(row.status)" size="small">{{ statusText(row.status) }}</el-tag>
+            <el-tag :type="statusTagType(row.status)" size="small">
+              {{ statusText(row.status) }}
+            </el-tag>
           </template>
         </el-table-column>
 
@@ -70,7 +159,9 @@
         <el-table-column label="创建时间" width="160" align="center">
           <template #default="{ row }">
             <div class="time-cell">
-              <el-icon class="time-icon"><Clock /></el-icon>
+              <el-icon class="time-icon">
+                <Clock />
+              </el-icon>
               <span class="time-text">{{ formatDate(row.created_at) }}</span>
             </div>
           </template>
@@ -79,7 +170,9 @@
         <el-table-column label="发布时间" width="160" align="center">
           <template #default="{ row }">
             <div class="time-cell">
-              <el-icon class="time-icon"><Clock /></el-icon>
+              <el-icon class="time-icon">
+                <Clock />
+              </el-icon>
               <span class="time-text">{{ row.published_at ? formatDate(row.published_at) : '-' }}</span>
             </div>
           </template>
@@ -91,16 +184,16 @@
               <el-button type="primary" @click="$emit('edit', row.id)">
                 <el-icon><Edit /></el-icon>
               </el-button>
-              <el-button 
-                type="success" 
-                v-if="row.status !== 'published'" 
+              <el-button
+                v-if="row.status !== 'published'"
+                type="success"
                 @click="$emit('publish', row)"
               >
                 <el-icon><Promotion /></el-icon>
               </el-button>
-              <el-button 
-                type="warning" 
-                v-else 
+              <el-button
+                v-else
+                type="warning"
                 @click="$emit('unpublish', row)"
               >
                 <el-icon><VideoPause /></el-icon>
@@ -122,94 +215,13 @@
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
         :total="total"
+        background
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-        background
       />
     </div>
   </el-card>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
-import { Delete, DocumentRemove, Plus, Edit, Promotion, VideoPause, Clock } from '@element-plus/icons-vue'
-import type { KnowledgeArticle } from '@/types/factory'
-
-// Props
-const props = defineProps<{
-  articles: KnowledgeArticle[]
-  loading: boolean
-  total: number
-  pagination: { page: number; page_size: number }
-}>()
-
-// Emits
-const emit = defineEmits<{
-  create: []
-  edit: [id: number]
-  delete: [article: KnowledgeArticle]
-  publish: [article: KnowledgeArticle]
-  unpublish: [article: KnowledgeArticle]
-  batchDelete: [articles: KnowledgeArticle[]]
-  sizeChange: [size: number]
-  currentChange: [page: number]
-}>()
-
-// 本地分页状态
-const localPagination = reactive({
-  page: props.pagination.page,
-  page_size: props.pagination.page_size
-})
-
-// 监听外部分页变化
-watch(() => props.pagination, (newPagination) => {
-  localPagination.page = newPagination.page
-  localPagination.page_size = newPagination.page_size
-}, { deep: true })
-
-// 选择的文章
-const multipleSelection = ref<KnowledgeArticle[]>([])
-
-// 处理选择变化
-const handleSelectionChange = (rows: KnowledgeArticle[]) => {
-  multipleSelection.value = rows
-}
-
-// 处理分页变化
-const handleSizeChange = (size: number) => {
-  localPagination.page_size = size
-  emit('sizeChange', size)
-}
-
-const handleCurrentChange = (page: number) => {
-  localPagination.page = page
-  emit('currentChange', page)
-}
-
-// 工具函数
-const formatDate = (s?: string | null) => {
-  if (!s) return '-'
-  try { return new Date(s).toLocaleString() } catch { return String(s) }
-}
-
-const statusText = (s: string) => {
-  const statusMap: Record<string, string> = {
-    draft: '草稿',
-    published: '已发布',
-    archived: '已归档'
-  }
-  return statusMap[s] || s
-}
-
-const statusTagType = (s: string) => {
-  const typeMap: Record<string, any> = {
-    draft: 'info',
-    published: 'success',
-    archived: 'warning'
-  }
-  return typeMap[s] || 'info'
-}
-</script>
 
 <style scoped>
 .list-card {

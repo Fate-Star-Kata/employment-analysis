@@ -1,3 +1,126 @@
+<script setup lang="ts">
+import type { FormInstance, FormRules } from 'element-plus'
+import type { User } from '@/types/components/admin'
+import { ElMessage } from 'element-plus'
+import { nextTick, reactive, ref, watch } from 'vue'
+import { editUserAPI } from '@/api/admin/users'
+
+// Props
+interface Props {
+  visible: boolean
+  userData?: User | null
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  visible: false,
+  userData: null,
+})
+
+const emit = defineEmits<Emits>()
+
+// Emits
+interface Emits {
+  'update:visible': [value: boolean]
+  'success': []
+}
+
+// 响应式数据
+const dialogVisible = ref(false)
+const loading = ref(false)
+const formRef = ref<FormInstance>()
+
+// 表单数据
+const formData = reactive<User>({
+  id: null,
+  username: '',
+  email: '',
+  is_active: false,
+  is_staff: false,
+  is_superuser: false,
+})
+
+// 表单验证规则
+const rules: FormRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 20, message: '用户名长度在 2 到 20 个字符', trigger: 'blur' },
+  ],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' },
+  ],
+}
+
+// 监听 visible 变化
+watch(
+  () => props.visible,
+  (newVal) => {
+    dialogVisible.value = newVal
+    if (newVal && props.userData) {
+      // 填充表单数据
+      Object.assign(formData, props.userData)
+    }
+  },
+  { immediate: true },
+)
+
+// 监听 dialogVisible 变化
+watch(dialogVisible, (newVal) => {
+  emit('update:visible', newVal)
+})
+
+// 关闭弹窗
+function handleClose() {
+  dialogVisible.value = false
+  // 重置表单
+  nextTick(() => {
+    formRef.value?.resetFields()
+    Object.assign(formData, {
+      id: null,
+      username: '',
+      email: '',
+      is_active: false,
+      is_staff: false,
+      is_superuser: false,
+    })
+  })
+}
+
+// 提交表单
+async function handleSubmit() {
+  if (!formRef.value)
+    return
+
+  try {
+    // 表单验证
+    await formRef.value.validate()
+
+    loading.value = true
+
+    // 调用编辑API
+    const res = await editUserAPI(formData)
+
+    ElMessage.success(res.message || '编辑成功')
+
+    // 关闭弹窗并触发成功事件
+    handleClose()
+    emit('success')
+  }
+  catch (error: any) {
+    console.error('编辑用户失败:', error)
+    if (error.message) {
+      ElMessage.error(error.message)
+    }
+    else {
+      ElMessage.error('编辑失败')
+    }
+  }
+  finally {
+    loading.value = false
+  }
+}
+</script>
+
 <template>
   <el-dialog
     v-model="dialogVisible"
@@ -23,7 +146,7 @@
           clearable
         />
       </el-form-item>
-      
+
       <el-form-item label="邮箱" prop="email">
         <el-input
           v-model="formData.email"
@@ -31,7 +154,7 @@
           clearable
         />
       </el-form-item>
-      
+
       <el-form-item label="状态" prop="is_active">
         <el-switch
           v-model="formData.is_active"
@@ -39,7 +162,7 @@
           inactive-text="停用"
         />
       </el-form-item>
-      
+
       <el-form-item label="工作人员权限" prop="is_staff">
         <el-switch
           v-model="formData.is_staff"
@@ -47,7 +170,7 @@
           inactive-text="否"
         />
       </el-form-item>
-      
+
       <el-form-item label="超级管理员权限" prop="is_superuser">
         <el-switch
           v-model="formData.is_superuser"
@@ -56,136 +179,19 @@
         />
       </el-form-item>
     </el-form>
-    
+
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="loading">
+        <el-button @click="handleClose">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="loading" @click="handleSubmit">
           保存
         </el-button>
       </div>
     </template>
   </el-dialog>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, watch, nextTick } from 'vue'
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import type { User } from '@/types/components/admin'
-import { editUserAPI } from '@/api/admin/users'
-
-// Props
-interface Props {
-  visible: boolean
-  userData?: User | null
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  visible: false,
-  userData: null
-})
-
-// Emits
-interface Emits {
-  'update:visible': [value: boolean]
-  'success': []
-}
-
-const emit = defineEmits<Emits>()
-
-// 响应式数据
-const dialogVisible = ref(false)
-const loading = ref(false)
-const formRef = ref<FormInstance>()
-
-// 表单数据
-const formData = reactive<User>({
-  id: null,
-  username: '',
-  email: '',
-  is_active: false,
-  is_staff: false,
-  is_superuser: false
-})
-
-// 表单验证规则
-const rules: FormRules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 2, max: 20, message: '用户名长度在 2 到 20 个字符', trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
-  ]
-}
-
-// 监听 visible 变化
-watch(
-  () => props.visible,
-  (newVal) => {
-    dialogVisible.value = newVal
-    if (newVal && props.userData) {
-      // 填充表单数据
-      Object.assign(formData, props.userData)
-    }
-  },
-  { immediate: true }
-)
-
-// 监听 dialogVisible 变化
-watch(dialogVisible, (newVal) => {
-  emit('update:visible', newVal)
-})
-
-// 关闭弹窗
-const handleClose = () => {
-  dialogVisible.value = false
-  // 重置表单
-  nextTick(() => {
-    formRef.value?.resetFields()
-    Object.assign(formData, {
-      id: null,
-      username: '',
-      email: '',
-      is_active: false,
-      is_staff: false,
-      is_superuser: false
-    })
-  })
-}
-
-// 提交表单
-const handleSubmit = async () => {
-  if (!formRef.value) return
-  
-  try {
-    // 表单验证
-    await formRef.value.validate()
-    
-    loading.value = true
-    
-    // 调用编辑API
-    const res = await editUserAPI(formData)
-    
-    ElMessage.success(res.message || '编辑成功')
-    
-    // 关闭弹窗并触发成功事件
-    handleClose()
-    emit('success')
-    
-  } catch (error: any) {
-    console.error('编辑用户失败:', error)
-    if (error.message) {
-      ElMessage.error(error.message)
-    } else {
-      ElMessage.error('编辑失败')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-</script>
 
 <style scoped lang="scss">
 .dialog-footer {

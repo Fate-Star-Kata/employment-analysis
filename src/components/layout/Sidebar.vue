@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import { useI18n } from '@/utils/useI18n'
+
+const { t } = useI18n()
+</script>
+
 <template>
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -39,12 +45,6 @@
     </nav>
   </aside>
 </template>
-
-<script setup lang="ts">
-import { useI18n } from '@/utils/useI18n'
-
-const { t } = useI18n()
-</script>
 
 <style scoped>
 .sidebar {

@@ -33,13 +33,8 @@ export default antfu({
   rules: {
     // 关闭 console 警告
     'no-console': 'off',
-    // 关闭 TypeScript 函数返回类型检查
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    // 关闭未使用变量检查
-    '@typescript-eslint/no-unused-vars': 'off',
     'vue/no-restricted-v-bind': 'off',
     'n/prefer-global/process': 'off',
-    'eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unused-vars': 'warn',
   },
 })

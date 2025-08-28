@@ -18,7 +18,6 @@ export interface CaptchaConfig {
   CAPTCHA_FONT_SIZE: number
 }
 
-
 // 配置项类型
 export interface ConfigItem {
   id: number | null

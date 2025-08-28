@@ -25,8 +25,6 @@ export interface NotificationItem {
   }[]
 }
 
-
-
 // 通知列表响应
 export interface NotificationListResponse {
   code: number
@@ -44,10 +42,10 @@ export interface NotificationListResponse {
 export interface CreateNotificationReq {
   title: string
   content: string
-  notify_all?:boolean,
+  notify_all?: boolean
   is_public: boolean
-  is_active?: boolean,
-  email_notification?: boolean,
+  is_active?: boolean
+  email_notification?: boolean
   recipient_user_ids?: number[]
 }
 
@@ -161,5 +159,5 @@ export interface NotificationListReq {
   query?: string
   is_active?: boolean
   is_read?: boolean
-  is_public?: 0|1
+  is_public?: 0 | 1
 }

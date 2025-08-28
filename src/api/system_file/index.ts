@@ -129,7 +129,7 @@ interface SystemOverview {
  * 获取CPU监控信息
  * @returns Promise<ApiResponse<CpuInfo>>
  */
-const getCpuMonitor = (): Promise<ApiResponse<CpuInfo>> => {
+function getCpuMonitor(): Promise<ApiResponse<CpuInfo>> {
   return http.get('/hzadmin/client/monitor/cpu/')
 }
 
@@ -137,7 +137,7 @@ const getCpuMonitor = (): Promise<ApiResponse<CpuInfo>> => {
  * 获取内存监控信息
  * @returns Promise<ApiResponse<MemoryInfo>>
  */
-const getMemoryMonitor = (): Promise<ApiResponse<MemoryInfo>> => {
+function getMemoryMonitor(): Promise<ApiResponse<MemoryInfo>> {
   return http.get('/hzadmin/client/monitor/memory/')
 }
 
@@ -145,7 +145,7 @@ const getMemoryMonitor = (): Promise<ApiResponse<MemoryInfo>> => {
  * 获取磁盘监控信息
  * @returns Promise<ApiResponse<DiskInfo>>
  */
-const getDiskMonitor = (): Promise<ApiResponse<DiskInfo>> => {
+function getDiskMonitor(): Promise<ApiResponse<DiskInfo>> {
   return http.get('/hzadmin/client/monitor/disk/')
 }
 
@@ -153,7 +153,7 @@ const getDiskMonitor = (): Promise<ApiResponse<DiskInfo>> => {
  * 获取网络监控信息
  * @returns Promise<ApiResponse<NetworkInfo>>
  */
-const getNetworkMonitor = (): Promise<ApiResponse<NetworkInfo>> => {
+function getNetworkMonitor(): Promise<ApiResponse<NetworkInfo>> {
   return http.get('/hzadmin/client/monitor/network/')
 }
 
@@ -164,7 +164,7 @@ const getNetworkMonitor = (): Promise<ApiResponse<NetworkInfo>> => {
  * @param params.sort_by 排序字段
  * @returns Promise<ApiResponse<ProcessInfo>>
  */
-const getProcessMonitor = (params?: { limit?: number; sort_by?: string }): Promise<ApiResponse<ProcessInfo>> => {
+function getProcessMonitor(params?: { limit?: number, sort_by?: string }): Promise<ApiResponse<ProcessInfo>> {
   return http.get('/hzadmin/client/monitor/process/', { params })
 }
 
@@ -172,7 +172,7 @@ const getProcessMonitor = (params?: { limit?: number; sort_by?: string }): Promi
  * 获取GPU监控信息
  * @returns Promise<ApiResponse<GpuInfo>>
  */
-const getGpuMonitor = (): Promise<ApiResponse<GpuInfo>> => {
+function getGpuMonitor(): Promise<ApiResponse<GpuInfo>> {
   return http.get('/hzadmin/client/monitor/gpu/')
 }
 
@@ -180,7 +180,7 @@ const getGpuMonitor = (): Promise<ApiResponse<GpuInfo>> => {
  * 获取系统概览信息
  * @returns Promise<ApiResponse<SystemOverview>>
  */
-const getSystemOverview = (): Promise<ApiResponse<SystemOverview>> => {
+function getSystemOverview(): Promise<ApiResponse<SystemOverview>> {
   return http.get('/hzadmin/client/monitor/overview/')
 }
 
@@ -192,28 +192,28 @@ export const monitorApi = {
   getNetworkMonitor,
   getProcessMonitor,
   getGpuMonitor,
-  getSystemOverview
+  getSystemOverview,
 }
 
 // 支持按需导入
 export {
   getCpuMonitor,
-  getMemoryMonitor,
   getDiskMonitor,
+  getGpuMonitor,
+  getMemoryMonitor,
   getNetworkMonitor,
   getProcessMonitor,
-  getGpuMonitor,
-  getSystemOverview
+  getSystemOverview,
 }
 
 // 导出类型定义
 export type {
   ApiResponse,
   CpuInfo,
-  MemoryInfo,
   DiskInfo,
+  GpuInfo,
+  MemoryInfo,
   NetworkInfo,
   ProcessInfo,
-  GpuInfo,
-  SystemOverview
+  SystemOverview,
 }

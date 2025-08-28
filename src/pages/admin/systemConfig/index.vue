@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Motion } from 'motion-v'
 import EmailConfig from 'components/pages/admin/systemConfig/EmailConfig.vue'
+import { Motion } from 'motion-v'
+import { ref } from 'vue'
 
 // 动画配置
 const pageVariants = {
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: 'easeOut' }
+  transition: { duration: 0.6, ease: 'easeOut' },
 }
 
 // 响应式数据
@@ -18,25 +18,29 @@ const tabList = [
   {
     key: 'emailConfig',
     label: '邮箱配置',
-    icon: 'Message'
-  }
+    icon: 'Message',
+  },
 ]
 
 // 切换标签页
-const handleTabChange = (tabKey: string) => {
+function handleTabChange(tabKey: string) {
   activeTab.value = tabKey
 }
 </script>
 
 <template>
   <!-- @vue-ignore -->
-  <Motion :initial="pageVariants.initial" :animate="pageVariants.animate" :transition="pageVariants.transition"
-    class="system-config h-full overflow-y-auto">
+  <Motion
+    :initial="pageVariants.initial" :animate="pageVariants.animate" :transition="pageVariants.transition"
+    class="system-config h-full overflow-y-auto"
+  >
     <el-card>
       <!-- 标签页头部 -->
-      <Motion :initial="{ opacity: 0, y: -20 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.5, delay: 0.1 }">
-        <el-tabs v-model="activeTab" @tab-change="handleTabChange" class="config-tabs">
+      <Motion
+        :initial="{ opacity: 0, y: -20 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.5, delay: 0.1 }"
+      >
+        <el-tabs v-model="activeTab" class="config-tabs" @tab-change="handleTabChange">
           <el-tab-pane v-for="tab in tabList" :key="tab.key" :label="tab.label" :name="tab.key">
             <template #label>
               <el-space>
@@ -51,8 +55,10 @@ const handleTabChange = (tabKey: string) => {
       </Motion>
 
       <!-- 配置内容区域 -->
-      <Motion :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.6, delay: 0.2 }" class="config-content">
+      <Motion
+        :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.6, delay: 0.2 }" class="config-content"
+      >
         <!-- 邮箱配置 -->
         <EmailConfig v-if="activeTab === 'emailConfig'" />
       </Motion>

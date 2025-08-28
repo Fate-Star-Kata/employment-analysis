@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { Motion } from 'motion-v'
-import { ElMessage, ElLoading } from 'element-plus'
 import type { FormInstance } from 'element-plus'
-import { User, Lock, Platform, Message, Check, Connection, Refresh } from '@element-plus/icons-vue'
 import type {
+  ConfigItem,
   EmailConfig,
   EmailConfigFormRules,
-  ConfigItem
 } from '@/types/factory'
+import { Check, Connection, Lock, Message, Platform, Refresh, User } from '@element-plus/icons-vue'
+import { ElLoading, ElMessage } from 'element-plus'
+import { Motion } from 'motion-v'
+import { computed, onMounted, reactive, ref } from 'vue'
 import {
   getEmailConfigAPI,
-  updateEmailConfigAPI
+  updateEmailConfigAPI,
 } from '@/api/admin/config'
 
 // 动画配置
 const formVariants = {
   initial: { opacity: 0, x: -30 },
   animate: { opacity: 1, x: 0 },
-  transition: { duration: 0.5, ease: 'easeOut' }
+  transition: { duration: 0.5, ease: 'easeOut' },
 }
 
 // 响应式数据
@@ -33,7 +33,7 @@ const emailForm = reactive<EmailConfig>({
   EMAIL_USE_TLS: 'False',
   EMAIL_HOST_USER: '',
   EMAIL_HOST_PASSWORD: '',
-  DEFAULT_FROM_EMAIL: ''
+  DEFAULT_FROM_EMAIL: '',
 })
 
 // TLS开关的计算属性，用于处理字符串和布尔值的转换
@@ -41,44 +41,44 @@ const tlsEnabled = computed({
   get: () => emailForm.EMAIL_USE_TLS === 'True',
   set: (value: boolean) => {
     emailForm.EMAIL_USE_TLS = value ? 'True' : 'False'
-  }
+  },
 })
 
 // 表单验证规则
 const rules: EmailConfigFormRules = {
   EMAIL_HOST: [
     { required: true, message: '请输入邮箱服务器地址', trigger: 'blur' },
-    { min: 3, max: 100, message: '长度在 3 到 100 个字符', trigger: 'blur' }
+    { min: 3, max: 100, message: '长度在 3 到 100 个字符', trigger: 'blur' },
   ],
   EMAIL_PORT: [
     { required: true, message: '请输入端口号', trigger: 'blur' },
     {
       validator: (value: string) => {
-        const port = parseInt(value)
+        const port = Number.parseInt(value)
         if (port < 1 || port > 65535) {
           return '端口号必须在 1-65535 之间'
         }
         return true
       },
-      trigger: 'blur'
-    }
+      trigger: 'blur',
+    },
   ],
   EMAIL_HOST_USER: [
     { required: true, message: '请输入邮箱用户名', trigger: 'blur' },
-    { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址', trigger: 'blur' }
+    { pattern: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/, message: '请输入有效的邮箱地址', trigger: 'blur' },
   ],
   EMAIL_HOST_PASSWORD: [
     { required: true, message: '请输入邮箱密码', trigger: 'blur' },
-    { min: 6, max: 50, message: '长度在 6 到 50 个字符', trigger: 'blur' }
+    { min: 6, max: 50, message: '长度在 6 到 50 个字符', trigger: 'blur' },
   ],
   DEFAULT_FROM_EMAIL: [
     { required: true, message: '请输入默认发件人邮箱', trigger: 'blur' },
-    { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址', trigger: 'blur' }
-  ]
+    { pattern: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/, message: '请输入有效的邮箱地址', trigger: 'blur' },
+  ],
 }
 
 // 获取邮箱配置
-const getEmailConfig = async () => {
+async function getEmailConfig() {
   try {
     loading.value = true
     const res = await getEmailConfigAPI()
@@ -97,29 +97,34 @@ const getEmailConfig = async () => {
       emailForm.EMAIL_HOST_USER = configMap.EMAIL_HOST_USER || ''
       emailForm.EMAIL_HOST_PASSWORD = configMap.EMAIL_HOST_PASSWORD || ''
       emailForm.DEFAULT_FROM_EMAIL = configMap.DEFAULT_FROM_EMAIL || ''
-    } else {
+    }
+    else {
       ElMessage.error(res.msg || '获取邮箱配置失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取邮箱配置失败:', error)
     ElMessage.error('获取邮箱配置失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
 // 保存邮箱配置
-const saveEmailConfig = async () => {
-  if (!formRef.value) return
+async function saveEmailConfig() {
+  if (!formRef.value)
+    return
 
   try {
     const valid = await formRef.value.validate()
-    if (!valid) return
+    if (!valid)
+      return
 
     saving.value = true
     const loadingInstance = ElLoading.service({
       text: '保存中...',
-      background: 'rgba(0, 0, 0, 0.7)'
+      background: 'rgba(0, 0, 0, 0.7)',
     })
 
     // 将表单数据转换为后端期望的格式
@@ -129,7 +134,7 @@ const saveEmailConfig = async () => {
       EMAIL_USE_TLS: emailForm.EMAIL_USE_TLS,
       EMAIL_HOST_USER: emailForm.EMAIL_HOST_USER,
       EMAIL_HOST_PASSWORD: emailForm.EMAIL_HOST_PASSWORD,
-      DEFAULT_FROM_EMAIL: emailForm.DEFAULT_FROM_EMAIL
+      DEFAULT_FROM_EMAIL: emailForm.DEFAULT_FROM_EMAIL,
     }
 
     const res = await updateEmailConfigAPI(configData)
@@ -137,37 +142,43 @@ const saveEmailConfig = async () => {
     if (res.code === 200) {
       ElMessage.success('邮箱配置保存成功')
       await getEmailConfig() // 重新获取最新配置
-    } else {
+    }
+    else {
       ElMessage.error(res.msg || '保存邮箱配置失败')
     }
 
     loadingInstance.close()
-  } catch (error) {
+  }
+  catch (error) {
     console.error('保存邮箱配置失败:', error)
     ElMessage.error('保存邮箱配置失败')
-  } finally {
+  }
+  finally {
     saving.value = false
   }
 }
 
 // 重置表单
-const resetForm = () => {
-  if (!formRef.value) return
+function resetForm() {
+  if (!formRef.value)
+    return
   formRef.value.resetFields()
   getEmailConfig()
 }
 
 // 测试邮箱连接
-const testConnection = async () => {
-  if (!formRef.value) return
+async function testConnection() {
+  if (!formRef.value)
+    return
 
   try {
     const valid = await formRef.value.validate()
-    if (!valid) return
+    if (!valid)
+      return
 
     const loadingInstance = ElLoading.service({
       text: '测试连接中...',
-      background: 'rgba(0, 0, 0, 0.7)'
+      background: 'rgba(0, 0, 0, 0.7)',
     })
 
     // 这里可以添加测试连接的API调用
@@ -175,7 +186,8 @@ const testConnection = async () => {
       loadingInstance.close()
       ElMessage.success('邮箱连接测试成功')
     }, 2000)
-  } catch (error) {
+  }
+  catch (error) {
     console.error('测试连接失败:', error)
     ElMessage.error('测试连接失败')
   }
@@ -189,14 +201,20 @@ onMounted(() => {
 
 <template>
   <!-- @vue-ignore -->
-  <Motion :initial="formVariants.initial" :animate="formVariants.animate" :transition="formVariants.transition"
-    class="email-config">
-    <el-form ref="formRef" :model="emailForm" :rules="rules" label-width="140px" v-loading="loading"
-      class="config-form">
+  <Motion
+    :initial="formVariants.initial" :animate="formVariants.animate" :transition="formVariants.transition"
+    class="email-config"
+  >
+    <el-form
+      ref="formRef" v-loading="loading" :model="emailForm" :rules="rules" label-width="140px"
+      class="config-form"
+    >
       <el-row :gutter="24">
         <el-col :span="12">
-          <Motion :initial="{ opacity: 0, x: -20 }" :animate="{ opacity: 1, x: 0 }"
-            :transition="{ duration: 0.4, delay: 0.1 }">
+          <Motion
+            :initial="{ opacity: 0, x: -20 }" :animate="{ opacity: 1, x: 0 }"
+            :transition="{ duration: 0.4, delay: 0.1 }"
+          >
             <el-form-item label="邮箱服务器" prop="EMAIL_HOST">
               <el-input v-model="emailForm.EMAIL_HOST" placeholder="请输入邮箱服务器地址，如：smtp.gmail.com" clearable>
                 <template #prefix>
@@ -210,8 +228,10 @@ onMounted(() => {
         </el-col>
 
         <el-col :span="12">
-          <Motion :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }"
-            :transition="{ duration: 0.4, delay: 0.2 }">
+          <Motion
+            :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }"
+            :transition="{ duration: 0.4, delay: 0.2 }"
+          >
             <el-form-item label="端口号" prop="EMAIL_PORT">
               <el-input v-model="emailForm.EMAIL_PORT" placeholder="请输入端口号" class="w-full" />
             </el-form-item>
@@ -221,8 +241,10 @@ onMounted(() => {
 
       <el-row :gutter="24">
         <el-col :span="12">
-          <Motion :initial="{ opacity: 0, x: -20 }" :animate="{ opacity: 1, x: 0 }"
-            :transition="{ duration: 0.4, delay: 0.3 }">
+          <Motion
+            :initial="{ opacity: 0, x: -20 }" :animate="{ opacity: 1, x: 0 }"
+            :transition="{ duration: 0.4, delay: 0.3 }"
+          >
             <el-form-item label="邮箱用户名" prop="EMAIL_HOST_USER">
               <el-input v-model="emailForm.EMAIL_HOST_USER" placeholder="请输入邮箱用户名" clearable>
                 <template #prefix>
@@ -236,11 +258,15 @@ onMounted(() => {
         </el-col>
 
         <el-col :span="12">
-          <Motion :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }"
-            :transition="{ duration: 0.4, delay: 0.4 }">
+          <Motion
+            :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }"
+            :transition="{ duration: 0.4, delay: 0.4 }"
+          >
             <el-form-item label="邮箱密码" prop="EMAIL_HOST_PASSWORD">
-              <el-input v-model="emailForm.EMAIL_HOST_PASSWORD" type="password" placeholder="请输入邮箱密码或授权码" show-password
-                clearable>
+              <el-input
+                v-model="emailForm.EMAIL_HOST_PASSWORD" type="password" placeholder="请输入邮箱密码或授权码" show-password
+                clearable
+              >
                 <template #prefix>
                   <el-icon>
                     <Lock />
@@ -254,8 +280,10 @@ onMounted(() => {
 
       <el-row :gutter="24">
         <el-col :span="12">
-          <Motion :initial="{ opacity: 0, x: -20 }" :animate="{ opacity: 1, x: 0 }"
-            :transition="{ duration: 0.4, delay: 0.5 }">
+          <Motion
+            :initial="{ opacity: 0, x: -20 }" :animate="{ opacity: 1, x: 0 }"
+            :transition="{ duration: 0.4, delay: 0.5 }"
+          >
             <el-form-item label="默认发件人" prop="DEFAULT_FROM_EMAIL">
               <el-input v-model="emailForm.DEFAULT_FROM_EMAIL" placeholder="请输入默认发件人邮箱" clearable>
                 <template #prefix>
@@ -269,11 +297,15 @@ onMounted(() => {
         </el-col>
 
         <el-col :span="12">
-          <Motion :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }"
-            :transition="{ duration: 0.4, delay: 0.6 }">
+          <Motion
+            :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }"
+            :transition="{ duration: 0.4, delay: 0.6 }"
+          >
             <el-form-item label="启用TLS">
-              <el-switch v-model="tlsEnabled" active-text="启用" inactive-text="禁用" active-color="#13ce66"
-                inactive-color="#ff4949" />
+              <el-switch
+                v-model="tlsEnabled" active-text="启用" inactive-text="禁用" active-color="#13ce66"
+                inactive-color="#ff4949"
+              />
               <el-text class="ml-2 text-gray-500" size="small">
                 建议启用TLS加密连接以提高安全性
               </el-text>
@@ -282,13 +314,13 @@ onMounted(() => {
         </el-col>
       </el-row>
 
-
-
       <!-- 操作按钮 -->
-      <Motion :initial="{ opacity: 0, y: 30 }" :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.5, delay: 0.7 }" class="form-actions">
+      <Motion
+        :initial="{ opacity: 0, y: 30 }" :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.5, delay: 0.7 }" class="form-actions"
+      >
         <el-space size="large">
-          <Motion :whileHover="{ scale: 1.05 }" :whileTap="{ scale: 0.95 }">
+          <Motion :while-hover="{ scale: 1.05 }" :while-tap="{ scale: 0.95 }">
             <el-button type="primary" size="large" :loading="saving" @click="saveEmailConfig">
               <el-icon>
                 <Check />
@@ -297,7 +329,7 @@ onMounted(() => {
             </el-button>
           </Motion>
 
-          <Motion :whileHover="{ scale: 1.05 }" :whileTap="{ scale: 0.95 }">
+          <Motion :while-hover="{ scale: 1.05 }" :while-tap="{ scale: 0.95 }">
             <el-button type="success" size="large" @click="testConnection">
               <el-icon>
                 <Connection />
@@ -306,7 +338,7 @@ onMounted(() => {
             </el-button>
           </Motion>
 
-          <Motion :whileHover="{ scale: 1.05 }" :whileTap="{ scale: 0.95 }">
+          <Motion :while-hover="{ scale: 1.05 }" :while-tap="{ scale: 0.95 }">
             <el-button size="large" @click="resetForm">
               <el-icon>
                 <Refresh />

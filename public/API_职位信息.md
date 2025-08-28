@@ -14,6 +14,7 @@
 ## 通用响应格式
 
 ### 成功响应
+
 ```json
 {
     "code": 200,
@@ -23,6 +24,7 @@
 ```
 
 ### 失败响应
+
 ```json
 {
     "code": 400,
@@ -32,6 +34,7 @@
 ```
 
 ### 错误响应
+
 ```json
 {
     "code": 500,
@@ -48,7 +51,8 @@
 
 **路由**: `GET /api/position/list/`
 
-**请求参数**: 
+**请求参数**:
+
 - `page`: 页码（可选，整数，默认1）
 - `page_size`: 每页数量（可选，整数，默认20）
 - `industry`: 行业筛选（可选，字符串）
@@ -63,6 +67,7 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -106,12 +111,14 @@
 
 **路由**: `GET /api/position/detail/<int:position_id>/`
 
-**请求参数**: 
+**请求参数**:
+
 - `position_id`: 职位ID（路径参数，整数）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -166,10 +173,12 @@
 
 **路由**: `POST /api/position/apply/<int:position_id>/`
 
-**请求参数**: 
+**请求参数**:
+
 - `position_id`: 职位ID（路径参数，整数）
 
 **请求体**:
+
 ```json
 {
     "resume_file": "resume.pdf",
@@ -181,6 +190,7 @@
 ```
 
 **字段说明**:
+
 - `resume_file`: 简历文件（可选，字符串）
 - `cover_letter`: 求职信（可选，字符串）
 - `expected_salary`: 期望薪资（可选，整数）
@@ -188,6 +198,7 @@
 - `additional_info`: 补充信息（可选，字符串）
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -209,7 +220,8 @@
 
 **路由**: `GET /api/position/applications/`
 
-**请求参数**: 
+**请求参数**:
+
 - `page`: 页码（可选，整数，默认1）
 - `page_size`: 每页数量（可选，整数，默认20）
 - `status`: 申请状态筛选（可选，字符串，pending/reviewing/interviewed/accepted/rejected）
@@ -217,6 +229,7 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -254,12 +267,14 @@
 
 **路由**: `GET /api/position/application/<int:application_id>/`
 
-**请求参数**: 
+**请求参数**:
+
 - `application_id`: 申请ID（路径参数，整数）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -309,12 +324,14 @@
 
 **路由**: `DELETE /api/position/application/<int:application_id>/cancel/`
 
-**请求参数**: 
+**请求参数**:
+
 - `application_id`: 申请ID（路径参数，整数）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -332,7 +349,8 @@
 
 **路由**: `GET /api/position/recommendations/`
 
-**请求参数**: 
+**请求参数**:
+
 - `page`: 页码（可选，整数，默认1）
 - `page_size`: 每页数量（可选，整数，默认10）
 - `refresh`: 是否刷新推荐（可选，布尔值，默认false）
@@ -340,6 +358,7 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -388,6 +407,7 @@
 **请求参数**: 无
 
 **请求体**:
+
 ```json
 {
     "position_id": 1,
@@ -396,10 +416,12 @@
 ```
 
 **字段说明**:
+
 - `position_id`: 职位ID（必填，整数）
 - `note`: 备注（可选，字符串）
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -418,12 +440,14 @@
 
 **路由**: `GET /api/position/analysis/<int:position_id>/`
 
-**请求参数**: 
+**请求参数**:
+
 - `position_id`: 职位ID（路径参数，整数）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -468,7 +492,8 @@
 
 **路由**: `GET /api/position/companies/`
 
-**请求参数**: 
+**请求参数**:
+
 - `page`: 页码（可选，整数，默认1）
 - `page_size`: 每页数量（可选，整数，默认20）
 - `industry`: 行业筛选（可选，字符串）
@@ -479,6 +504,7 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -513,12 +539,14 @@
 
 **路由**: `GET /api/position/company/<int:company_id>/`
 
-**请求参数**: 
+**请求参数**:
+
 - `company_id`: 公司ID（路径参数，整数）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -570,6 +598,7 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -616,13 +645,15 @@
 
 **路由**: `GET /api/position/hot/`
 
-**请求参数**: 
+**请求参数**:
+
 - `limit`: 返回数量限制（可选，整数，默认10）
 - `period`: 统计周期（可选，字符串，daily/weekly/monthly，默认weekly）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -654,13 +685,15 @@
 
 **路由**: `GET /api/position/search-suggestions/`
 
-**请求参数**: 
+**请求参数**:
+
 - `query`: 搜索关键词（必填，字符串）
 - `type`: 建议类型（可选，字符串，position/company/skill，默认position）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -696,7 +729,8 @@
 
 **路由**: `GET /api/position/employment-rate/`
 
-**请求参数**: 
+**请求参数**:
+
 - `start_date`: 开始日期（可选，日期字符串，格式YYYY-MM-DD）
 - `end_date`: 结束日期（可选，日期字符串，格式YYYY-MM-DD）
 - `industry_id`: 行业ID（可选，整数）
@@ -704,32 +738,539 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
-    "code": 200,
-    "message": "获取成功",
-    "data": {
-        "trend_data": [
-            {
-                "date": "2024-01-01",
-                "employment_rate": 85.6,
-                "total_graduates": 1000,
-                "employed_count": 856,
-                "industry_details": [
-                    {
-                        "industry": "互联网",
-                        "employment_rate": 92.3,
-                        "total_graduates": 300,
-                        "employed_count": 277
-                    }
-                ]
-            }
-        ],
-        "date_range": {
-            "start_date": "2023-01-16",
-            "end_date": "2024-01-16"
-        }
-    }
+ "code": 200,
+ "msg": null,
+ "data": {
+  "trend_data": [
+   {
+    "date": "2024-10",
+    "employment_rate": 77.06,
+    "total_graduates": 12260,
+    "employed_count": 9447,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 79,
+      "total_graduates": 1057,
+      "employed_count": 707
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 76,
+      "total_graduates": 1097,
+      "employed_count": 917
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 94,
+      "total_graduates": 1026,
+      "employed_count": 786
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 86.3,
+      "total_graduates": 1166,
+      "employed_count": 937
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 88,
+      "total_graduates": 1019,
+      "employed_count": 775
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 89.5,
+      "total_graduates": 847,
+      "employed_count": 915
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 88.4,
+      "total_graduates": 1198,
+      "employed_count": 679
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 92.8,
+      "total_graduates": 841,
+      "employed_count": 841
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 83.9,
+      "total_graduates": 1074,
+      "employed_count": 663
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 80.1,
+      "total_graduates": 803,
+      "employed_count": 910
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 91.4,
+      "total_graduates": 1039,
+      "employed_count": 653
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 94.5,
+      "total_graduates": 1093,
+      "employed_count": 664
+     }
+    ]
+   },
+   {
+    "date": "2024-11",
+    "employment_rate": 76.27,
+    "total_graduates": 6312,
+    "employed_count": 4814,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 79.5,
+      "total_graduates": 1044,
+      "employed_count": 940
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 83.7,
+      "total_graduates": 971,
+      "employed_count": 664
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 87,
+      "total_graduates": 1104,
+      "employed_count": 888
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 78.3,
+      "total_graduates": 849,
+      "employed_count": 838
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 93.4,
+      "total_graduates": 1152,
+      "employed_count": 704
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 88.5,
+      "total_graduates": 1192,
+      "employed_count": 780
+     }
+    ]
+   },
+   {
+    "date": "2024-12",
+    "employment_rate": 76.59,
+    "total_graduates": 6049,
+    "employed_count": 4633,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 76.9,
+      "total_graduates": 924,
+      "employed_count": 622
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 79.5,
+      "total_graduates": 949,
+      "employed_count": 620
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 77.5,
+      "total_graduates": 974,
+      "employed_count": 972
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 94.7,
+      "total_graduates": 996,
+      "employed_count": 835
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 78.8,
+      "total_graduates": 1188,
+      "employed_count": 914
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 85.8,
+      "total_graduates": 1018,
+      "employed_count": 670
+     }
+    ]
+   },
+   {
+    "date": "2025-01",
+    "employment_rate": 83.09,
+    "total_graduates": 5605,
+    "employed_count": 4657,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 94.5,
+      "total_graduates": 918,
+      "employed_count": 667
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 91.2,
+      "total_graduates": 1061,
+      "employed_count": 787
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 83.7,
+      "total_graduates": 847,
+      "employed_count": 612
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 78.8,
+      "total_graduates": 864,
+      "employed_count": 688
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 83.4,
+      "total_graduates": 1110,
+      "employed_count": 968
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 91.3,
+      "total_graduates": 805,
+      "employed_count": 935
+     }
+    ]
+   },
+   {
+    "date": "2025-02",
+    "employment_rate": 77.73,
+    "total_graduates": 6416,
+    "employed_count": 4987,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 83.5,
+      "total_graduates": 1162,
+      "employed_count": 851
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 89,
+      "total_graduates": 1187,
+      "employed_count": 771
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 83.3,
+      "total_graduates": 850,
+      "employed_count": 867
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 89.5,
+      "total_graduates": 1038,
+      "employed_count": 634
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 85.7,
+      "total_graduates": 1075,
+      "employed_count": 881
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 86,
+      "total_graduates": 1104,
+      "employed_count": 983
+     }
+    ]
+   },
+   {
+    "date": "2025-03",
+    "employment_rate": 75.34,
+    "total_graduates": 6050,
+    "employed_count": 4558,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 83.6,
+      "total_graduates": 952,
+      "employed_count": 963
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 90.8,
+      "total_graduates": 945,
+      "employed_count": 822
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 78,
+      "total_graduates": 1037,
+      "employed_count": 635
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 90.1,
+      "total_graduates": 1019,
+      "employed_count": 613
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 75.3,
+      "total_graduates": 913,
+      "employed_count": 849
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 95,
+      "total_graduates": 1184,
+      "employed_count": 676
+     }
+    ]
+   },
+   {
+    "date": "2025-04",
+    "employment_rate": 70.83,
+    "total_graduates": 5996,
+    "employed_count": 4247,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 89.9,
+      "total_graduates": 947,
+      "employed_count": 729
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 76.3,
+      "total_graduates": 1145,
+      "employed_count": 784
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 76.2,
+      "total_graduates": 933,
+      "employed_count": 676
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 82.1,
+      "total_graduates": 1001,
+      "employed_count": 797
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 89.2,
+      "total_graduates": 926,
+      "employed_count": 652
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 94,
+      "total_graduates": 1044,
+      "employed_count": 609
+     }
+    ]
+   },
+   {
+    "date": "2025-05",
+    "employment_rate": 84.6,
+    "total_graduates": 5622,
+    "employed_count": 4756,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 78,
+      "total_graduates": 981,
+      "employed_count": 824
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 84.1,
+      "total_graduates": 843,
+      "employed_count": 963
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 77.4,
+      "total_graduates": 854,
+      "employed_count": 792
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 88.6,
+      "total_graduates": 872,
+      "employed_count": 633
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 85.9,
+      "total_graduates": 949,
+      "employed_count": 708
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 92.1,
+      "total_graduates": 1123,
+      "employed_count": 836
+     }
+    ]
+   },
+   {
+    "date": "2025-06",
+    "employment_rate": 79.65,
+    "total_graduates": 5941,
+    "employed_count": 4732,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 92.2,
+      "total_graduates": 1134,
+      "employed_count": 918
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 94.7,
+      "total_graduates": 928,
+      "employed_count": 829
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 85.1,
+      "total_graduates": 1095,
+      "employed_count": 922
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 92.6,
+      "total_graduates": 836,
+      "employed_count": 752
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 84.1,
+      "total_graduates": 1019,
+      "employed_count": 679
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 86.7,
+      "total_graduates": 929,
+      "employed_count": 632
+     }
+    ]
+   },
+   {
+    "date": "2025-07",
+    "employment_rate": 82.97,
+    "total_graduates": 5953,
+    "employed_count": 4939,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 75.6,
+      "total_graduates": 903,
+      "employed_count": 836
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 88.6,
+      "total_graduates": 1041,
+      "employed_count": 659
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 86.4,
+      "total_graduates": 1147,
+      "employed_count": 684
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 90.2,
+      "total_graduates": 1155,
+      "employed_count": 888
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 82,
+      "total_graduates": 855,
+      "employed_count": 893
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 94.9,
+      "total_graduates": 852,
+      "employed_count": 979
+     }
+    ]
+   },
+   {
+    "date": "2025-08",
+    "employment_rate": 88.73,
+    "total_graduates": 5650,
+    "employed_count": 5013,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "employment_rate": 79,
+      "total_graduates": 893,
+      "employed_count": 787
+     },
+     {
+      "industry": "教育",
+      "employment_rate": 79.7,
+      "total_graduates": 875,
+      "employed_count": 834
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 80,
+      "total_graduates": 957,
+      "employed_count": 691
+     },
+     {
+      "industry": "能源",
+      "employment_rate": 83.9,
+      "total_graduates": 1123,
+      "employed_count": 838
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 87.1,
+      "total_graduates": 864,
+      "employed_count": 954
+     },
+     {
+      "industry": "娱乐",
+      "employment_rate": 78.6,
+      "total_graduates": 938,
+      "employed_count": 909
+     }
+    ]
+   }
+  ],
+  "date_range": {
+   "start_date": "2024-08-27",
+   "end_date": "2025-08-27"
+  }
+ }
 }
 ```
 
@@ -739,7 +1280,8 @@
 
 **路由**: `GET /api/position/salary/`
 
-**请求参数**: 
+**请求参数**:
+
 - `start_date`: 开始日期（可选，日期字符串）
 - `end_date`: 结束日期（可选，日期字符串）
 - `industry_id`: 行业ID（可选，整数）
@@ -748,32 +1290,539 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
-    "code": 200,
-    "message": "获取成功",
-    "data": {
-        "salary_trend": [
-            {
-                "date": "2024-01-01",
-                "average_salary": 12500.0,
-                "salary_min": 8000.0,
-                "salary_max": 25000.0,
-                "industry_details": [
-                    {
-                        "industry": "互联网",
-                        "avg_salary": 15000.0,
-                        "salary_min": 10000.0,
-                        "salary_max": 30000.0
-                    }
-                ]
-            }
-        ],
-        "date_range": {
-            "start_date": "2023-01-16",
-            "end_date": "2024-01-16"
-        }
-    }
+ "code": 200,
+ "msg": null,
+ "data": {
+  "salary_trend": [
+   {
+    "date": "2024-10",
+    "avg_salary": 12091,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 9181,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 13390,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 14105,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 12872,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 13124,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 14527,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 14340,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 9390,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 10292,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 13283,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 11305,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 9283,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2024-11",
+    "avg_salary": 11618.67,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 10149,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 11637,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 12636,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 8644,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 12001,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 14645,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2024-12",
+    "avg_salary": 12556.67,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 14340,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 14178,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 12252,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 10983,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 13719,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 9868,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2025-01",
+    "avg_salary": 11910.17,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 14566,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 13165,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 13313,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 9239,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 13150,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 8028,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2025-02",
+    "avg_salary": 11037.83,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 11188,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 8687,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 9645,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 12095,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 13731,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 10881,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2025-03",
+    "avg_salary": 13263.67,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 13613,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 13130,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 14853,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 12948,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 14279,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 10759,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2025-04",
+    "avg_salary": 10925.17,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 13882,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 10636,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 8901,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 10468,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 9725,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 11939,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2025-05",
+    "avg_salary": 11698.5,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 14675,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 9255,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 10391,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 11962,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 10460,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 13448,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2025-06",
+    "avg_salary": 11525.67,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 10198,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 11007,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 14400,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 8487,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 10249,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 14813,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2025-07",
+    "avg_salary": 12196.5,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 13367,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 11965,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 12346,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 12138,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 13846,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 9517,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   },
+   {
+    "date": "2025-08",
+    "avg_salary": 11589.5,
+    "salary_min": 0,
+    "salary_max": 0,
+    "industry_details": [
+     {
+      "industry": "教育",
+      "avg_salary": 10599,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "教育",
+      "avg_salary": 9129,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 12322,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "能源",
+      "avg_salary": 12164,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 13642,
+      "salary_min": 0,
+      "salary_max": 0
+     },
+     {
+      "industry": "娱乐",
+      "avg_salary": 11681,
+      "salary_min": 0,
+      "salary_max": 0
+     }
+    ]
+   }
+  ],
+  "date_range": {
+   "start_date": "2024-08-27",
+   "end_date": "2025-08-27"
+  }
+ }
 }
 ```
 
@@ -783,7 +1832,8 @@
 
 **路由**: `GET /api/position/popular-ranking/`
 
-**请求参数**: 
+**请求参数**:
+
 - `period`: 统计周期（可选，字符串，weekly/monthly/yearly，默认weekly）
 - `industry_id`: 行业ID（可选，整数）
 - `limit`: 返回数量（可选，整数，默认20）
@@ -791,29 +1841,39 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
-    "code": 200,
-    "message": "获取成功",
-    "data": {
-        "ranking": [
-            {
-                "rank": 1,
-                "position_title": "Java开发工程师",
-                "industry": "互联网",
-                "view_count": 15000,
-                "application_count": 1200,
-                "avg_salary": 18000.0,
-                "heat_index": 11860.0
-            }
-        ],
-        "period": "weekly",
-        "date_range": {
-            "start_date": "2024-01-09",
-            "end_date": "2024-01-16"
-        },
-        "total_positions": 20
-    }
+ "code": 200,
+ "msg": null,
+ "data": {
+  "ranking": [
+   {
+    "rank": 1,
+    "position_title": "产品经理",
+    "industry": "医疗",
+    "total_views": 36821,
+    "total_applications": 2285,
+    "avg_salary": 14683.5,
+    "heat_index": 26460.2
+   },
+   {
+    "rank": 7,
+    "position_title": "Python开发工程师",
+    "industry": "教育",
+    "total_views": 9548,
+    "total_applications": 1933,
+    "avg_salary": 12674,
+    "heat_index": 7263.5
+   },
+  ],
+  "period": "weekly",
+  "date_range": {
+   "start_date": "2025-08-20",
+   "end_date": "2025-08-27"
+  },
+  "total_positions": 12
+ }
 }
 ```
 
@@ -823,13 +1883,15 @@
 
 **路由**: `GET /api/position/industry-analysis/`
 
-**请求参数**: 
+**请求参数**:
+
 - `industry_id`: 行业ID（必填，整数）
 - `period`: 分析周期（可选，字符串，weekly/monthly/yearly，默认monthly）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
     "code": 200,
@@ -883,35 +1945,36 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
-    "code": 200,
-    "message": "获取成功",
-    "data": {
-        "employment_overview": {
-            "total_graduates": 50000,
-            "total_employed": 45000,
-            "average_employment_rate": 90.0,
-            "avg_salary": 15000.0
-        },
-        "industry_overview": {
-            "total_industries": 15,
-            "active_industries": 12
-        },
-        "position_overview": {
-            "total_views": 500000,
-            "total_applications": 25000,
-            "unique_positions": 1500
-        },
-        "company_overview": {
-            "total_companies": 800,
-            "active_companies": 650
-        },
-        "statistics_period": {
-            "start_date": "2023-12-16",
-            "end_date": "2024-01-16"
-        }
-    }
+ "code": 200,
+ "msg": null,
+ "data": {
+  "employment_overview": {
+   "total_graduates": 71854,
+   "total_employed": 56783,
+   "average_employment_rate": 85.49,
+   "avg_salary": 11875.36
+  },
+  "industry_overview": {
+   "total_industries": 10,
+   "active_industries": 3
+  },
+  "position_overview": {
+   "total_views": 304363,
+   "total_applications": 30973,
+   "unique_positions": 300
+  },
+  "company_overview": {
+   "total_companies": 30,
+   "active_companies": 30
+  },
+  "statistics_period": {
+   "start_date": "2025-07-28",
+   "end_date": "2025-08-27"
+  }
+ }
 }
 ```
 
@@ -921,40 +1984,69 @@
 
 **路由**: `GET /api/position/data/`
 
-**请求参数**: 
+**请求参数**:
+
 - `type`: 图表类型（可选，字符串，employment_trend/salary_trend/industry_comparison，默认employment_trend）
 - `period`: 统计周期（可选，字符串，weekly/monthly/yearly，默认monthly）
 
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
-    "code": 200,
-    "message": "获取成功",
-    "data": {
-        "chart_type": "employment_trend",
-        "period": "monthly",
-        "chart_data": {
-            "labels": ["01-01", "01-02", "01-03"],
-            "datasets": [
-                {
-                    "label": "就业率(%)",
-                    "data": [85.6, 86.2, 87.1],
-                    "type": "line"
-                },
-                {
-                    "label": "毕业生总数",
-                    "data": [1000, 1050, 1100],
-                    "type": "bar"
-                }
-            ]
-        },
-        "date_range": {
-            "start_date": "2023-12-16",
-            "end_date": "2024-01-16"
-        }
+ "code": 200,
+ "msg": null,
+ "data": {
+  "chart_type": "employment_trend",
+  "period": "monthly",
+  "chart_data": {
+   "labels": [
+    "2025-01",
+    "2025-02",
+    "2025-03",
+    "2025-04",
+    "2025-05",
+    "2025-06",
+    "2025-07",
+    "2025-08"
+   ],
+   "datasets": [
+    {
+     "label": "就业率(%)",
+     "data": [
+      87.15,
+      86.17,
+      85.47,
+      84.62,
+      84.35,
+      89.23,
+      86.28,
+      81.38
+     ],
+     "type": "line"
+    },
+    {
+     "label": "毕业生总数",
+     "data": [
+      5605,
+      6416,
+      6050,
+      5996,
+      5622,
+      5941,
+      5953,
+      5650
+     ],
+     "type": "bar"
     }
+   ]
+  },
+  "date_range": {
+   "start_date": "2025-07-28",
+   "end_date": "2025-08-27"
+  }
+ }
 }
 ```
 
@@ -964,7 +2056,8 @@
 
 **路由**: `GET /api/position/industries/`
 
-**请求参数**: 
+**请求参数**:
+
 - `page`: 页码（可选，整数，默认1）
 - `page_size`: 每页数量（可选，整数，默认20）
 - `query`: 搜索关键词（可选，字符串）
@@ -972,26 +2065,23 @@
 **请求体**: 无
 
 **返回体**:
+
 ```json
 {
-    "code": 200,
-    "message": "获取成功",
-    "data": {
-        "total": 15,
-        "page": 1,
-        "page_size": 20,
-        "industries": [
-            {
-                "id": 1,
-                "name": "互联网",
-                "description": "互联网及相关服务行业",
-                "created_at": "2024-01-01 00:00:00",
-                "latest_employment_rate": 92.3,
-                "latest_avg_salary": 18000.0,
-                "latest_update": "2024-01-16"
-            }
-        ]
-    }
+ "code": 200,
+ "msg": null,
+ "data": {
+  "total": 10,
+  "categories": [
+   {
+    "id": 2,
+    "name": "互联网",
+    "description": "互联网和软件开发行业",
+    "position_count": 0,
+    "sort_order": 0
+   },
+  ]
+ }
 }
 ```
 

@@ -1,14 +1,25 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRequestLoadingStore } from '@/stores/common/requestLoading'
+
+const requestLoadingStore = useRequestLoadingStore()
+
+const loadingText = computed(() => requestLoadingStore.loadingText)
+</script>
+
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div class="fixed inset-0 z-[9998] flex items-center justify-center backdrop-blur-[3.5px] bg-black/18"
-        @click.stop>
+      <div
+        class="fixed inset-0 z-[9998] flex items-center justify-center backdrop-blur-[3.5px] bg-black/18"
+        @click.stop
+      >
         <div class="flex flex-col items-center space-y-4">
           <!-- 现代点状加载动画 -->
           <div class="loading-spinner">
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
+            <div class="spinner-ring" />
+            <div class="spinner-ring" />
+            <div class="spinner-ring" />
           </div>
 
           <!-- 加载文本 -->
@@ -20,15 +31,6 @@
     </Transition>
   </Teleport>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useRequestLoadingStore } from '@/stores/common/requestLoading'
-
-const requestLoadingStore = useRequestLoadingStore()
-
-const loadingText = computed(() => requestLoadingStore.loadingText)
-</script>
 
 <style scoped>
 .fade-enter-active,

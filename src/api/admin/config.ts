@@ -1,11 +1,11 @@
 import type {
-  ConfigListResponse,
-  ConfigDetailResponse,
-  EmailConfig,
-  EmailConfigResponse,
   CaptchaConfig,
   CaptchaConfigResponse,
-  ConfigApiResponse
+  ConfigApiResponse,
+  ConfigDetailResponse,
+  ConfigListResponse,
+  EmailConfig,
+  EmailConfigResponse,
 } from '@/types/factory'
 import serviceAxios from '@/http'
 
@@ -13,7 +13,7 @@ import serviceAxios from '@/http'
 export function getConfigsAPI(): Promise<ConfigListResponse> {
   return serviceAxios({
     url: '/hzadmin/admin/config/configs/',
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -21,7 +21,7 @@ export function getConfigsAPI(): Promise<ConfigListResponse> {
 export function getConfigDetailAPI(configId: number): Promise<ConfigDetailResponse> {
   return serviceAxios({
     url: `/hzadmin/admin/config/configs/${configId}/`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -29,7 +29,7 @@ export function getConfigDetailAPI(configId: number): Promise<ConfigDetailRespon
 export function getEmailConfigAPI(): Promise<EmailConfigResponse> {
   return serviceAxios({
     url: '/hzadmin/admin/config/configs/email/',
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -38,7 +38,7 @@ export function updateEmailConfigAPI(data: EmailConfig): Promise<ConfigApiRespon
   return serviceAxios({
     url: '/hzadmin/admin/config/configs/email/',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -46,7 +46,7 @@ export function updateEmailConfigAPI(data: EmailConfig): Promise<ConfigApiRespon
 export function getCaptchaConfigAPI(): Promise<CaptchaConfigResponse> {
   return serviceAxios({
     url: '/hzadmin/admin/config/configs/captcha/',
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -55,6 +55,6 @@ export function updateCaptchaConfigAPI(data: CaptchaConfig): Promise<ConfigApiRe
   return serviceAxios({
     url: '/hzadmin/admin/config/configs/captcha/',
     method: 'post',
-    data
+    data,
   })
 }

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ElConfigProvider } from 'element-plus'
-import { useElementPlusLocale } from '@/composables/useElementPlusLocale'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { computed, nextTick, watch } from 'vue'
-import Layout from './components/layout/index.vue'
 import GlobalLoading from '@/components/common/GlobalLoading.vue'
 import RequestLoading from '@/components/common/RequestLoading.vue'
+import { useElementPlusLocale } from '@/composables/useElementPlusLocale'
 import { useLoadingStore } from '@/stores/common/loading'
 import { useRequestLoadingStore } from '@/stores/common/requestLoading'
+import Layout from './components/layout/index.vue'
 
 // 获取 Element Plus 国际化配置
 const { elementPlusLocale } = useElementPlusLocale()
@@ -44,7 +44,6 @@ const requestLoadingStore = useRequestLoadingStore()
 
     <!-- TODO 查看生产环境vif是否异常 网络请求加载动画 -->
     <RequestLoading v-if="reqShosw" />
-
   </ElConfigProvider>
 </template>
 

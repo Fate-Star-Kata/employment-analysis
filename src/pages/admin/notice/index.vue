@@ -1,76 +1,23 @@
-<template>
-  <div class="content-management-container h-full flex flex-col">
-    <!-- 统计卡片组件 -->
-    <NoticeStatsCard :stats="stats" :loading="loading" @create="handleCreate" />
-
-    <!-- 搜索组件 -->
-    <NoticeSearchForm :query="searchParams.query" :is-public="searchParams.is_public" :loading="loading"
-      @search="handleSearchSubmit" @reset="handleSearchReset" />
-
-    <!-- 通知表格组件 -->
-    <NoticeTable :data="notificationList" :loading="loading" @refresh="refreshData" @edit="handleEdit"
-      @resend="handleResend" @resend-all="handleResendAll" @delete="handleDelete" />
-
-    <!-- 分页组件 -->
-    <NoticePagination :current-page="searchParams.page || 1" :page-size="searchParams.page_size || 10" :total="total"
-      :loading="loading" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
-
-    <!-- 创建/编辑通知对话框组件 -->
-    <NoticeFormDialog v-model:visible="showCreateDialog" :editing-data="editingNotification || null"
-      :is-edit="!!editingNotification" :loading="submitting" :user-options="userOptions"
-      :user-search-loading="userSearchLoading" @submit="handleSubmit"
-      @cancel="() => { showCreateDialog = false; resetForm(); }" @search-users="searchUsers"
-      @load-all-users="loadAllUsers" />
-
-    <!-- 重发通知对话框组件 -->
-    <NoticeResendDialog v-model:visible="showResendDialog" :notice-data="{ id: resendForm.notification_id }"
-      :loading="submitting" :user-options="userOptions" :user-search-loading="userSearchLoading"
-      @submit="handleResendSubmit" @cancel="() => { showResendDialog = false; }" @search-users="searchUsers"
-      @load-all-users="loadAllUsers" />
-
-    <!-- 重发给特定用户对话框组件 -->
-    <NoticeResendDialog v-model:visible="showSendToUserDialog" :notice-data="{ id: sendToUserForm.notification_id }"
-      :loading="submitting" :specific-users-only="true" :user-options="userOptions"
-      :user-search-loading="userSearchLoading" @submit="handleSendToUsersSubmit"
-      @cancel="() => { showSendToUserDialog = false; }" @search-users="searchUsers" @load-all-users="loadAllUsers" />
-
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import {
-  Plus,
-  Refresh,
-  Search,
-  Bell,
-  Calendar,
-  TrendCharts,
-  DocumentRemove,
-  Edit,
-  Delete,
-  Clock,
-  CircleCheckFilled,
-  CircleCloseFilled,
-  UserFilled
-} from '@element-plus/icons-vue'
-import { notificationApi } from '@/api/admin/notification'
 import type {
+  CreateNotificationReq,
   NotificationItem as NotificationItemType,
   NotificationListReq,
-  CreateNotificationReq,
-  NotificationStats
+  NotificationStats,
 } from '@/types/factory'
 
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { onMounted, reactive, ref } from 'vue'
+import { notificationApi } from '@/api/admin/notification'
+
+import NoticeFormDialog from '@/components/pages/admin/notice/NoticeFormDialog.vue'
+import NoticePagination from '@/components/pages/admin/notice/NoticePagination.vue'
+import NoticeResendDialog from '@/components/pages/admin/notice/NoticeResendDialog.vue'
+import NoticeSearchForm from '@/components/pages/admin/notice/NoticeSearchForm.vue'
 // 导入组件
 import NoticeStatsCard from '@/components/pages/admin/notice/NoticeStatsCard.vue'
-import NoticeSearchForm from '@/components/pages/admin/notice/NoticeSearchForm.vue'
 import NoticeTable from '@/components/pages/admin/notice/NoticeTable.vue'
-import NoticePagination from '@/components/pages/admin/notice/NoticePagination.vue'
-import NoticeFormDialog from '@/components/pages/admin/notice/NoticeFormDialog.vue'
-import NoticeResendDialog from '@/components/pages/admin/notice/NoticeResendDialog.vue'
 
 // 响应式数据
 const loading = ref(false)
@@ -95,7 +42,6 @@ const searchParams = reactive<NotificationListReq>({
 const notificationList = ref<NotificationItemType[]>([])
 const total = ref(0)
 
-
 // 统计数据
 const stats = ref<NotificationStats>({
   total: 0,
@@ -117,7 +63,7 @@ const notificationForm = reactive<CreateNotificationReq>({
 
 // 用户搜索相关
 const userSearchLoading = ref(false)
-const userOptions = ref<Array<{ id: number; username: string }>>([])
+const userOptions = ref<Array<{ id: number, username: string }>>([])
 
 // 重发（所有/指定）对话框
 const showResendDialog = ref(false)
@@ -125,7 +71,7 @@ const resendForm = reactive({
   notification_id: 0,
   notify_all: false,
   recipient_user_ids: [] as number[],
-  email_notification: false
+  email_notification: false,
 })
 
 // 重发给指定用户（快捷）
@@ -133,18 +79,18 @@ const showSendToUserDialog = ref(false)
 const sendToUserForm = reactive({
   notification_id: 0,
   recipient_user_ids: [] as number[],
-  email_notification: false
+  email_notification: false,
 })
 
 // 表单验证规则
 const formRules: FormRules = {
   title: [
     { required: true, message: '请输入通知标题', trigger: 'blur' },
-    { min: 2, max: 100, message: '标题长度在 2 到 100 个字符', trigger: 'blur' }
+    { min: 2, max: 100, message: '标题长度在 2 到 100 个字符', trigger: 'blur' },
   ],
   content: [
     { required: true, message: '请输入通知内容', trigger: 'blur' },
-    { min: 5, max: 500, message: '内容长度在 5 到 500 个字符', trigger: 'blur' }
+    { min: 5, max: 500, message: '内容长度在 5 到 500 个字符', trigger: 'blur' },
   ],
   recipient_user_ids: [
     {
@@ -152,80 +98,86 @@ const formRules: FormRules = {
         // 移除必须选择用户的验证，允许不指定用户发送
         callback()
       },
-      trigger: 'change'
-    }
-  ]
+      trigger: 'change',
+    },
+  ],
 }
 
 // @ts-ignore 搜索防抖
 let searchTimer: NodeJS.Timeout | null = null
 
 // 方法
-const getNotificationList = async () => {
+async function getNotificationList() {
   loading.value = true
   try {
     const response = await notificationApi.getUserNotificationList(searchParams)
     if (response.code === 200) {
       notificationList.value = response.data.notifications
       total.value = response.data.total
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '获取通知列表失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取通知列表失败:', error)
     ElMessage.error('获取通知列表失败，请重试')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
 // 统计数据直接基于当前通知列表计算
-const getStats = () => {
+function getStats() {
   setDefaultStats()
 }
 
 // 设置默认统计数据
-const setDefaultStats = () => {
+function setDefaultStats() {
   // 基于当前通知列表计算统计数据
   const total = notificationList.value.length
   const today = new Date()
   const todayStr = today.toISOString().split('T')[0]
-  
+
   // 计算本周开始日期
   const weekStart = new Date(today)
   weekStart.setDate(today.getDate() - today.getDay())
   const weekStartStr = weekStart.toISOString().split('T')[0]
-  
+
   // 计算本月开始日期
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
   const monthStartStr = monthStart.toISOString().split('T')[0]
-  
+
   // 统计今日、本周、本月的通知数量
   let todayCount = 0
   let weekCount = 0
   let monthCount = 0
-  
-  notificationList.value.forEach(notification => {
+
+  notificationList.value.forEach((notification) => {
     const createDate = notification.created_at?.split(' ')[0] || ''
-    if (createDate === todayStr) todayCount++
-    if (createDate >= weekStartStr) weekCount++
-    if (createDate >= monthStartStr) monthCount++
+    if (createDate === todayStr)
+      todayCount++
+    if (createDate >= weekStartStr)
+      weekCount++
+    if (createDate >= monthStartStr)
+      monthCount++
   })
-  
+
   stats.value = {
     total,
     today: todayCount,
     this_week: weekCount,
-    this_month: monthCount
+    this_month: monthCount,
   }
 }
 
-const handleCreate = () => {
+function handleCreate() {
   resetForm()
   showCreateDialog.value = true
 }
 
-const handleSearchSubmit = async (params: { query: string; is_public: 0 | 1 | undefined }) => {
+async function handleSearchSubmit(params: { query: string, is_public: 0 | 1 | undefined }) {
   searchParams.query = params.query
   searchParams.is_public = params.is_public
   searchParams.page = 1
@@ -233,14 +185,14 @@ const handleSearchSubmit = async (params: { query: string; is_public: 0 | 1 | un
   getStats()
 }
 
-const handleSearchReset = () => {
+function handleSearchReset() {
   searchParams.query = ''
   searchParams.is_public = undefined
   searchParams.page = 1
   getNotificationList()
 }
 
-const handleSearch = () => {
+function handleSearch() {
   if (searchTimer) {
     clearTimeout(searchTimer)
   }
@@ -250,28 +202,28 @@ const handleSearch = () => {
   }, 300)
 }
 
-const handleFilterChange = () => {
+function handleFilterChange() {
   searchParams.page = 1
   getNotificationList()
 }
 
-const handleSizeChange = (size: number) => {
+function handleSizeChange(size: number) {
   searchParams.page_size = size
   searchParams.page = 1
   getNotificationList()
 }
 
-const handleCurrentChange = (page: number) => {
+function handleCurrentChange(page: number) {
   searchParams.page = page
   getNotificationList()
 }
 
-const refreshData = () => {
+function refreshData() {
   getNotificationList()
   getStats()
 }
 
-const resetForm = () => {
+function resetForm() {
   notificationForm.title = ''
   notificationForm.content = ''
   notificationForm.is_public = true
@@ -286,18 +238,18 @@ const resetForm = () => {
 }
 
 // 表单取消处理
-const handleFormCancel = () => {
+function handleFormCancel() {
   showCreateDialog.value = false
   resetForm()
 }
 
 // 重发对话框取消处理
-const handleResendCancel = () => {
+function handleResendCancel() {
   showResendDialog.value = false
 }
 
 // 处理通知所有人开关变化
-const handleNotifyAllChange = (value: boolean) => {
+function handleNotifyAllChange(value: boolean) {
   if (value) {
     notificationForm.recipient_user_ids = []
     userOptions.value = []
@@ -309,9 +261,10 @@ const handleNotifyAllChange = (value: boolean) => {
 }
 
 // 加载所有用户（点击选择器时触发）
-const loadAllUsers = async () => {
+async function loadAllUsers() {
   // 如果已经有用户选项，不重复加载
-  if (userOptions.value.length > 0) return
+  if (userOptions.value.length > 0)
+    return
 
   userSearchLoading.value = true
   try {
@@ -319,25 +272,27 @@ const loadAllUsers = async () => {
     const response = await getUsersAPI({
       query: '', // 空查询获取所有用户
       page: 1,
-      page_size: 100 // 加载更多用户
+      page_size: 100, // 加载更多用户
     })
 
     if (response.data && response.data.users) {
       userOptions.value = response.data.users.map(user => ({
         id: user.id!,
-        username: user.username
+        username: user.username,
       }))
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('加载用户失败:', error)
     ElMessage.error('加载用户失败')
-  } finally {
+  }
+  finally {
     userSearchLoading.value = false
   }
 }
 
 // 搜索用户
-const searchUsers = async (query: string) => {
+async function searchUsers(query: string) {
   if (!query) {
     // 如果没有搜索词，加载所有用户
     await loadAllUsers()
@@ -351,35 +306,38 @@ const searchUsers = async (query: string) => {
     const response = await getUsersAPI({
       query,
       page: 1,
-      page_size: 50 // 获取更多用户供选择
+      page_size: 50, // 获取更多用户供选择
     })
 
     if (response.data && response.data.users) {
       userOptions.value = response.data.users.map(user => ({
         id: user.id!,
-        username: user.username
+        username: user.username,
       }))
-    } else {
+    }
+    else {
       userOptions.value = []
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('搜索用户失败:', error)
     ElMessage.error('搜索用户失败')
     userOptions.value = []
-  } finally {
+  }
+  finally {
     userSearchLoading.value = false
   }
 }
 
 // 处理表单提交（来自组件）
-const submitForm = async (data: CreateNotificationReq) => {
+async function submitForm(data: CreateNotificationReq) {
   submitting.value = true
   try {
     const response = editingNotification.value
       ? await notificationApi.updateNotification({
-        id: editingNotification.value.id,
-        ...data
-      })
+          id: editingNotification.value.id,
+          ...data,
+        })
       : await notificationApi.createNotification(data)
 
     if (response.code === 200) {
@@ -387,19 +345,23 @@ const submitForm = async (data: CreateNotificationReq) => {
       showCreateDialog.value = false
       resetForm()
       refreshData()
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || `${editingNotification.value ? '更新' : '发布'}失败`)
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('提交失败:', error)
     ElMessage.error('提交失败，请重试')
-  } finally {
+  }
+  finally {
     submitting.value = false
   }
 }
 
-const handleSubmit = async () => {
-  if (!notificationFormRef.value) return
+async function handleSubmit() {
+  if (!notificationFormRef.value)
+    return
 
   try {
     // 先进行表单验证
@@ -418,14 +380,14 @@ const handleSubmit = async () => {
       notify_all: notificationForm.notify_all,
       email_notification: false,
       // 只有当notify_all为false时才传递recipient_user_ids
-      ...(notificationForm.notify_all ? {} : { recipient_user_ids: notificationForm.recipient_user_ids })
+      ...(notificationForm.notify_all ? {} : { recipient_user_ids: notificationForm.recipient_user_ids }),
     }
 
     const response = editingNotification.value
       ? await notificationApi.updateNotification({
-        id: editingNotification.value.id,
-        ...submitData
-      })
+          id: editingNotification.value.id,
+          ...submitData,
+        })
       : await notificationApi.createNotification(submitData as CreateNotificationReq)
 
     if (response.code === 200) {
@@ -433,18 +395,21 @@ const handleSubmit = async () => {
       showCreateDialog.value = false
       resetForm()
       refreshData()
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || `${editingNotification.value ? '更新' : '发布'}失败`)
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('提交失败:', error)
     ElMessage.error('提交失败，请重试')
-  } finally {
+  }
+  finally {
     submitting.value = false
   }
 }
 
-const handleEdit = (id: string | number) => {
+function handleEdit(id: string | number) {
   const notification = notificationList.value.find(item => item.id === id)
   if (notification) {
     editingNotification.value = notification
@@ -460,7 +425,7 @@ const handleEdit = (id: string | number) => {
 }
 
 // 重发（所有/指定）
-const handleResend = async (id: string | number) => {
+async function handleResend(id: string | number) {
   const notification = notificationList.value.find(item => item.id === id)
   if (notification) {
     resendingNotice.value = notification
@@ -478,12 +443,13 @@ const handleResend = async (id: string | number) => {
     const response = await getUsersAPI({
       query: '',
       page: 1,
-      page_size: 100
+      page_size: 100,
     })
     if (response.data && response.data.users) {
       userOptions.value = response.data.users.map(user => ({ id: user.id!, username: user.username }))
     }
-  } catch (error) {
+  }
+  catch (error) {
     // 忽略预加载失败
   }
 
@@ -491,28 +457,30 @@ const handleResend = async (id: string | number) => {
 }
 
 // 全部重发（快捷）
-const handleResendAll = async (id: string | number) => {
+async function handleResendAll(id: string | number) {
   try {
     await ElMessageBox.confirm('确定将该通知重发给所有用户吗？', '确认操作', {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     const response = await notificationApi.resendNotification({
       notification_id: Number(id),
       notify_all: true,
-      email_notification: true
+      email_notification: true,
     })
 
     if (response.code === 200) {
       const count = response.data?.recipient_count
       ElMessage.success(response.msg || `已重发给所有用户${typeof count === 'number' ? `（共 ${count} 位）` : ''}`)
       refreshData()
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '重发失败')
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     if (error !== 'cancel') {
       console.error('全部重发失败:', error)
       ElMessage.error('全部重发失败，请重试')
@@ -521,12 +489,12 @@ const handleResendAll = async (id: string | number) => {
 }
 
 // 处理重发提交（来自组件）
-const submitResend = async (data: any) => {
+async function submitResend(data: any) {
   submitting.value = true
   try {
     const response = await notificationApi.resendNotification({
       notification_id: resendingNotice.value?.id || data.notification_id,
-      ...data
+      ...data,
     })
 
     if (response.code === 200) {
@@ -535,18 +503,21 @@ const submitResend = async (data: any) => {
       showResendDialog.value = false
       resendingNotice.value = null
       refreshData()
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '重发失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('重发失败:', error)
     ElMessage.error('重发失败，请重试')
-  } finally {
+  }
+  finally {
     submitting.value = false
   }
 }
 
-const handleResendSubmit = async () => {
+async function handleResendSubmit() {
   if (!resendForm.notify_all && resendForm.recipient_user_ids.length === 0) {
     ElMessage.warning('请选择要通知的用户或切换为发送给所有用户')
     return
@@ -556,7 +527,7 @@ const handleResendSubmit = async () => {
     const payload: any = {
       notification_id: resendForm.notification_id,
       notify_all: resendForm.notify_all,
-      email_notification: resendForm.email_notification
+      email_notification: resendForm.email_notification,
     }
     if (!resendForm.notify_all) {
       payload.recipient_user_ids = resendForm.recipient_user_ids
@@ -573,17 +544,19 @@ const handleResendSubmit = async () => {
       resendForm.email_notification = false
       userOptions.value = []
       refreshData()
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '重发失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('重发失败:', error)
     ElMessage.error('重发失败，请重试')
   }
 }
 
 // 发送通知给特定用户（快捷重发）
-const handleSendToUsers = async (id: string | number) => {
+async function handleSendToUsers(id: string | number) {
   sendToUserForm.notification_id = Number(id)
   sendToUserForm.recipient_user_ids = []
   sendToUserForm.email_notification = false
@@ -594,16 +567,17 @@ const handleSendToUsers = async (id: string | number) => {
     const response = await getUsersAPI({
       query: '',
       page: 1,
-      page_size: 100 // 获取更多用户
+      page_size: 100, // 获取更多用户
     })
 
     if (response.data && response.data.users) {
       userOptions.value = response.data.users.map(user => ({
         id: user.id!,
-        username: user.username
+        username: user.username,
       }))
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('加载用户列表失败:', error)
     ElMessage.error('加载用户列表失败')
   }
@@ -612,7 +586,7 @@ const handleSendToUsers = async (id: string | number) => {
 }
 
 // 提交发送给特定用户（快捷重发）
-const handleSendToUsersSubmit = async () => {
+async function handleSendToUsersSubmit() {
   if (sendToUserForm.recipient_user_ids.length === 0) {
     ElMessage.warning('请选择要通知的用户')
     return
@@ -623,7 +597,7 @@ const handleSendToUsersSubmit = async () => {
       notification_id: sendToUserForm.notification_id,
       notify_all: false,
       recipient_user_ids: sendToUserForm.recipient_user_ids,
-      email_notification: sendToUserForm.email_notification
+      email_notification: sendToUserForm.email_notification,
     })
 
     if (response.code === 200) {
@@ -636,16 +610,18 @@ const handleSendToUsersSubmit = async () => {
       userOptions.value = []
       // 刷新通知列表
       refreshData()
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '重发失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('发送通知失败:', error)
     ElMessage.error('重发失败，请重试')
   }
 }
 
-const handleDelete = async (id: string | number) => {
+async function handleDelete(id: string | number) {
   try {
     await ElMessageBox.confirm(
       '确认删除此通知吗？删除后无法恢复。',
@@ -654,7 +630,7 @@ const handleDelete = async (id: string | number) => {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
         type: 'warning',
-      }
+      },
     )
 
     const response = await notificationApi.deleteNotification(id)
@@ -662,10 +638,12 @@ const handleDelete = async (id: string | number) => {
       ElMessage.success(response.msg || '删除成功')
       handleDeleteSuccess(id)
       getStats()
-    } else {
+    }
+    else {
       ElMessage.error(response.msg || '删除失败')
     }
-  } catch (error) {
+  }
+  catch (error) {
     if (error !== 'cancel') {
       console.error('删除通知失败:', error)
       ElMessage.error('删除失败，请重试')
@@ -673,7 +651,7 @@ const handleDelete = async (id: string | number) => {
   }
 }
 
-const handleDeleteSuccess = (id: string | number) => {
+function handleDeleteSuccess(id: string | number) {
   // 从列表中移除已删除的项
   const index = notificationList.value.findIndex(item => item.id === id)
   if (index > -1) {
@@ -684,7 +662,7 @@ const handleDeleteSuccess = (id: string | number) => {
 }
 
 // 格式化日期
-const formatDate = (dateString: string) => {
+function formatDate(dateString: string) {
   const date = new Date(dateString)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
@@ -697,11 +675,14 @@ const formatDate = (dateString: string) => {
       return minutes <= 0 ? '刚刚' : `${minutes}分钟前`
     }
     return `${hours}小时前`
-  } else if (days === 1) {
+  }
+  else if (days === 1) {
     return '昨天'
-  } else if (days < 7) {
+  }
+  else if (days < 7) {
     return `${days}天前`
-  } else {
+  }
+  else {
     return date.toLocaleDateString('zh-CN')
   }
 }
@@ -713,6 +694,56 @@ onMounted(async () => {
   getStats()
 })
 </script>
+
+<template>
+  <div class="content-management-container h-full flex flex-col">
+    <!-- 统计卡片组件 -->
+    <NoticeStatsCard :stats="stats" :loading="loading" @create="handleCreate" />
+
+    <!-- 搜索组件 -->
+    <NoticeSearchForm
+      :query="searchParams.query" :is-public="searchParams.is_public" :loading="loading"
+      @search="handleSearchSubmit" @reset="handleSearchReset"
+    />
+
+    <!-- 通知表格组件 -->
+    <NoticeTable
+      :data="notificationList" :loading="loading" @refresh="refreshData" @edit="handleEdit"
+      @resend="handleResend" @resend-all="handleResendAll" @delete="handleDelete"
+    />
+
+    <!-- 分页组件 -->
+    <NoticePagination
+      :current-page="searchParams.page || 1" :page-size="searchParams.page_size || 10" :total="total"
+      :loading="loading" @size-change="handleSizeChange" @current-change="handleCurrentChange"
+    />
+
+    <!-- 创建/编辑通知对话框组件 -->
+    <NoticeFormDialog
+      v-model:visible="showCreateDialog" :editing-data="editingNotification || null"
+      :is-edit="!!editingNotification" :loading="submitting" :user-options="userOptions"
+      :user-search-loading="userSearchLoading" @submit="handleSubmit"
+      @cancel="() => { showCreateDialog = false; resetForm(); }" @search-users="searchUsers"
+      @load-all-users="loadAllUsers"
+    />
+
+    <!-- 重发通知对话框组件 -->
+    <NoticeResendDialog
+      v-model:visible="showResendDialog" :notice-data="{ id: resendForm.notification_id }"
+      :loading="submitting" :user-options="userOptions" :user-search-loading="userSearchLoading"
+      @submit="handleResendSubmit" @cancel="() => { showResendDialog = false; }" @search-users="searchUsers"
+      @load-all-users="loadAllUsers"
+    />
+
+    <!-- 重发给特定用户对话框组件 -->
+    <NoticeResendDialog
+      v-model:visible="showSendToUserDialog" :notice-data="{ id: sendToUserForm.notification_id }"
+      :loading="submitting" :specific-users-only="true" :user-options="userOptions"
+      :user-search-loading="userSearchLoading" @submit="handleSendToUsersSubmit"
+      @cancel="() => { showSendToUserDialog = false; }" @search-users="searchUsers" @load-all-users="loadAllUsers"
+    />
+  </div>
+</template>
 
 <style scoped>
 .content-management {

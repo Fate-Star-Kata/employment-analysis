@@ -1,4 +1,4 @@
-import type { CaptchaResponse, LoginReq, LoginResNoToken, RegisterRequest, RegisterResponse, UserInfo, UserDetailInfo } from '@/types/apis/auth'
+import type { CaptchaResponse, LoginReq, LoginResNoToken, RegisterRequest, RegisterResponse, UserDetailInfo, UserInfo } from '@/types/apis/auth'
 import serviceAxios from '@/http'
 
 export function getUserInfo(query: UserInfo) {

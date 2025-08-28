@@ -35,16 +35,16 @@
 
 ```vue
 <!-- src/pages/contact.vue -->
+<script setup lang="ts">
+// 页面逻辑
+</script>
+
 <template>
   <div>
     <h1>联系我们</h1>
     <p>这是联系页面</p>
   </div>
 </template>
-
-<script setup lang="ts">
-// 页面逻辑
-</script>
 ```
 
 ### 2. 路由导航
@@ -52,41 +52,45 @@
 使用 `router-link` 或编程式导航：
 
 ```vue
-<template>
-  <!-- 声明式导航 -->
-  <router-link to="/contact">联系我们</router-link>
-  
-  <!-- 编程式导航 -->
-  <button @click="goToContact">前往联系页面</button>
-</template>
-
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const goToContact = () => {
+function goToContact() {
   router.push('/contact')
 }
 </script>
+
+<template>
+  <!-- 声明式导航 -->
+  <router-link to="/contact">
+    联系我们
+  </router-link>
+
+  <!-- 编程式导航 -->
+  <button @click="goToContact">
+    前往联系页面
+  </button>
+</template>
 ```
 
 ### 3. 获取路由参数
 
 ```vue
 <!-- src/pages/user/[id].vue -->
+<script setup lang="ts">
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+</script>
+
 <template>
   <div>
     <h1>用户详情</h1>
     <p>用户ID: {{ route.params.id }}</p>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useRoute } from 'vue-router'
-
-const route = useRoute()
-</script>
 ```
 
 ## 配置说明
@@ -100,7 +104,7 @@ import VueRouter from 'unplugin-vue-router/vite'
 export default defineConfig({
   plugins: [
     VueRouter({
-      routesFolder: 'src/pages',  // 页面文件夹
+      routesFolder: 'src/pages', // 页面文件夹
       dts: './typed-router.d.ts', // 类型定义文件
     }),
     // ... 其他插件

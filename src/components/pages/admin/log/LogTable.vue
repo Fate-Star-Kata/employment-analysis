@@ -1,3 +1,48 @@
+<script setup lang="ts">
+import type { OperationLogItem } from '@/types/factory'
+import { Clock, Delete, Loading, User, View } from '@element-plus/icons-vue'
+
+interface Props {
+  logList: OperationLogItem[]
+  loading?: boolean
+}
+
+interface Emits {
+  selectionChange: [selectedIds: number[]]
+  detail: [id: number]
+  delete: [id: number]
+}
+
+withDefaults(defineProps<Props>(), {
+  loading: false,
+})
+
+const emit = defineEmits<Emits>()
+
+// 格式化日期
+function formatDate(dt?: string) {
+  if (!dt)
+    return '-'
+  return dt.replace('T', ' ')
+}
+
+// 选择变化处理
+function onSelectionChange(rows: OperationLogItem[]) {
+  const selectedIds = rows.map(r => r.id)
+  emit('selectionChange', selectedIds)
+}
+
+// 查看详情处理
+function handleDetail(id: number) {
+  emit('detail', id)
+}
+
+// 删除处理
+function handleDelete(id: number) {
+  emit('delete', id)
+}
+</script>
+
 <template>
   <div class="log-table-container">
     <!-- 加载状态蒙层 -->
@@ -11,8 +56,10 @@
     </div>
 
     <div class="table-container">
-      <el-table :data="logList" border stripe style="width: 100%" :loading="loading"
-        @selection-change="onSelectionChange">
+      <el-table
+        :data="logList" border stripe style="width: 100%" :loading="loading"
+        @selection-change="onSelectionChange"
+      >
         <el-table-column type="selection" width="50" />
         <el-table-column prop="id" label="ID" width="80" align="center" />
         <el-table-column prop="user.username" label="用户" min-width="120">
@@ -27,7 +74,9 @@
         </el-table-column>
         <el-table-column prop="action_type_display" label="类型" width="100" align="center">
           <template #default="{ row }">
-            <el-tag size="small">{{ row.action_type_display }}</el-tag>
+            <el-tag size="small">
+              {{ row.action_type_display }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="module" label="模块" min-width="140" show-overflow-tooltip />
@@ -53,8 +102,10 @@
         <el-table-column label="操作" width="160" fixed="right" align="center">
           <template #default="{ row }">
             <el-button-group>
-              <el-button size="small" :icon="View" @click="handleDetail(row.id)">详情</el-button>
-              <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(row.id)"></el-button>
+              <el-button size="small" :icon="View" @click="handleDetail(row.id)">
+                详情
+              </el-button>
+              <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(row.id)" />
             </el-button-group>
           </template>
         </el-table-column>
@@ -62,50 +113,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { View, Delete, Clock, User, Loading } from '@element-plus/icons-vue'
-import type { OperationLogItem } from '@/types/factory'
-
-interface Props {
-  logList: OperationLogItem[]
-  loading?: boolean
-}
-
-interface Emits {
-  selectionChange: [selectedIds: number[]]
-  detail: [id: number]
-  delete: [id: number]
-}
-
-withDefaults(defineProps<Props>(), {
-  loading: false
-})
-
-const emit = defineEmits<Emits>()
-
-// 格式化日期
-function formatDate(dt?: string) {
-  if (!dt) return '-'
-  return dt.replace('T', ' ')
-}
-
-// 选择变化处理
-function onSelectionChange(rows: OperationLogItem[]) {
-  const selectedIds = rows.map(r => r.id)
-  emit('selectionChange', selectedIds)
-}
-
-// 查看详情处理
-function handleDetail(id: number) {
-  emit('detail', id)
-}
-
-// 删除处理
-function handleDelete(id: number) {
-  emit('delete', id)
-}
-</script>
 
 <style scoped>
 .log-table-container {
@@ -157,4 +164,3 @@ function handleDelete(id: number) {
   gap: 4px;
 }
 </style>
-

@@ -1,92 +1,54 @@
 <script setup lang="ts">
+import type { FormInstance } from 'element-plus'
+import type {
+  PredictionHistoryListRequest,
+  PredictionRecord,
+  PredictionStats,
+  PredictionType,
+} from '@/types/apis/prediction'
+import { Delete, Download, Filter, Refresh, Search, View } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Motion } from 'motion-v'
-import { Refresh, Search, Download, Delete, View, Filter } from '@element-plus/icons-vue'
-import { ref, reactive, computed } from 'vue'
-import { ElMessage, type FormInstance, ElMessageBox } from 'element-plus'
+import { computed, onMounted, reactive, ref } from 'vue'
+import {
+  batchDeletePredictionRecordsAPI,
+  deletePredictionRecordAPI,
+  exportPredictionRecordsAPI,
+  getPredictionHistoryDetailAPI,
+  getPredictionHistoryListAPI,
+} from '@/api/admin/prediction'
 
 const loading = ref(false)
 const searchKeyword = ref('')
 const filterVisible = ref(false)
 const selectedRecords = ref<number[]>([])
+
+// 详情弹窗相关状态
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<any>(null)
 const filterFormRef = ref<FormInstance>()
 
 // 预测统计数据
-const statsData = reactive({
-  totalPredictions: 1248,
-  todayPredictions: 23,
-  successRate: 87.5,
-  avgAccuracy: 92.3,
-  activeModels: 5
+const statsData = ref<PredictionStats>({
+  total_predictions: 0,
+  today_predictions: 0,
+  success_rate: 0,
+  average_accuracy: 0,
+  active_models: 0,
 })
 
 // 筛选表单
 const filterForm = reactive({
+  predictionType: '',
   dateRange: [],
-  status: '',
-  accuracy: '',
-  model: '',
-  userId: ''
 })
 
 // 预测记录列表
-const predictionRecords = ref([
-  {
-    id: 1,
-    userId: 'U001',
-    userName: '张三',
-    predictionType: '就业预测',
-    model: 'RandomForest_v2.1',
-    inputData: '计算机科学与技术专业，GPA: 3.8，实习经验: 2次',
-    result: '高就业概率',
-    accuracy: 94.2,
-    confidence: 0.89,
-    status: 'completed',
-    createdAt: '2024-01-15 14:30:00',
-    duration: 1.2
-  },
-  {
-    id: 2,
-    userId: 'U002',
-    userName: '李四',
-    predictionType: '薪资预测',
-    model: 'XGBoost_v1.8',
-    inputData: '软件工程专业，GPA: 3.6，项目经验: 3个',
-    result: '预期薪资: 8000-12000元',
-    accuracy: 91.7,
-    confidence: 0.85,
-    status: 'completed',
-    createdAt: '2024-01-15 13:45:00',
-    duration: 0.8
-  },
-  {
-    id: 3,
-    userId: 'U003',
-    userName: '王五',
-    predictionType: '行业匹配',
-    model: 'NeuralNetwork_v3.0',
-    inputData: '数据科学专业，GPA: 3.9，技能: Python, R, SQL',
-    result: '互联网行业匹配度: 95%',
-    accuracy: 88.9,
-    confidence: 0.92,
-    status: 'processing',
-    createdAt: '2024-01-15 15:20:00',
-    duration: null
-  },
-  {
-    id: 4,
-    userId: 'U004',
-    userName: '赵六',
-    predictionType: '就业预测',
-    model: 'RandomForest_v2.1',
-    inputData: '机械工程专业，GPA: 3.4，证书: 2个',
-    result: '中等就业概率',
-    accuracy: 86.3,
-    confidence: 0.78,
-    status: 'failed',
-    createdAt: '2024-01-15 12:10:00',
-    duration: 2.1
-  }
-])
+const predictionRecords = ref<PredictionRecord[]>([])
+const total = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(10)
 
 // 动画配置
 const cardVariants = {
@@ -95,9 +57,9 @@ const cardVariants = {
   whileHover: {
     scale: 1.02,
     y: -5,
-    transition: { duration: 0.2, ease: ['easeOut'] }
+    transition: { duration: 0.2, ease: ['easeOut'] },
   },
-  transition: { duration: 0.4, ease: ['easeOut'] }
+  transition: { duration: 0.4, ease: ['easeOut'] },
 }
 
 const statsCardVariants = {
@@ -106,9 +68,9 @@ const statsCardVariants = {
   whileHover: {
     scale: 1.05,
     y: -8,
-    transition: { duration: 0.3, ease: ['easeOut'] }
+    transition: { duration: 0.3, ease: ['easeOut'] },
   },
-  transition: { duration: 0.5, ease: ['easeOut'] }
+  transition: { duration: 0.5, ease: ['easeOut'] },
 }
 
 // 计算属性
@@ -117,58 +79,125 @@ const filteredRecords = computed(() => {
 
   if (searchKeyword.value) {
     records = records.filter(record =>
-      record.userName.includes(searchKeyword.value) ||
-      record.predictionType.includes(searchKeyword.value) ||
-      record.model.includes(searchKeyword.value)
+      record.user_name.includes(searchKeyword.value)
+      || record.prediction_type.includes(searchKeyword.value)
+      || record.model_used.includes(searchKeyword.value),
     )
   }
 
   return records
 })
 
-// 方法
-const refreshData = () => {
-  loading.value = true
-  setTimeout(() => {
+// 获取预测历史列表
+async function fetchPredictionHistory() {
+  try {
+    loading.value = true
+    const params: PredictionHistoryListRequest = {
+      page: currentPage.value,
+      page_size: pageSize.value,
+      type: filterForm.predictionType as PredictionType || undefined,
+      start_date: filterForm.dateRange?.[0] || undefined,
+      end_date: filterForm.dateRange?.[1] || undefined,
+    }
+
+    const response = await getPredictionHistoryListAPI(params)
+    predictionRecords.value = response.data.records || []
+    total.value = response.data.total || 0
+
+    // 计算统计数据
+    const records = response.data.records || []
+    statsData.value = {
+      total_predictions: response.data.total || 0,
+      today_predictions: records.filter((r) => {
+        const today = new Date().toISOString().split('T')[0]
+        return r.created_at.startsWith(today)
+      }).length,
+      success_rate: records.length > 0 ? 100 : 0, // 假设所有记录都是成功的
+      average_accuracy: records.length > 0
+        ? Math.round(records.reduce((sum, r) => sum + (r.confidence_score * 100), 0) / records.length)
+        : 0,
+      active_models: new Set(records.map(r => r.model_used)).size,
+    }
+  }
+  catch (error) {
+    ElMessage.error('获取预测历史失败')
+  }
+  finally {
     loading.value = false
-    ElMessage.success('数据刷新成功')
-  }, 1000)
+  }
 }
 
-const showFilter = () => {
+// 方法
+function refreshData() {
+  fetchPredictionHistory()
+}
+
+function searchData() {
+  currentPage.value = 1
+  fetchPredictionHistory()
+}
+
+function showFilter() {
   filterVisible.value = true
 }
 
-const applyFilter = () => {
-  ElMessage.info('筛选功能开发中')
+function applyFilter() {
+  currentPage.value = 1
+  fetchPredictionHistory()
   filterVisible.value = false
 }
 
-const resetFilter = () => {
-  filterFormRef.value?.resetFields()
+function resetFilter() {
+  filterForm.predictionType = ''
+  filterForm.dateRange = []
+  applyFilter()
 }
 
-const viewDetail = (record: any) => {
-  ElMessage.info(`查看预测详情: ${record.id}`)
+async function viewDetail(record: PredictionRecord) {
+  try {
+    detailLoading.value = true
+    detailVisible.value = true
+    const response = await getPredictionHistoryDetailAPI(record.id)
+    detailData.value = response.data
+  }
+  catch (error) {
+    ElMessage.error('获取预测详情失败')
+    detailVisible.value = false
+  }
+  finally {
+    detailLoading.value = false
+  }
 }
 
-const deleteRecord = (record: any) => {
+function closeDetail() {
+  detailVisible.value = false
+  detailData.value = null
+}
+
+function deleteRecord(record: PredictionRecord) {
   ElMessageBox.confirm(
-    `确定要删除用户 ${record.userName} 的预测记录吗？`,
+    `确定要删除用户 ${record.user_name} 的预测记录吗？`,
     '确认删除',
     {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
+    },
+  ).then(async () => {
+    try {
+      await deletePredictionRecordAPI(record.id)
+      ElMessage.success('删除成功')
+      fetchPredictionHistory()
     }
-  ).then(() => {
-    ElMessage.success('删除成功')
+    catch (error) {
+      ElMessage.error('删除失败')
+    }
   }).catch(() => {
     ElMessage.info('已取消删除')
   })
 }
 
-const batchDelete = () => {
+function batchDelete() {
   if (selectedRecords.value.length === 0) {
     ElMessage.warning('请选择要删除的记录')
     return
@@ -181,20 +210,51 @@ const batchDelete = () => {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
+    },
+  ).then(async () => {
+    try {
+      await batchDeletePredictionRecordsAPI(selectedRecords.value)
+      selectedRecords.value = []
+      ElMessage.success('批量删除成功')
+      fetchPredictionHistory()
     }
-  ).then(() => {
-    selectedRecords.value = []
-    ElMessage.success('批量删除成功')
+    catch (error) {
+      ElMessage.error('批量删除失败')
+    }
   }).catch(() => {
     ElMessage.info('已取消删除')
   })
 }
 
-const exportData = () => {
-  ElMessage.info('数据导出功能开发中')
+async function exportData() {
+  try {
+    const params = {
+      keyword: searchKeyword.value || undefined,
+      start_date: filterForm.dateRange?.[0] || undefined,
+      end_date: filterForm.dateRange?.[1] || undefined,
+    }
+
+    const response = await exportPredictionRecordsAPI(params)
+
+    // 创建下载链接
+    const blob = response
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `prediction_records_${new Date().getTime()}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    ElMessage.success('导出成功')
+  }
+  catch (error) {
+    ElMessage.error('导出失败')
+  }
 }
 
-const getStatusType = (status: string) => {
+function getStatusType(status: string) {
   switch (status) {
     case 'completed': return 'success'
     case 'processing': return 'warning'
@@ -203,7 +263,7 @@ const getStatusType = (status: string) => {
   }
 }
 
-const getStatusText = (status: string) => {
+function getStatusText(status: string) {
   switch (status) {
     case 'completed': return '已完成'
     case 'processing': return '处理中'
@@ -212,25 +272,33 @@ const getStatusText = (status: string) => {
   }
 }
 
-const getAccuracyColor = (accuracy: number) => {
-  if (accuracy >= 90) return 'text-green-600'
-  if (accuracy >= 80) return 'text-blue-600'
-  if (accuracy >= 70) return 'text-yellow-600'
+function getAccuracyColor(accuracy: number) {
+  if (accuracy >= 90)
+    return 'text-green-600'
+  if (accuracy >= 80)
+    return 'text-blue-600'
+  if (accuracy >= 70)
+    return 'text-yellow-600'
   return 'text-red-600'
 }
+
+// 页面加载时获取数据
+onMounted(() => {
+  fetchPredictionHistory()
+})
 </script>
 
 <template>
   <div class="prediction-history">
     <!-- 页面标题 -->
-    <Motion :initial="cardVariants.initial" :animate="cardVariants.animate" :whileHover="cardVariants.whileHover as any"
-      :transition="{ ...cardVariants.transition, delay: 0.1 } as any">
+    <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
+      :while-hover="cardVariants.whileHover as any" :transition="{ ...cardVariants.transition, delay: 0.1 } as any">
       <el-card class="mb-6">
         <template #header>
           <div class="flex items-center justify-between">
             <span class="text-lg font-medium">预测历史管理</span>
             <Motion :initial="{ scale: 0.8, opacity: 0 }" :animate="{ scale: 1, opacity: 1 }"
-              :whileHover="{ scale: 1.05 }" :transition="{ duration: 0.3, delay: 0.3 }">
+              :while-hover="{ scale: 1.05 }" :transition="{ duration: 0.3, delay: 0.3 }">
               <el-button type="primary" :icon="Refresh" :loading="loading" @click="refreshData">
                 刷新数据
               </el-button>
@@ -241,52 +309,72 @@ const getAccuracyColor = (accuracy: number) => {
         <!-- 预测统计概览 -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
           <Motion :initial="statsCardVariants.initial" :animate="statsCardVariants.animate"
-            :whileHover="statsCardVariants.whileHover as any"
+            :while-hover="statsCardVariants.whileHover as any"
             :transition="{ ...statsCardVariants.transition, delay: 0.2 } as any"
             class="bg-blue-50 p-6 rounded-lg cursor-pointer">
             <div class="text-center">
-              <p class="text-blue-600 text-sm font-medium">总预测次数</p>
-              <p class="text-2xl font-bold text-blue-900 mt-2">{{ statsData.totalPredictions.toLocaleString() }}</p>
+              <p class="text-blue-600 text-sm font-medium">
+                总预测次数
+              </p>
+              <p class="text-2xl font-bold text-blue-900 mt-2">
+                {{ statsData.total_predictions.toLocaleString() }}
+              </p>
             </div>
           </Motion>
 
           <Motion :initial="statsCardVariants.initial" :animate="statsCardVariants.animate"
-            :whileHover="statsCardVariants.whileHover as any"
+            :while-hover="statsCardVariants.whileHover as any"
             :transition="{ ...statsCardVariants.transition, delay: 0.3 } as any"
             class="bg-green-50 p-6 rounded-lg cursor-pointer">
             <div class="text-center">
-              <p class="text-green-600 text-sm font-medium">今日预测</p>
-              <p class="text-2xl font-bold text-green-900 mt-2">{{ statsData.todayPredictions }}</p>
+              <p class="text-green-600 text-sm font-medium">
+                今日预测
+              </p>
+              <p class="text-2xl font-bold text-green-900 mt-2">
+                {{ statsData.today_predictions }}
+              </p>
             </div>
           </Motion>
 
           <Motion :initial="statsCardVariants.initial" :animate="statsCardVariants.animate"
-            :whileHover="statsCardVariants.whileHover as any"
+            :while-hover="statsCardVariants.whileHover as any"
             :transition="{ ...statsCardVariants.transition, delay: 0.4 } as any"
             class="bg-purple-50 p-6 rounded-lg cursor-pointer">
             <div class="text-center">
-              <p class="text-purple-600 text-sm font-medium">成功率</p>
-              <p class="text-2xl font-bold text-purple-900 mt-2">{{ statsData.successRate }}%</p>
+              <p class="text-purple-600 text-sm font-medium">
+                成功率
+              </p>
+              <p class="text-2xl font-bold text-purple-900 mt-2">
+                {{ statsData.success_rate }}%
+              </p>
             </div>
           </Motion>
 
           <Motion :initial="statsCardVariants.initial" :animate="statsCardVariants.animate"
-            :whileHover="statsCardVariants.whileHover as any"
+            :while-hover="statsCardVariants.whileHover as any"
             :transition="{ ...statsCardVariants.transition, delay: 0.5 } as any"
             class="bg-yellow-50 p-6 rounded-lg cursor-pointer">
             <div class="text-center">
-              <p class="text-yellow-600 text-sm font-medium">平均准确率</p>
-              <p class="text-2xl font-bold text-yellow-900 mt-2">{{ statsData.avgAccuracy }}%</p>
+              <p class="text-yellow-600 text-sm font-medium">
+                平均准确率
+              </p>
+              <p class="text-2xl font-bold text-yellow-900 mt-2">
+                {{ statsData.average_accuracy }}%
+              </p>
             </div>
           </Motion>
 
           <Motion :initial="statsCardVariants.initial" :animate="statsCardVariants.animate"
-            :whileHover="statsCardVariants.whileHover as any"
+            :while-hover="statsCardVariants.whileHover as any"
             :transition="{ ...statsCardVariants.transition, delay: 0.6 } as any"
             class="bg-indigo-50 p-6 rounded-lg cursor-pointer">
             <div class="text-center">
-              <p class="text-indigo-600 text-sm font-medium">活跃模型</p>
-              <p class="text-2xl font-bold text-indigo-900 mt-2">{{ statsData.activeModels }}</p>
+              <p class="text-indigo-600 text-sm font-medium">
+                活跃模型
+              </p>
+              <p class="text-2xl font-bold text-indigo-900 mt-2">
+                {{ statsData.active_models }}
+              </p>
             </div>
           </Motion>
         </div>
@@ -294,57 +382,64 @@ const getAccuracyColor = (accuracy: number) => {
     </Motion>
 
     <!-- 预测记录管理 -->
-    <Motion :initial="cardVariants.initial" :animate="cardVariants.animate" :whileHover="cardVariants.whileHover as any"
-      :transition="{ ...cardVariants.transition, delay: 0.7 } as any">
+    <Motion :initial="cardVariants.initial" :animate="cardVariants.animate"
+      :while-hover="cardVariants.whileHover as any" :transition="{ ...cardVariants.transition, delay: 0.7 } as any">
       <el-card>
         <template #header>
           <div class="flex items-center justify-between">
             <span class="font-medium">预测记录</span>
             <div class="flex gap-2">
-              <el-input v-model="searchKeyword" placeholder="搜索用户名、预测类型或模型" :prefix-icon="Search" class="w-80"
-                clearable />
-              <el-button :icon="Filter" @click="showFilter">筛选</el-button>
-              <el-button type="success" :icon="Download" @click="exportData">导出</el-button>
-              <el-button type="danger" :icon="Delete" @click="batchDelete" :disabled="selectedRecords.length === 0">
+              <el-input v-model="searchKeyword" placeholder="搜索用户名、预测类型或模型" :prefix-icon="Search" class="w-80" clearable
+                @keyup.enter="searchData" />
+              <el-button type="primary" :icon="Search" @click="searchData">
+                查询
+              </el-button>
+              <el-button :icon="Filter" @click="showFilter">
+                筛选
+              </el-button>
+              <el-button type="success" :icon="Download" @click="exportData">
+                导出
+              </el-button>
+              <el-button type="danger" :icon="Delete" :disabled="selectedRecords.length === 0" @click="batchDelete">
                 批量删除
               </el-button>
             </div>
           </div>
         </template>
 
-        <el-table :data="filteredRecords" stripe
+        <el-table v-loading="loading" :data="filteredRecords" stripe
           @selection-change="(val: any[]) => selectedRecords = val.map(v => v.id)">
           <el-table-column type="selection" width="55" />
           <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="userName" label="用户" width="100" />
-          <el-table-column prop="predictionType" label="预测类型" width="120" />
-          <el-table-column prop="model" label="模型" width="150" />
-          <el-table-column prop="inputData" label="输入数据" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="result" label="预测结果" min-width="180" show-overflow-tooltip />
-          <el-table-column prop="accuracy" label="准确率" width="100">
+          <el-table-column prop="prediction_type" label="预测类型" width="120" />
+          <el-table-column prop="model_used" label="模型" width="150" />
+          <el-table-column label="预测结果" min-width="180" show-overflow-tooltip>
             <template #default="{ row }">
-              <span :class="getAccuracyColor(row.accuracy)" class="font-medium">
-                {{ row.accuracy }}%
+              <div>
+                <div>就业成功率: {{ (row.employment_success_rate * 100).toFixed(1) }}%</div>
+                <div>预测薪资: {{ row.predicted_salary_min }}-{{ row.predicted_salary_max }}</div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="准确率" width="100">
+            <template #default="{ row }">
+              <span :class="getAccuracyColor(row.confidence_score * 100)" class="font-medium">
+                {{ (row.confidence_score * 100).toFixed(1) }}%
               </span>
             </template>
           </el-table-column>
-          <el-table-column prop="confidence" label="置信度" width="100">
+          <el-table-column prop="confidence_score" label="置信度" width="100">
             <template #default="{ row }">
-              {{ (row.confidence * 100).toFixed(1) }}%
+              {{ (row.confidence_score * 100).toFixed(1) }}%
             </template>
           </el-table-column>
-          <el-table-column prop="status" label="状态" width="100">
+          <el-table-column prop="created_at" label="创建时间" width="160" />
+          <el-table-column prop="predicted_job_duration" label="预测工作时长" width="120">
             <template #default="{ row }">
-              <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
+              {{ row.predicted_job_duration ? `${row.predicted_job_duration}个月` : '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" width="160" />
-          <el-table-column prop="duration" label="耗时(s)" width="100">
-            <template #default="{ row }">
-              {{ row.duration || '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="170" fixed="right">
             <template #default="{ row }">
               <el-button size="small" type="primary" :icon="View" @click="viewDetail(row)">
                 详情
@@ -355,52 +450,170 @@ const getAccuracyColor = (accuracy: number) => {
             </template>
           </el-table-column>
         </el-table>
+
+        <!-- 分页 -->
+        <div class="flex justify-center mt-6">
+          <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+            :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="fetchPredictionHistory"
+            @current-change="fetchPredictionHistory" />
+        </div>
       </el-card>
     </Motion>
 
     <!-- 筛选对话框 -->
     <el-dialog v-model="filterVisible" title="筛选条件" width="500px">
       <el-form ref="filterFormRef" :model="filterForm" label-width="100px">
+        <el-form-item label="预测类型" prop="predictionType">
+          <el-select v-model="filterForm.predictionType" placeholder="选择预测类型" class="w-full" clearable>
+            <el-option label="就业成功率" value="employment_rate" />
+            <el-option label="薪资预测" value="salary_prediction" />
+            <el-option label="求职时长" value="job_duration" />
+            <el-option label="综合预测" value="comprehensive" />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="时间范围" prop="dateRange">
-          <el-date-picker v-model="filterForm.dateRange" type="datetimerange" range-separator="至"
-            start-placeholder="开始时间" end-placeholder="结束时间" class="w-full" />
-        </el-form-item>
-
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="filterForm.status" placeholder="选择状态" class="w-full" clearable>
-            <el-option label="已完成" value="completed" />
-            <el-option label="处理中" value="processing" />
-            <el-option label="失败" value="failed" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="准确率" prop="accuracy">
-          <el-select v-model="filterForm.accuracy" placeholder="选择准确率范围" class="w-full" clearable>
-            <el-option label="90% 以上" value="90+" />
-            <el-option label="80% - 90%" value="80-90" />
-            <el-option label="70% - 80%" value="70-80" />
-            <el-option label="70% 以下" value="70-" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="模型" prop="model">
-          <el-select v-model="filterForm.model" placeholder="选择模型" class="w-full" clearable>
-            <el-option label="RandomForest v2.1" value="RandomForest_v2.1" />
-            <el-option label="XGBoost v1.8" value="XGBoost_v1.8" />
-            <el-option label="NeuralNetwork v3.0" value="NeuralNetwork_v3.0" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="filterForm.userId" placeholder="输入用户ID" clearable />
+          <el-date-picker v-model="filterForm.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期"
+            end-placeholder="结束日期" class="w-full" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <div class="flex justify-end gap-2">
-          <el-button @click="resetFilter">重置</el-button>
-          <el-button @click="filterVisible = false">取消</el-button>
-          <el-button type="primary" @click="applyFilter">应用筛选</el-button>
+          <el-button @click="resetFilter">
+            重置
+          </el-button>
+          <el-button @click="filterVisible = false">
+            取消
+          </el-button>
+          <el-button type="primary" @click="applyFilter">
+            应用筛选
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="detailVisible" title="预测详情" width="800px" :close-on-click-modal="true" @close="closeDetail">
+      <div v-loading="detailLoading" class="detail-content">
+        <div v-if="detailData" class="space-y-6">
+          <!-- 基础信息 -->
+          <div class="info-section">
+            <h3 class="section-title">
+              基础信息
+            </h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">预测ID:</span>
+                <span class="value">{{ detailData.id }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">预测类型:</span>
+                <span class="value">{{ detailData.prediction_type }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">模型信息:</span>
+                <span class="value">使用{{ detailData.model_used }}模型(v{{ detailData.model_version }})</span>
+              </div>
+              <div class="info-item">
+                <span class="label">置信度:</span>
+                <span class="value">{{ (detailData.confidence_score * 100).toFixed(1) }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 预测结果详情 -->
+          <div class="info-section">
+            <h3 class="section-title">
+              预测结果详情
+            </h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">预计工作时长:</span>
+                <span class="value">{{ detailData.predicted_job_duration }}个月</span>
+              </div>
+              <div class="info-item">
+                <span class="label">创建时间:</span>
+                <span class="value">{{ detailData.created_at }}</span>
+              </div>
+              <div v-if="detailData.employment_success_rate" class="info-item">
+                <span class="label">就业成功率:</span>
+                <span class="value">{{ (detailData.employment_success_rate * 100).toFixed(1) }}%</span>
+              </div>
+              <div v-if="detailData.predicted_salary_min && detailData.predicted_salary_max" class="info-item">
+                <span class="label">预测薪资范围:</span>
+                <span class="value">{{ detailData.predicted_salary_min }}-{{ detailData.predicted_salary_max }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 输入数据快照 -->
+          <div v-if="detailData.input_data_snapshot" class="info-section">
+            <h3 class="section-title">
+              输入数据快照
+            </h3>
+            <div class="snapshot-content">
+              <!-- 个人资料 -->
+              <div v-if="detailData.input_data_snapshot.profile_data" class="subsection">
+                <h4 class="subsection-title">
+                  个人资料
+                </h4>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="label">专业:</span>
+                    <span class="value">{{ detailData.input_data_snapshot.profile_data.major }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">毕业年份:</span>
+                    <span class="value">{{ detailData.input_data_snapshot.profile_data.graduation_year }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 能力评估 -->
+              <div v-if="detailData.input_data_snapshot.profile_data?.abilities" class="subsection">
+                <h4 class="subsection-title">
+                  能力评估
+                </h4>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="label">技术能力:</span>
+                    <span class="value">{{ detailData.input_data_snapshot.profile_data.abilities.technical }}/10</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">沟通能力:</span>
+                    <span class="value">{{ detailData.input_data_snapshot.profile_data.abilities.communication
+                      }}/10</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 搜索参数 -->
+              <div v-if="detailData.input_data_snapshot.search_params" class="subsection">
+                <h4 class="subsection-title">
+                  搜索参数
+                </h4>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="label">强度:</span>
+                    <span class="value">{{ detailData.input_data_snapshot.search_params.intensity }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">目标行业:</span>
+                    <span class="value">{{ detailData.input_data_snapshot.search_params.target_industry }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end">
+          <el-button @click="closeDetail">
+            关闭
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -450,5 +663,90 @@ const getAccuracyColor = (accuracy: number) => {
 /* 对话框优化 */
 .el-dialog {
   border-radius: 12px;
+}
+
+/* 详情弹窗样式 */
+.detail-content {
+  min-height: 200px;
+}
+
+.info-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.subsection {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 6px;
+  border-left: 4px solid #409eff;
+}
+
+.subsection-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #409eff;
+  margin-bottom: 12px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.info-item .label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 100px;
+  margin-right: 12px;
+}
+
+.info-item .value {
+  color: #303133;
+  font-weight: 400;
+  word-break: break-all;
+}
+
+.snapshot-content {
+  background: white;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-item .label {
+    min-width: auto;
+    margin-right: 0;
+    margin-bottom: 4px;
+  }
 }
 </style>

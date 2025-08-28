@@ -1,8 +1,8 @@
 import type {
+  ApiResponse,
   User,
-  UserQueryParams,
   UserListResponse,
-  ApiResponse
+  UserQueryParams,
 } from '@/types/components/admin'
 import serviceAxios from '@/http'
 
@@ -26,8 +26,8 @@ export function addUserAPI(data: Omit<User, 'id'>): Promise<ApiResponse> {
     data: {
       ...data,
       id: -1,
-      password: '123456'
-    }
+      password: '123456',
+    },
   })
 }
 
@@ -36,7 +36,7 @@ export function editUserAPI(data: User): Promise<ApiResponse> {
   return serviceAxios({
     url: `/hzadmin/admin/user/users/editUser/${data.id}/`,
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -45,7 +45,7 @@ export function userDetailAPI(id: number): Promise<ApiResponse> {
   return serviceAxios({
     url: `/hzadmin/admin/user/users/${id}/`,
     method: 'get',
-    params: { id }
+    params: { id },
   })
 }
 
@@ -54,6 +54,6 @@ export function deleteUserAPI(id: number): Promise<ApiResponse> {
   return serviceAxios({
     url: '/hzadmin/admin/user/users/delete/',
     method: 'post',
-    data: { user_id: id }
+    data: { user_id: id },
   })
 }
