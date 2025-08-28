@@ -34,7 +34,6 @@ declare module 'vue-router/auto-routes' {
     '/admin/userManage/': RouteRecordInfo<'/admin/userManage/', '/admin/userManage', Record<never, never>, Record<never, never>>,
     '/auth/login/': RouteRecordInfo<'/auth/login/', '/auth/login', Record<never, never>, Record<never, never>>,
     '/auth/Register/': RouteRecordInfo<'/auth/Register/', '/auth/Register', Record<never, never>, Record<never, never>>,
-    '/profile/': RouteRecordInfo<'/profile/', '/profile', Record<never, never>, Record<never, never>>,
     '/templates/': RouteRecordInfo<'/templates/', '/templates', Record<never, never>, Record<never, never>>,
     '/templates/analytics': RouteRecordInfo<'/templates/analytics', '/templates/analytics', Record<never, never>, Record<never, never>>,
     '/templates/dashboard': RouteRecordInfo<'/templates/dashboard', '/templates/dashboard', Record<never, never>, Record<never, never>>,
@@ -124,10 +123,6 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/auth/Register/index.vue': {
       routes: '/auth/Register/'
-      views: never
-    }
-    'src/pages/profile/index.vue': {
-      routes: '/profile/'
       views: never
     }
     'src/pages/templates/index.vue': {

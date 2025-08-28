@@ -11,7 +11,7 @@
         <!-- 基本信息标签 -->
         <el-tab-pane label="基本信息" name="basic">
           <BaseInfo ref="baseInfoRef" :user-info="localUserInfo" @update:userInfo="localUserInfo = $event" />
-          
+
           <!-- 基本信息操作按钮 -->
           <div class="action-buttons">
             <el-button type="primary" @click="saveUserInfo" :loading="saving">
@@ -29,7 +29,7 @@
             <div v-if="profileLoading" class="loading-container">
               <el-skeleton :rows="8" animated />
             </div>
-            
+
             <div v-else-if="!profileData && !isEditingProfile" class="empty-profile">
               <el-empty description="暂无学生档案信息">
                 <el-button type="primary" @click="createNewProfile">
@@ -37,15 +37,11 @@
                 </el-button>
               </el-empty>
             </div>
-            
+
             <div v-else>
-              <ProfileForm 
-                ref="profileFormRef" 
-                :profile-data="profileData" 
-                :is-editing="isEditingProfile"
-                @update:profileData="profileData = $event"
-              />
-              
+              <ProfileForm ref="profileFormRef" :profile-data="profileData" :is-editing="isEditingProfile"
+                @update:profileData="profileData = $event" />
+
               <!-- 学生档案操作按钮 -->
               <div class="action-buttons">
                 <template v-if="!isEditingProfile">
@@ -65,20 +61,111 @@
             </div>
           </div>
         </el-tab-pane>
+
+        <!-- 申请记录标签 -->
+        <el-tab-pane label="申请记录" name="applications">
+          <div class="applications-section">
+            <!-- 筛选条件 -->
+            <div class="filter-section">
+              <el-form :model="applicationFilters" inline>
+                <el-form-item label="申请状态">
+                  <el-select v-model="applicationFilters.status" placeholder="全部状态" clearable>
+                    <el-option label="全部" value="" />
+                    <el-option label="待处理" value="pending" />
+                    <el-option label="审核中" value="reviewing" />
+                    <el-option label="面试中" value="interviewed" />
+                    <el-option label="已通过" value="accepted" />
+                    <el-option label="已拒绝" value="rejected" />
+                    <el-option label="已取消" value="cancelled" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="loadApplications">
+                    查询
+                  </el-button>
+                </el-form-item>
+              </el-form>
+            </div>
+
+            <!-- 申请记录列表 -->
+            <div v-if="applicationLoading" class="loading-container">
+              <el-skeleton :rows="5" animated />
+            </div>
+
+            <div v-else-if="applications.length === 0" class="empty-applications">
+              <el-empty description="暂无申请记录" />
+            </div>
+
+            <div v-else class="applications-list">
+              <el-card v-for="application in applications" :key="application.id" class="application-card">
+                <div class="application-header">
+                  <div class="job-info">
+                    <h3 class="job-title">{{ application.position.title }}</h3>
+                    <p class="company-name">{{ application.position.company_name }}</p>
+                  </div>
+                  <div class="application-status">
+                    <el-tag :type="getStatusType(application.status)" size="large">
+                      {{ getStatusText(application.status) }}
+                    </el-tag>
+                  </div>
+                </div>
+
+                <div class="application-details">
+                  <div class="detail-row">
+                    <span class="label">申请时间：</span>
+                    <span class="value">{{ formatDate(application.applied_at) }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">工作地点：</span>
+                    <span class="value">{{ application.position.location }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">薪资范围：</span>
+                    <span class="value">{{ formatSalaryRange(application.position.salary_min,
+                      application.position.salary_max) }}</span>
+                  </div>
+                  <div v-if="application.cover_letter" class="detail-row">
+                    <span class="label">求职信：</span>
+                    <span class="value">{{ application.cover_letter }}</span>
+                  </div>
+                </div>
+
+                <div class="application-actions">
+                  <el-button type="primary" size="small" @click="viewApplicationDetail(application.id)">
+                    查看详情
+                  </el-button>
+                  <el-button v-if="application.status === 'pending'" type="danger" size="small"
+                    @click="cancelApplicationAction(application.id)">
+                    取消申请
+                  </el-button>
+                </div>
+              </el-card>
+            </div>
+
+            <!-- 分页 -->
+            <div v-if="applications.length > 0" class="pagination-container">
+              <el-pagination v-model:current-page="applicationFilters.page"
+                v-model:page-size="applicationFilters.page_size" :total="applicationTotal" :page-sizes="[10, 20, 50]"
+                layout="total, sizes, prev, pager, next, jumper" @size-change="loadApplications"
+                @current-change="loadApplications" />
+            </div>
+          </div>
+        </el-tab-pane>
       </el-tabs>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import router from '@/router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCurrentUserInfo } from '@/api/user/index'
 import { updateUserInfo } from '@/api/user/userinfo'
-import { createProfile, updateProfile, getProfile } from '@/api/user/profile'
+import { createProfile, updateProfile, getProfile, getMyProfileId } from '@/api/user/profile'
+import { getApplicationList, getApplicationDetail, cancelApplication } from '@/api/user/job'
 import type { UpdateUserInfoRequest } from '@/types/apis/userinfo'
-import type { CreateProfileRequest, UpdateProfileRequest, ProfileDetail } from '@/types/apis/APIS_T'
+import type { CreateProfileRequest, UpdateProfileRequest, ProfileDetail, ApplicationListParams, ApplicationRecord } from '@/types/apis/APIS_T'
 import BaseInfo from '@/components/pages/userInfo/BaseInfo.vue'
 import ProfileForm from '@/components/pages/profile/ProfileForm.vue'
 
@@ -98,6 +185,16 @@ const profileSaving = ref(false)
 const profileData = ref<ProfileDetail | null>(null)
 const isEditingProfile = ref(false)
 const originalProfileData = ref<ProfileDetail | null>(null)
+
+// 申请记录相关状态
+const applicationLoading = ref(false)
+const applications = ref<ApplicationRecord[]>([])
+const applicationTotal = ref(0)
+const applicationFilters = ref<ApplicationListParams>({
+  page: 1,
+  page_size: 10,
+  status: ''
+})
 
 // 子组件引用
 const baseInfoRef = ref()
@@ -228,24 +325,29 @@ const resetForm = async () => {
 const fetchProfile = async () => {
   profileLoading.value = true
   try {
-    const response = await getProfile()
-    if (response.code === 200 && response.data) {
-      profileData.value = response.data
-      originalProfileData.value = JSON.parse(JSON.stringify(response.data))
-    } else if (response.code === 404) {
+    // 先获取当前用户的档案ID
+    const idResponse = await getMyProfileId()
+    if (idResponse.code === 200 && idResponse.data?.profile_id) {
+      // 使用档案ID获取档案详情
+      const response = await getProfile(idResponse.data.profile_id)
+      if (response.code === 200 && response.data) {
+        profileData.value = response.data
+        originalProfileData.value = JSON.parse(JSON.stringify(response.data))
+      } else {
+        ElMessage.error('获取学生档案失败')
+      }
+    } else if (idResponse.code === 404) {
       // 档案不存在
       profileData.value = null
     } else {
-      ElMessage.error(response.msg || '获取学生档案失败')
+      ElMessage.error(idResponse.msg || '获取档案ID失败')
     }
   } catch (error) {
     console.error('获取学生档案失败:', error)
     // 如果是404错误，说明档案不存在
-    if (error.response?.status === 404) {
-      profileData.value = null
-    } else {
-      ElMessage.error('获取学生档案失败，请稍后重试')
-    }
+
+    ElMessage.error('获取学生档案失败，请稍后重试')
+
   } finally {
     profileLoading.value = false
   }
@@ -254,33 +356,21 @@ const fetchProfile = async () => {
 // 创建新档案
 const createNewProfile = () => {
   profileData.value = {
-    student_id: '',
-    name: localUserInfo.value?.first_name || '',
-    gender: 'male',
-    birth_date: '',
-    phone: localUserInfo.value?.user_info?.phone || '',
-    email: localUserInfo.value?.email || '',
-    address: '',
-    emergency_contact: '',
-    emergency_phone: '',
-    school: '',
+    id: 0, // 新建档案时临时ID
+    gender: 'male' as 'male' | 'female',
+    hobby: '',
     major: '',
-    grade: '',
-    class_name: '',
-    enrollment_date: '',
-    expected_graduation: '',
-    gpa: 0,
-    ranking: 0,
-    awards: '',
-    internships: '',
-    projects: '',
-    extracurricular: '',
-    skills: '',
-    certifications: '',
-    languages: '',
-    self_assessment: '',
-    career_goals: '',
-    job_preferences: ''
+    graduation_year: '',
+    political_score: 0,
+    major_score: 0,
+    english_score: 0,
+    physical_score: 0,
+    technical_skills: 5,
+    communication_skills: 5,
+    leadership_skills: 5,
+    problem_solving: 5,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
   isEditingProfile.value = true
 }
@@ -323,12 +413,18 @@ const saveProfile = async () => {
     profileSaving.value = true
 
     if (originalProfileData.value) {
-      // 更新现有档案
-      const updateData: UpdateProfileRequest = {
-        ...profileData.value
+      // 更新现有档案 - 先获取档案ID
+      const idResponse = await getMyProfileId()
+      if (idResponse.code === 200 && idResponse.data?.profile_id) {
+        const updateData: UpdateProfileRequest = {
+          ...profileData.value
+        }
+        await updateProfile(idResponse.data.profile_id, updateData)
+        ElMessage.success('档案更新成功')
+      } else {
+        ElMessage.error(idResponse.msg || '获取档案ID失败')
+        return
       }
-      await updateProfile(updateData)
-      ElMessage.success('档案更新成功')
     } else {
       // 创建新档案
       const createData: CreateProfileRequest = {
@@ -348,6 +444,132 @@ const saveProfile = async () => {
     profileSaving.value = false
   }
 }
+
+// 申请记录相关方法
+const loadApplications = async () => {
+  try {
+    applicationLoading.value = true
+    const response = await getApplicationList(applicationFilters.value)
+    if (response.code === 200 && response.data) {
+      applications.value = response.data.applications
+      applicationTotal.value = response.data.total
+    } else {
+      ElMessage.error(response.msg || '获取申请记录失败')
+    }
+  } catch (error) {
+    console.error('获取申请记录失败:', error)
+    ElMessage.error('获取申请记录失败，请稍后重试')
+  } finally {
+    applicationLoading.value = false
+  }
+}
+
+// 查看申请详情
+const viewApplicationDetail = async (applicationId: number) => {
+  try {
+    const response = await getApplicationDetail(applicationId)
+    if (response.code === 200 && response.data) {
+      // 这里可以打开详情弹窗或跳转到详情页面
+      ElMessage.info('查看申请详情功能待实现')
+    } else {
+      ElMessage.error(response.msg || '获取申请详情失败')
+    }
+  } catch (error) {
+    console.error('获取申请详情失败:', error)
+    ElMessage.error('获取申请详情失败，请稍后重试')
+  }
+}
+
+// 取消申请
+const cancelApplicationAction = async (applicationId: number) => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要取消这个申请吗？取消后将无法恢复。',
+      '确认取消',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+
+    const response = await cancelApplication(applicationId)
+    if (response.code === 200) {
+      ElMessage.success('申请已取消')
+      // 重新加载申请记录
+      await loadApplications()
+    } else {
+      ElMessage.error(response.msg || '取消申请失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('取消申请失败:', error)
+      ElMessage.error('取消申请失败，请稍后重试')
+    }
+  }
+}
+
+// 格式化日期
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// 格式化薪资范围
+const formatSalaryRange = (salaryMin: number, salaryMax: number) => {
+  if (!salaryMin && !salaryMax) {
+    return '面议'
+  }
+  if (salaryMin && salaryMax) {
+    return `${salaryMin}-${salaryMax}元`
+  }
+  if (salaryMin) {
+    return `${salaryMin}元起`
+  }
+  if (salaryMax) {
+    return `最高${salaryMax}元`
+  }
+  return '面议'
+}
+
+// 获取状态类型
+const getStatusType = (status: string) => {
+  const statusMap: Record<string, string> = {
+    pending: '',
+    reviewing: 'warning',
+    interviewed: 'primary',
+    accepted: 'success',
+    rejected: 'danger',
+    cancelled: 'info'
+  }
+  return statusMap[status] || ''
+}
+
+// 获取状态文本
+const getStatusText = (status: string) => {
+  const statusMap: Record<string, string> = {
+    pending: '待处理',
+    reviewing: '审核中',
+    interviewed: '面试中',
+    accepted: '已通过',
+    rejected: '已拒绝',
+    cancelled: '已取消'
+  }
+  return statusMap[status] || status
+}
+
+// 监听标签页切换
+watch(activeTab, (newTab) => {
+  if (newTab === 'applications') {
+    loadApplications()
+  }
+})
 
 // 组件挂载时获取用户信息和档案信息
 onMounted(() => {
@@ -431,6 +653,107 @@ onMounted(() => {
   min-width: 100px;
 }
 
+/* 申请记录样式 */
+.applications-section {
+  padding: 32px;
+}
+
+.filter-section {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.filter-section .el-select {
+  min-width: 150px;
+}
+
+.applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.application-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.application-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.application-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.job-info {
+  flex: 1;
+}
+
+.job-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.company-name {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.application-status {
+  flex-shrink: 0;
+}
+
+.application-details {
+  margin-bottom: 16px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.detail-row .label {
+  font-weight: 500;
+  color: #374151;
+  min-width: 80px;
+}
+
+.detail-row .value {
+  color: #6b7280;
+  flex: 1;
+}
+
+.application-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.pagination-container {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.empty-applications {
+  padding: 60px 0;
+  text-align: center;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .user-info-page {
@@ -456,6 +779,27 @@ onMounted(() => {
   }
 
   .action-buttons .el-button {
+    width: 100%;
+  }
+
+  .applications-section {
+    padding: 20px;
+  }
+
+  .filter-section {
+    padding: 16px;
+  }
+
+  .application-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .application-actions {
+    flex-direction: column;
+  }
+
+  .application-actions .el-button {
     width: 100%;
   }
 }

@@ -68,50 +68,27 @@
                 <label class="label">
                   <span class="label-text font-medium">预测类型</span>
                 </label>
-                <select v-model="filters.type" class="select select-bordered">
-                  <option value="all">全部类型</option>
-                  <option value="salary">薪资预测</option>
-                  <option value="job-search">求职时长</option>
-                  <option value="career">职业发展</option>
-                  <option value="skill">技能评估</option>
+                <select v-model="filters.prediction_type" class="select select-bordered">
+                  <option value="">全部类型</option>
+                  <option value="employment_rate">就业率预测</option>
+                  <option value="salary_prediction">薪资预测</option>
+                  <option value="job_duration">求职时长预测</option>
+                  <option value="comprehensive">综合预测</option>
                 </select>
               </div>
               
               <div class="form-control">
                 <label class="label">
-                  <span class="label-text font-medium">预测状态</span>
+                  <span class="label-text font-medium">开始日期</span>
                 </label>
-                <select v-model="filters.status" class="select select-bordered">
-                  <option value="all">全部状态</option>
-                  <option value="pending">待验证</option>
-                  <option value="verified">已验证</option>
-                  <option value="expired">已过期</option>
-                </select>
+                <input v-model="filters.start_date" type="date" class="input input-bordered" />
               </div>
               
               <div class="form-control">
                 <label class="label">
-                  <span class="label-text font-medium">时间范围</span>
+                  <span class="label-text font-medium">结束日期</span>
                 </label>
-                <select v-model="filters.timeRange" class="select select-bordered">
-                  <option value="all">全部时间</option>
-                  <option value="week">最近一周</option>
-                  <option value="month">最近一月</option>
-                  <option value="quarter">最近三月</option>
-                  <option value="year">最近一年</option>
-                </select>
-              </div>
-              
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">准确率范围</span>
-                </label>
-                <select v-model="filters.accuracy" class="select select-bordered">
-                  <option value="all">全部范围</option>
-                  <option value="high">高准确率(>80%)</option>
-                  <option value="medium">中等准确率(60-80%)</option>
-                  <option value="low">低准确率(<60%)</option>
-                </select>
+                <input v-model="filters.end_date" type="date" class="input input-bordered" />
               </div>
             </div>
             
@@ -135,90 +112,68 @@
                   <tr>
                     <th>预测时间</th>
                     <th>预测类型</th>
-                    <th>预测内容</th>
                     <th>预测结果</th>
-                    <th>实际结果</th>
-                    <th>准确率</th>
-                    <th>状态</th>
+                    <th>置信度</th>
+                    <th>使用模型</th>
                     <th>操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="record in filteredRecords" :key="record.id">
+                  <tr v-for="record in predictionRecords" :key="record.id" v-show="!loading">
                     <td>
                       <div class="text-sm">
-                        <div class="font-medium">{{ record.date }}</div>
-                        <div class="opacity-60">{{ record.time }}</div>
+                        <div class="font-medium">{{ formatPredictionTime(record.created_at).date }}</div>
+                        <div class="opacity-60">{{ formatPredictionTime(record.created_at).time }}</div>
                       </div>
                     </td>
                     <td>
                       <div :class="[
                         'badge',
-                        record.type === 'salary' ? 'badge-success' :
-                        record.type === 'job-search' ? 'badge-info' :
-                        record.type === 'career' ? 'badge-warning' : 'badge-secondary'
+                        record.prediction_type === 'salary_prediction' ? 'badge-success' :
+                        record.prediction_type === 'employment_rate' ? 'badge-info' :
+                        record.prediction_type === 'job_duration' ? 'badge-warning' : 'badge-secondary'
                       ]">
-                        {{ getTypeLabel(record.type) }}
+                        {{ getTypeLabel(record.prediction_type) }}
                       </div>
                     </td>
                     <td>
-                      <div class="text-sm max-w-xs">
-                        <div class="font-medium">{{ record.title }}</div>
-                        <div class="opacity-60 truncate">{{ record.description }}</div>
-                      </div>
-                    </td>
-                    <td>
-                      <div class="text-sm font-medium">{{ record.predictedResult }}</div>
+                      <div class="text-sm font-medium">{{ getPredictionResultText(record) }}</div>
                     </td>
                     <td>
                       <div class="text-sm">
-                        <span v-if="record.actualResult" class="font-medium">{{ record.actualResult }}</span>
-                        <span v-else class="opacity-60">待验证</span>
+                        <span v-if="record.confidence_score" class="font-medium">{{ Math.round(record.confidence_score * 100) }}%</span>
+                        <span v-else class="opacity-60">-</span>
                       </div>
                     </td>
                     <td>
-                      <div v-if="record.accuracy !== null" class="flex items-center gap-2">
-                        <div :class="[
-                          'radial-progress text-xs',
-                          record.accuracy >= 80 ? 'text-success' :
-                          record.accuracy >= 60 ? 'text-warning' : 'text-error'
-                        ]" :style="`--value:${record.accuracy}`">
-                          {{ record.accuracy }}%
-                        </div>
-                      </div>
-                      <div v-else class="text-sm opacity-60">-</div>
-                    </td>
-                    <td>
-                      <div :class="[
-                        'badge badge-sm',
-                        record.status === 'verified' ? 'badge-success' :
-                        record.status === 'pending' ? 'badge-warning' : 'badge-error'
-                      ]">
-                        {{ getStatusLabel(record.status) }}
+                      <div class="text-sm">
+                        <span class="opacity-60">{{ record.model_used || '-' }}</span>
                       </div>
                     </td>
+
                     <td>
                       <div class="flex gap-1">
                         <button 
                           class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs border border-gray-300 transition-colors" 
-                          @click="viewDetails(record.id)"
+                          @click="viewDetail(record)"
                         >
                           详情
                         </button>
-                        <button 
-                          v-if="record.status === 'pending'" 
-                          class="px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded text-xs border border-green-300 transition-colors" 
-                          @click="verifyResult(record.id)"
-                        >
-                          验证
-                        </button>
-                        <button 
-                          class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs border border-gray-300 transition-colors" 
-                          @click="compareResult(record.id)"
-                        >
-                          对比
-                        </button>
+
+
                       </div>
+                    </td>
+                  </tr>
+                  <tr v-if="loading">
+                    <td colspan="6" class="text-center py-8">
+                      <div class="loading loading-spinner loading-md"></div>
+                      <div class="mt-2 text-sm opacity-60">加载中...</div>
+                    </td>
+                  </tr>
+                  <tr v-else-if="predictionRecords.length === 0">
+                    <td colspan="6" class="text-center py-8">
+                      <div class="text-4xl mb-2">📊</div>
+                      <div class="text-sm opacity-60">暂无预测记录</div>
                     </td>
                   </tr>
                 </tbody>
@@ -226,25 +181,29 @@
             </div>
             
             <!-- 分页 -->
-            <div class="flex justify-center mt-6">
+            <div class="flex justify-center mt-6" v-if="totalPages > 1">
               <div class="flex gap-1">
                 <button 
                   class="px-3 py-2 rounded-lg border border-gray-300 transition-colors" 
                   :class="currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50 text-gray-700'"
-                  @click="currentPage--"
+                  @click="handlePageChange(currentPage - 1)"
                   :disabled="currentPage === 1"
                 >
                   上一页
                 </button>
-                <button 
-                  class="px-3 py-2 rounded-lg border border-gray-300 transition-colors bg-gray-900 text-white"
+                <span 
+                  v-for="page in visiblePages" 
+                  :key="page" 
+                  class="px-3 py-2 rounded-lg border border-gray-300 transition-colors cursor-pointer" 
+                  :class="currentPage === page ? 'bg-blue-500 text-white border-blue-500' : 'bg-white hover:bg-gray-50 text-gray-700'"
+                  @click="handlePageChange(page)"
                 >
-                  {{ currentPage }}
-                </button>
+                  {{ page }}
+                </span>
                 <button 
                   class="px-3 py-2 rounded-lg border border-gray-300 transition-colors" 
                   :class="currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50 text-gray-700'"
-                  @click="currentPage++"
+                  @click="handlePageChange(currentPage + 1)"
                   :disabled="currentPage === totalPages"
                 >
                   下一页
@@ -263,12 +222,27 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
                 <h3 class="text-lg font-semibold mb-4">月度准确率趋势</h3>
-                <div class="h-64 bg-base-100 rounded-lg p-4 flex items-center justify-center">
-                  <!-- 这里可以集成图表库如Chart.js或ECharts -->
-                  <div class="text-center opacity-60">
-                    <div class="text-4xl mb-2">📊</div>
-                    <p>准确率趋势图</p>
-                    <p class="text-sm">(可集成图表库显示)</p>
+                <div class="h-64 bg-base-100 rounded-lg p-4">
+                  <div v-if="monthlyAccuracyTrend.length > 0" class="space-y-2">
+                    <div v-for="monthData in monthlyAccuracyTrend" :key="monthData.month" class="flex items-center justify-between">
+                      <span class="text-sm font-medium">{{ monthData.month }}</span>
+                      <div class="flex items-center gap-2 flex-1 mx-4">
+                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                          <div 
+                            class="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                            :style="{ width: monthData.accuracy + '%' }"
+                          ></div>
+                        </div>
+                        <span class="text-sm font-medium min-w-[40px]">{{ monthData.accuracy }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="flex items-center justify-center h-full text-center opacity-60">
+                    <div>
+                      <div class="text-4xl mb-2">📊</div>
+                      <p>暂无足够数据</p>
+                      <p class="text-sm">需要更多历史记录来显示趋势</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -355,33 +329,29 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="text-sm font-medium opacity-70">预测时间</label>
-              <p>{{ selectedRecord.date }} {{ selectedRecord.time }}</p>
+              <p>{{ formatPredictionTime(selectedRecord.created_at).date }} {{ formatPredictionTime(selectedRecord.created_at).time }}</p>
             </div>
             <div>
               <label class="text-sm font-medium opacity-70">预测类型</label>
-              <p>{{ getTypeLabel(selectedRecord.type) }}</p>
+              <p>{{ getTypeLabel(selectedRecord.prediction_type) }}</p>
             </div>
           </div>
           
           <div>
-            <label class="text-sm font-medium opacity-70">预测内容</label>
-            <p>{{ selectedRecord.description }}</p>
+            <label class="text-sm font-medium opacity-70">预测结果</label>
+            <p>{{ getPredictionResultText(selectedRecord) }}</p>
           </div>
           
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-sm font-medium opacity-70">预测结果</label>
-              <p>{{ selectedRecord.predictedResult }}</p>
+              <label class="text-sm font-medium opacity-70">置信度</label>
+              <p v-if="selectedRecord.confidence_score !== undefined">{{ Math.round(selectedRecord.confidence_score * 100) }}%</p>
+              <p v-else class="opacity-60">-</p>
             </div>
             <div>
-              <label class="text-sm font-medium opacity-70">实际结果</label>
-              <p>{{ selectedRecord.actualResult || '待验证' }}</p>
+              <label class="text-sm font-medium opacity-70">使用模型</label>
+              <p>{{ selectedRecord.model_used || '-' }}</p>
             </div>
-          </div>
-          
-          <div v-if="selectedRecord.accuracy !== null">
-            <label class="text-sm font-medium opacity-70">准确率</label>
-            <p>{{ selectedRecord.accuracy }}%</p>
           </div>
         </div>
         
@@ -396,28 +366,19 @@
 <script setup lang="ts">
 import { h, defineComponent, onMounted, onBeforeUnmount, ref, computed } from "vue";
 import { Motion } from "motion-v";
+import { ElMessage } from "element-plus";
+import { getPredictionHistory, getPredictionHistoryDetail, getAllPredictionHistory } from '@/api/user/prediction';
+import type { PredictionHistoryRecord, PredictionHistoryParams } from "@/types/apis/APIS_T";
 
 const footerText = import.meta.env.VITE_APP_FOOTER || "版权所有 © 2025 HZSYSTEM";
 
 // 类型定义
-interface PredictionRecord {
-  id: number;
-  date: string;
-  time: string;
-  type: 'salary' | 'job-search' | 'career' | 'skill';
-  title: string;
-  description: string;
-  predictedResult: string;
-  actualResult: string | null;
-  accuracy: number | null;
-  status: 'verified' | 'pending' | 'expired';
-}
-
 interface Filters {
-  type: string;
-  status: string;
-  timeRange: string;
-  accuracy: string;
+  prediction_type?: 'employment_rate' | 'salary_prediction' | 'job_duration' | 'comprehensive';
+  start_date?: string;
+  end_date?: string;
+  page?: number;
+  page_size?: number;
 }
 
 interface TypeStats {
@@ -478,159 +439,309 @@ const RevealMotion = defineComponent<RevealProps>({
   },
 });
 
-// 数据定义
-const statistics = {
-  totalPredictions: 24,
-  averageAccuracy: 78,
-  successfulPredictions: 18,
-  lastPredictionDays: 3
-};
+// 响应式数据
+const loading = ref(false);
+const predictionRecords = ref<PredictionHistoryRecord[]>([]);
+const allPredictionRecords = ref<PredictionHistoryRecord[]>([]); // 用于统计的全部记录
+const total = ref(0);
+const currentPage = ref(1);
+const pageSize = ref(10);
 
 const filters = ref<Filters>({
-  type: 'all',
-  status: 'all',
-  timeRange: 'all',
-  accuracy: 'all'
+  prediction_type: undefined,
+  start_date: undefined,
+  end_date: undefined,
+  page: 1,
+  page_size: 10
 });
 
-const currentPage = ref(1);
-const totalPages = ref(3);
+// 统计数据
+const statistics = computed(() => {
+  const totalPredictions = allPredictionRecords.value.length;
+  const recordsWithConfidence = allPredictionRecords.value.filter(record => record.confidence_score !== undefined && record.confidence_score !== null);
+  
+  // 计算平均置信度作为准确率
+  const averageAccuracy = recordsWithConfidence.length > 0 
+    ? Math.round(recordsWithConfidence.reduce((sum, record) => sum + (record.confidence_score || 0), 0) / recordsWithConfidence.length * 100)
+    : 0;
+  
+  // 计算成功预测数量（置信度大于70%的记录）
+  const successfulPredictions = recordsWithConfidence.filter(record => (record.confidence_score || 0) > 0.7).length;
+  
+  // 计算最近预测天数
+  const lastPredictionDays = totalPredictions > 0 && allPredictionRecords.value[0]?.created_at
+    ? Math.ceil((Date.now() - new Date(allPredictionRecords.value[0].created_at).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  
+  return {
+    totalPredictions,
+    averageAccuracy,
+    successfulPredictions,
+    lastPredictionDays
+  };
+});
 
-const predictionRecords: PredictionRecord[] = [
-  {
-    id: 1,
-    date: '2024-01-15',
-    time: '14:30',
-    type: 'salary',
-    title: '前端开发薪资预测',
-    description: '基于当前技能水平预测在杭州地区的薪资范围',
-    predictedResult: '¥8,000-12,000',
-    actualResult: '¥9,500',
-    accuracy: 85,
-    status: 'verified'
-  },
-  {
-    id: 2,
-    date: '2024-01-10',
-    time: '09:15',
-    type: 'job-search',
-    title: '求职时长预测',
-    description: '预测找到合适工作所需的时间',
-    predictedResult: '2-3个月',
-    actualResult: '2.5个月',
-    accuracy: 92,
-    status: 'verified'
-  },
-  {
-    id: 3,
-    date: '2024-01-08',
-    time: '16:45',
-    type: 'career',
-    title: '职业发展路径预测',
-    description: '预测未来3年的职业发展方向',
-    predictedResult: '高级前端工程师',
-    actualResult: null,
-    accuracy: null,
-    status: 'pending'
-  },
-  {
-    id: 4,
-    date: '2024-01-05',
-    time: '11:20',
-    type: 'skill',
-    title: '技能提升建议',
-    description: '基于市场需求预测需要提升的技能',
-    predictedResult: 'React高级特性',
-    actualResult: '已学习完成',
-    accuracy: 88,
-    status: 'verified'
-  },
-  {
-    id: 5,
-    date: '2024-01-03',
-    time: '13:10',
-    type: 'salary',
-    title: '薪资增长预测',
-    description: '预测技能提升后的薪资增长幅度',
-    predictedResult: '+15%',
-    actualResult: null,
-    accuracy: null,
-    status: 'pending'
+const totalPages = computed(() => Math.ceil(total.value / pageSize.value));
+
+// 可见页码数组
+const visiblePages = computed(() => {
+  const pages: number[] = [];
+  const maxVisible = 5;
+  const half = Math.floor(maxVisible / 2);
+  
+  let start = Math.max(1, currentPage.value - half);
+  let end = Math.min(totalPages.value, start + maxVisible - 1);
+  
+  // 如果结束页码不足，调整开始页码
+  if (end - start + 1 < maxVisible) {
+    start = Math.max(1, end - maxVisible + 1);
   }
-];
-
-const predictionTypeStats: TypeStats[] = [
-  { type: 'salary', label: '薪资预测', count: 8, percentage: 33 },
-  { type: 'job-search', label: '求职时长', count: 6, percentage: 25 },
-  { type: 'career', label: '职业发展', count: 5, percentage: 21 },
-  { type: 'skill', label: '技能评估', count: 5, percentage: 21 }
-];
-
-const filteredRecords = computed(() => {
-  // 这里可以根据filters进行筛选
-  return predictionRecords;
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  
+  return pages;
 });
 
-const selectedRecord = ref<PredictionRecord | null>(null);
+// API调用函数
+const fetchPredictionHistory = async () => {
+  try {
+    loading.value = true;
+    const params: PredictionHistoryParams = {
+      ...filters.value,
+      page: currentPage.value,
+      page_size: pageSize.value
+    };
+    
+    const response = await getPredictionHistory(params);
+    if (response.code === 200) {
+      predictionRecords.value = response.data.records || [];
+      total.value = response.data.total || 0;
+    } else {
+      ElMessage.error(response.msg || '获取预测历史失败');
+    }
+  } catch (error) {
+    console.error('获取预测历史失败:', error);
+    ElMessage.error('获取预测历史失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 获取全部预测历史记录（用于统计）
+const fetchAllPredictionHistory = async () => {
+  try {
+    const response = await getAllPredictionHistory();
+    if (response.code === 200) {
+      allPredictionRecords.value = response.data.records || [];
+    } else {
+      console.error('获取全部预测历史失败:', response.msg);
+    }
+  } catch (error) {
+    console.error('获取全部预测历史失败:', error);
+  }
+};
+
+// 预测类型统计
+const predictionTypeStats = computed(() => {
+  const typeMap = new Map<string, { label: string; count: number }>();
+  
+  allPredictionRecords.value.forEach(record => {
+    const type = record.prediction_type;
+    const label = getTypeLabel(type);
+    if (typeMap.has(type)) {
+      typeMap.get(type)!.count++;
+    } else {
+      typeMap.set(type, { label, count: 1 });
+    }
+  });
+  
+  const total = allPredictionRecords.value.length;
+  return Array.from(typeMap.entries()).map(([type, { label, count }]) => ({
+    type,
+    label,
+    count,
+    percentage: total > 0 ? Math.round((count / total) * 100) : 0
+  }));
+});
+
+// 月度准确率趋势
+const monthlyAccuracyTrend = computed(() => {
+  const monthlyData = new Map<string, { total: number; confidenceSum: number }>();
+  
+  allPredictionRecords.value.forEach(record => {
+    if (record.confidence_score !== undefined && record.confidence_score !== null) {
+      const date = new Date(record.created_at);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (monthlyData.has(monthKey)) {
+        const data = monthlyData.get(monthKey)!;
+        data.total++;
+        data.confidenceSum += record.confidence_score;
+      } else {
+        monthlyData.set(monthKey, {
+          total: 1,
+          confidenceSum: record.confidence_score
+        });
+      }
+    }
+  });
+  
+  return Array.from(monthlyData.entries())
+    .map(([month, data]) => ({
+      month: month,
+      accuracy: Math.round((data.confidenceSum / data.total) * 100)
+    }))
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .slice(-6); // 只显示最近6个月
+});
+
+const selectedRecord = ref<PredictionHistoryRecord | null>(null);
 const detailModal = ref<HTMLDialogElement | null>(null);
 
 const getTypeLabel = (type: string): string => {
   const labels: Record<string, string> = {
-    salary: '薪资预测',
-    'job-search': '求职时长',
-    career: '职业发展',
-    skill: '技能评估'
+    employment_rate: '就业率预测',
+    salary_prediction: '薪资预测',
+    job_duration: '求职时长预测',
+    comprehensive: '综合预测'
   };
   return labels[type] || type;
 };
 
-const getStatusLabel = (status: string): string => {
-  const labels: Record<string, string> = {
-    verified: '已验证',
-    pending: '待验证',
-    expired: '已过期'
+// 格式化预测时间
+const formatPredictionTime = (timeStr: string) => {
+  const date = new Date(timeStr);
+  return {
+    date: date.toLocaleDateString('zh-CN'),
+    time: date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   };
-  return labels[status] || status;
 };
 
+// 获取预测结果文本
+const getPredictionResultText = (record: PredictionHistoryRecord): string => {
+  switch (record.prediction_type) {
+    case 'employment_rate':
+      return `就业成功率: ${record.employment_success_rate || 0}%`;
+    case 'salary_prediction':
+      if (record.predicted_salary_min && record.predicted_salary_max) {
+        return `薪资范围: ${record.predicted_salary_min}-${record.predicted_salary_max}元 (平均: ${record.predicted_salary_avg || 0}元)`;
+      }
+      return `平均薪资: ${record.predicted_salary_avg || 0}元`;
+    case 'job_duration':
+      return `预计求职时长: ${record.predicted_job_duration || 0}个月`;
+    case 'comprehensive':
+      const parts = [];
+      if (record.employment_success_rate) parts.push(`就业率: ${record.employment_success_rate}%`);
+      if (record.predicted_salary_avg) parts.push(`平均薪资: ${record.predicted_salary_avg}元`);
+      if (record.predicted_job_duration) parts.push(`求职时长: ${record.predicted_job_duration}个月`);
+      return parts.length > 0 ? parts.join(', ') : '综合预测结果';
+    default:
+      return '预测结果';
+  }
+};
+
+// 应用筛选条件
 const applyFilters = () => {
-  console.log('应用筛选条件:', filters.value);
-  // 这里可以调用API应用筛选条件
+  currentPage.value = 1;
+  filters.value.page = 1;
+  fetchPredictionHistory();
 };
 
-const resetFilters = () => {
-  filters.value = {
-    type: 'all',
-    status: 'all',
-    timeRange: 'all',
-    accuracy: 'all'
-  };
+// 查看详情
+const viewDetail = async (record: PredictionHistoryRecord) => {
+  try {
+    const response = await getPredictionHistoryDetail(record.id);
+    if (response.code === 200) {
+      selectedRecord.value = response.data;
+      (detailModal.value as HTMLDialogElement)?.showModal();
+    } else {
+      ElMessage.error(response.msg || '获取详情失败');
+    }
+  } catch (error) {
+    console.error('获取详情失败:', error);
+    ElMessage.error('获取详情失败');
+  }
 };
 
-const exportData = () => {
-  console.log('导出数据');
-  // 这里可以实现数据导出功能
-};
-
-const viewDetails = (recordId: number) => {
-  selectedRecord.value = predictionRecords.find(r => r.id === recordId) || null;
-  detailModal.value?.showModal();
-};
-
+// 关闭详情模态框
 const closeDetailModal = () => {
   detailModal.value?.close();
   selectedRecord.value = null;
 };
+
+// 页码变化
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+  filters.value.page = page;
+  fetchPredictionHistory();
+};
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchPredictionHistory();
+  fetchAllPredictionHistory(); // 获取全部记录用于统计
+});
+
+const resetFilters = () => {
+  filters.value = {
+    prediction_type: undefined,
+    start_date: undefined,
+    end_date: undefined,
+    page: 1,
+    page_size: 10
+  };
+  currentPage.value = 1;
+  fetchPredictionHistory();
+};
+
+const exportData = () => {
+  try {
+    const csvContent = generateCSV(predictionRecords.value);
+    downloadCSV(csvContent, 'prediction_history.csv');
+    ElMessage.success('数据导出成功');
+  } catch (error) {
+    console.error('导出数据失败:', error);
+    ElMessage.error('导出数据失败');
+  }
+};
+
+// 生成CSV内容
+ const generateCSV = (records: PredictionHistoryRecord[]) => {
+   const headers = ['预测时间', '预测类型', '预测结果', '置信度', '使用模型'];
+   const rows = records.map(record => [
+     formatPredictionTime(record.created_at),
+     getTypeLabel(record.prediction_type),
+     getPredictionResultText(record),
+     record.confidence_score ? Math.round(record.confidence_score * 100) + '%' : '-',
+     record.model_used || '-'
+   ]);
+   
+   return [headers, ...rows].map(row => row.join(',')).join('\n');
+ };
+
+// 下载CSV文件
+const downloadCSV = (content: string, filename: string) => {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+
 
 const verifyResult = (recordId: number) => {
   console.log('验证结果:', recordId);
   // 这里可以打开验证结果的表单
 };
 
-const compareResult = (recordId: number) => {
-  console.log('对比结果:', recordId);
-  // 这里可以打开结果对比页面
-};
+
 </script>
 
 <style scoped>

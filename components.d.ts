@@ -107,6 +107,7 @@ declare module 'vue' {
     NotificationBell: typeof import('./src/components/layout/btns/NotificationBell.vue')['default']
     NotificationItem: typeof import('./src/components/pages/admin/Content/NotificationItem.vue')['default']
     PersonalDetails: typeof import('./src/components/pages/userInfo/PersonalDetails.vue')['default']
+    PredictionParamsModal: typeof import('./src/components/PredictionParamsModal.vue')['default']
     ProcessMonitor: typeof import('./src/components/pages/admin/dashboard/ProcessMonitor.vue')['default']
     ProfileForm: typeof import('./src/components/pages/profile/ProfileForm.vue')['default']
     RequestLoading: typeof import('./src/components/common/RequestLoading.vue')['default']

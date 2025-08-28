@@ -13,12 +13,43 @@
             基于大数据分析，为您预测职业发展前景和薪资水平
           </p>
         </RevealMotion>
+        <RevealMotion :delay="0.2">
+          <div class="mt-8">
+            <button 
+              @click="showParamsModal = true"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              开始预测分析
+            </button>
+          </div>
+        </RevealMotion>
       </div>
     </div>
 
     <div class="container mx-auto px-4 py-8 space-y-8">
+      <!-- 加载状态 -->
+      <div v-if="loading" class="flex justify-center items-center py-12">
+        <div class="loading loading-spinner loading-lg"></div>
+        <span class="ml-3 text-lg">正在分析您的就业前景...</span>
+      </div>
+
+      <!-- 未开始预测提示 -->
+      <div v-else-if="!userParams" class="flex flex-col items-center justify-center py-16">
+        <div class="text-6xl mb-6">🔮</div>
+        <h2 class="text-2xl font-medium text-gray-700 mb-4">开始您的就业预测分析</h2>
+        <p class="text-gray-500 mb-8 text-center max-w-md">
+          点击上方"开始预测分析"按钮，输入您的求职意向，我们将为您提供专业的就业前景分析
+        </p>
+        <button 
+          @click="showParamsModal = true"
+          class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          立即开始预测
+        </button>
+      </div>
+
       <!-- 预测概览 -->
-      <RevealMotion :delay="0.2">
+      <RevealMotion :delay="0.2" v-else>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="card bg-white border border-gray-200 text-gray-800 shadow-sm hover:shadow-md transition-shadow">
             <div class="card-body text-center">
@@ -41,179 +72,96 @@
           <div class="card bg-white border border-gray-200 text-gray-800 shadow-sm hover:shadow-md transition-shadow">
             <div class="card-body text-center">
               <div class="text-3xl mb-2 text-gray-600">📈</div>
-              <h3 class="text-lg font-medium mb-2 text-gray-700">职业发展指数</h3>
-              <div class="text-2xl font-semibold text-gray-900">{{ careerIndex.score }}/100</div>
-              <div class="text-sm text-gray-500">{{ careerIndex.level }}</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-700">就业成功率</h3>
+              <div class="text-2xl font-semibold text-gray-900">{{ employmentSuccessRate.rate }}%</div>
+              <div class="text-sm text-gray-500">{{ employmentSuccessRate.level }}</div>
             </div>
           </div>
           
           <div class="card bg-white border border-gray-200 text-gray-800 shadow-sm hover:shadow-md transition-shadow">
             <div class="card-body text-center">
               <div class="text-3xl mb-2 text-gray-600">🎯</div>
-              <h3 class="text-lg font-medium mb-2 text-gray-700">匹配职位数</h3>
-              <div class="text-2xl font-semibold text-gray-900">{{ matchingJobs.count }}</div>
-              <div class="text-sm text-gray-500">当前市场可选职位</div>
+              <h3 class="text-lg font-medium mb-2 text-gray-700">综合评分</h3>
+              <div class="text-2xl font-semibold text-gray-900">{{ overallScore.score }}/100</div>
+              <div class="text-sm text-gray-500">{{ overallScore.description }}</div>
             </div>
           </div>
         </div>
       </RevealMotion>
 
-      <!-- 技能评估雷达图 -->
-      <RevealMotion :delay="0.3">
-        <div class="card bg-white border border-gray-200 shadow-sm">
-          <div class="card-body p-6">
-            <h2 class="text-xl font-medium mb-6 text-gray-800">🎯 技能评估雷达图</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div class="flex justify-center">
-                <div class="relative w-80 h-80">
-                  <!-- 雷达图背景 -->
-                  <svg class="w-full h-full" viewBox="0 0 200 200">
-                    <!-- 背景网格 -->
-                    <g stroke="#e5e7eb" stroke-width="1" fill="none">
-                      <polygon points="100,20 173.2,65 173.2,135 100,180 26.8,135 26.8,65" opacity="0.3"/>
-                      <polygon points="100,40 146.4,78 146.4,122 100,160 53.6,122 53.6,78" opacity="0.3"/>
-                      <polygon points="100,60 119.6,91 119.6,109 100,140 80.4,109 80.4,91" opacity="0.3"/>
-                      <line x1="100" y1="100" x2="100" y2="20"/>
-                      <line x1="100" y1="100" x2="173.2" y2="65"/>
-                      <line x1="100" y1="100" x2="173.2" y2="135"/>
-                      <line x1="100" y1="100" x2="100" y2="180"/>
-                      <line x1="100" y1="100" x2="26.8" y2="135"/>
-                      <line x1="100" y1="100" x2="26.8" y2="65"/>
-                    </g>
-                    
-                    <!-- 技能数据 -->
-                    <polygon 
-                      :points="radarPoints" 
-                      fill="rgba(59, 130, 246, 0.3)" 
-                      stroke="#3b82f6" 
-                      stroke-width="2"
-                    />
-                    
-                    <!-- 技能点 -->
-                    <circle 
-                      v-for="(point, index) in radarPointsArray" 
-                      :key="index"
-                      :cx="point.x" 
-                      :cy="point.y" 
-                      r="4" 
-                      fill="#3b82f6"
-                    />
-                  </svg>
-                  
-                  <!-- 技能标签 -->
-                  <div class="absolute inset-0">
-                    <div class="absolute top-2 left-1/2 transform -translate-x-1/2 text-xs font-medium">前端开发</div>
-                    <div class="absolute top-12 right-2 text-xs font-medium">后端开发</div>
-                    <div class="absolute bottom-12 right-2 text-xs font-medium">数据库</div>
-                    <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs font-medium">项目管理</div>
-                    <div class="absolute bottom-12 left-2 text-xs font-medium">团队协作</div>
-                    <div class="absolute top-12 left-2 text-xs font-medium">算法设计</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="space-y-4">
-                <h3 class="text-lg font-semibold mb-4">技能详细评分</h3>
-                <div 
-                  v-for="skill in skillAssessment" 
-                  :key="skill.name"
-                  class="flex items-center justify-between"
-                >
-                  <span class="font-medium">{{ skill.name }}</span>
-                  <div class="flex items-center gap-3">
-                    <div class="w-32">
-                      <progress 
-                        class="progress progress-primary" 
-                        :value="skill.score" 
-                        max="100"
-                      ></progress>
-                    </div>
-                    <span class="text-sm font-bold w-12">{{ skill.score }}%</span>
-                  </div>
-                </div>
-                
-                <div class="mt-6">
-                  <button class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg border border-gray-300 transition-colors" @click="updateSkillAssessment">🔄 重新评估</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </RevealMotion>
+
 
       <!-- 能力提升建议 -->
-      <RevealMotion :delay="0.4">
+      <RevealMotion :delay="0.4" v-if="userParams">
         <div class="card bg-white border border-gray-200 shadow-sm">
           <div class="card-body p-6">
-            <h2 class="text-xl font-medium mb-6 text-gray-800">🚀 能力提升建议</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="text-2xl">🚀</div>
+              <h2 class="text-xl font-medium text-gray-800">能力提升建议</h2>
+              <div class="badge badge-info badge-sm ml-auto">基于AI分析</div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div 
                 v-for="suggestion in improvementSuggestions" 
                 :key="suggestion.category"
-                class="card bg-gray-50 border border-gray-200 shadow-sm"
+                class="card bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105"
               >
-                <div class="card-body p-4">
-                  <div class="text-center mb-4">
-                    <div class="text-3xl mb-2">{{ suggestion.icon }}</div>
-                    <h3 class="text-lg font-semibold">{{ suggestion.title }}</h3>
+                <div class="card-body p-5">
+                  <div class="text-center mb-5">
+                    <div class="text-4xl mb-3 filter drop-shadow-sm">{{ suggestion.icon }}</div>
+                    <h3 class="text-lg font-semibold text-gray-800">{{ suggestion.title }}</h3>
                   </div>
                   
-                  <div class="space-y-3">
+                  <div class="space-y-4">
                     <div 
-                      v-for="item in suggestion.items" 
+                      v-for="(item, index) in suggestion.items" 
                       :key="item.name"
-                      class="border border-gray-200 rounded-lg p-3 bg-white"
+                      class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-200"
                     >
-                      <div class="flex justify-between items-center mb-2">
-                        <span class="font-medium text-sm">{{ item.name }}</span>
+                      <div class="flex justify-between items-start mb-3">
+                        <span class="font-medium text-sm text-gray-800 leading-tight">{{ item.name }}</span>
                         <div :class="[
-                          'badge badge-sm',
-                          item.priority === 'high' ? 'badge-error' :
-                          item.priority === 'medium' ? 'badge-warning' : 'badge-info'
+                          'badge badge-sm font-medium',
+                          item.priority === 'high' ? 'badge-error text-white' :
+                          item.priority === 'medium' ? 'badge-warning text-white' : 'badge-info text-white'
                         ]">
-                          {{ item.priority === 'high' ? '高' : item.priority === 'medium' ? '中' : '低' }}
+                          {{ item.priority === 'high' ? '高优先级' : item.priority === 'medium' ? '中优先级' : '低优先级' }}
                         </div>
                       </div>
-                      <p class="text-xs opacity-70">{{ item.description }}</p>
-                      <div class="mt-2">
-                        <div class="text-xs opacity-60">预计提升: +{{ item.improvement }}%</div>
+                      
+                      <p class="text-xs text-gray-600 leading-relaxed mb-3">{{ item.description }}</p>
+                      
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <span class="text-xs font-medium text-green-600">预计提升 +{{ item.improvement }}%</span>
+                        </div>
+                        <div class="text-xs text-gray-400">#{{ index + 1 }}</div>
                       </div>
+                    </div>
+                  </div>
+                  
+                  <!-- 分类总结 -->
+                  <div class="mt-5 pt-4 border-t border-gray-200">
+                    <div class="text-center">
+                      <span class="text-xs text-gray-500">{{ suggestion.items.length }} 项建议</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </RevealMotion>
-
-      <!-- SWOT分析 -->
-      <RevealMotion :delay="0.5">
-        <div class="card bg-white border border-gray-200 shadow-sm">
-          <div class="card-body p-6">
-            <h2 class="text-xl font-medium mb-6 text-gray-800">📊 个人竞争力SWOT分析</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div 
-                v-for="swot in swotAnalysis" 
-                :key="swot.type"
-                class="card bg-gray-50 border border-gray-200 shadow-sm"
-              >
-                <div class="card-body p-4">
-                  <div class="flex items-center gap-3 mb-4">
-                    <div class="text-2xl text-gray-600">{{ swot.icon }}</div>
-                    <h3 class="text-lg font-medium text-gray-800">{{ swot.title }}</h3>
-                  </div>
-                  
-                  <ul class="space-y-2">
-                    <li 
-                      v-for="item in swot.items" 
-                      :key="item"
-                      class="flex items-start gap-2 text-sm text-gray-700"
-                    >
-                      <span class="text-xs mt-1 text-gray-400">•</span>
-                      <span>{{ item }}</span>
-                    </li>
-                  </ul>
+            
+            <!-- 底部说明 -->
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div class="flex items-start gap-3">
+                <div class="text-blue-500 text-lg mt-0.5">💡</div>
+                <div>
+                  <h4 class="font-medium text-blue-800 mb-1">个性化建议说明</h4>
+                  <p class="text-sm text-blue-700">
+                    以上建议基于您的个人背景、目标职位和当前市场需求生成。建议按优先级逐步实施，
+                    重点关注高优先级项目以获得最大提升效果。
+                  </p>
                 </div>
               </div>
             </div>
@@ -221,8 +169,10 @@
         </div>
       </RevealMotion>
 
+
+
       <!-- 预测准确性说明 -->
-      <RevealMotion :delay="0.6">
+      <RevealMotion :delay="0.6" v-if="userParams">
         <div class="card bg-white border border-gray-200 shadow-sm">
           <div class="card-body p-6">
             <h2 class="text-xl font-medium mb-6 text-gray-800">📈 预测模型说明</h2>
@@ -261,13 +211,73 @@
       {{ footerText }}
     </footer>
   </div>
+
+  <!-- 参数输入弹窗 -->
+  <PredictionParamsModal 
+    :visible="showParamsModal"
+    @close="showParamsModal = false"
+    @submit="handleParamsSubmit"
+  />
 </template>
 
 <script setup lang="ts">
 import { h, defineComponent, onMounted, onBeforeUnmount, ref, computed } from "vue";
 import { Motion } from "motion-v";
+import PredictionParamsModal from '@/components/PredictionParamsModal.vue';
+import { 
+  predictEmploymentSuccess,
+  predictSalary,
+  predictJobDuration,
+  getComprehensivePrediction
+} from '@/api/user/prediction';
+import type {
+  EmploymentPredictionResponse,
+  SalaryPredictionResponse,
+  JobDurationPredictionResponse,
+  ComprehensivePredictionResponse
+} from '@/types/apis/APIS_T';
+
+interface PredictionParams {
+  target_industry: string
+  target_position: string
+  target_city: string
+  job_search_intensity: 'low' | 'medium' | 'high'
+}
 
 const footerText = import.meta.env.VITE_APP_FOOTER || "版权所有 © 2025 HZSYSTEM";
+
+// 响应式数据
+const loading = ref(false);
+const showParamsModal = ref(false);
+const userParams = ref<PredictionParams | null>(null);
+const employmentPrediction = ref<EmploymentPredictionResponse['data'] | null>(null);
+const salaryPrediction = ref<SalaryPredictionResponse['data'] | null>(null);
+const durationPrediction = ref<JobDurationPredictionResponse['data'] | null>(null);
+const comprehensivePrediction = ref<ComprehensivePredictionResponse['data'] | null>(null);
+
+// 学生档案ID (实际应用中应该从用户状态或路由参数获取)
+const studentProfileId = ref(1);
+
+// 处理参数提交
+const handleParamsSubmit = async (params: PredictionParams) => {
+  userParams.value = params;
+  showParamsModal.value = false;
+  loading.value = true;
+  
+  try {
+    // 并行调用所有预测API
+    await Promise.all([
+      fetchEmploymentPrediction(),
+      fetchSalaryPrediction(),
+      fetchDurationPrediction(),
+      fetchComprehensivePrediction()
+    ]);
+  } catch (error) {
+    console.error('预测分析失败:', error);
+  } finally {
+    loading.value = false;
+  }
+};
 
 // RevealMotion 组件定义
 type RevealProps = { delay?: number };
@@ -320,69 +330,179 @@ const RevealMotion = defineComponent<RevealProps>({
   },
 });
 
-// 数据定义
-const predictedSalary = {
-  range: '¥8,000-12,000',
-  confidence: 85
-};
-
-const jobSearchDuration = {
-  estimate: '2-3个月'
-};
-
-const careerIndex = {
-  score: 78,
-  level: '良好'
-};
-
-const matchingJobs = {
-  count: 156
-};
-
-const skillAssessment = [
-  { name: '前端开发', score: 85 },
-  { name: '后端开发', score: 65 },
-  { name: '数据库', score: 70 },
-  { name: '项目管理', score: 60 },
-  { name: '团队协作', score: 80 },
-  { name: '算法设计', score: 55 }
-];
-
-// 计算雷达图坐标
-const radarPoints = computed(() => {
-  const center = 100;
-  const maxRadius = 80;
-  const angleStep = (2 * Math.PI) / skillAssessment.length;
+// API调用函数
+const fetchEmploymentPrediction = async () => {
+  if (!userParams.value) return;
   
-  return skillAssessment.map((skill, index) => {
-    const angle = index * angleStep - Math.PI / 2; // 从顶部开始
-    const radius = (skill.score / 100) * maxRadius;
-    const x = center + radius * Math.cos(angle);
-    const y = center + radius * Math.sin(angle);
-    return `${x},${y}`;
-  }).join(' ');
+  try {
+    const response = await predictEmploymentSuccess({
+      student_profile_id: studentProfileId.value,
+      target_industry: userParams.value.target_industry,
+      target_position: userParams.value.target_position,
+      target_city: userParams.value.target_city
+    });
+    employmentPrediction.value = response.data;
+  } catch (error) {
+    console.error('获取就业预测失败:', error);
+  }
+};
+
+const fetchSalaryPrediction = async () => {
+  if (!userParams.value) return;
+  
+  try {
+    const response = await predictSalary({
+      student_profile_id: studentProfileId.value,
+      target_industry: userParams.value.target_industry,
+      target_position: userParams.value.target_position,
+      target_city: userParams.value.target_city,
+      experience_years: 2 // 这个可以后续从用户档案获取
+    });
+    salaryPrediction.value = response.data;
+  } catch (error) {
+    console.error('获取薪资预测失败:', error);
+  }
+};
+
+const fetchDurationPrediction = async () => {
+  if (!userParams.value) return;
+  
+  try {
+    const response = await predictJobDuration({
+      student_profile_id: studentProfileId.value,
+      job_search_intensity: userParams.value.job_search_intensity,
+      target_industry: userParams.value.target_industry,
+      target_position: userParams.value.target_position
+    });
+    durationPrediction.value = response.data;
+  } catch (error) {
+    console.error('获取求职时长预测失败:', error);
+  }
+};
+
+const fetchComprehensivePrediction = async () => {
+  if (!userParams.value) return;
+  
+  try {
+    const response = await getComprehensivePrediction({
+      student_profile_id: studentProfileId.value,
+      target_industry: userParams.value.target_industry,
+      target_position: userParams.value.target_position,
+      target_city: userParams.value.target_city,
+      job_search_intensity: userParams.value.job_search_intensity
+    });
+    comprehensivePrediction.value = response.data;
+  } catch (error) {
+    console.error('获取综合预测失败:', error);
+  }
+};
+
+// 加载所有预测数据
+const loadAllPredictions = async () => {
+  loading.value = true;
+  try {
+    await Promise.all([
+      fetchEmploymentPrediction(),
+      fetchSalaryPrediction(),
+      fetchDurationPrediction(),
+      fetchComprehensivePrediction()
+    ]);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 计算属性 - 基于API数据
+const predictedSalary = computed(() => {
+  if (salaryPrediction.value) {
+    const { predicted_salary_min, predicted_salary_max, confidence_score } = salaryPrediction.value;
+    return {
+      range: `¥${predicted_salary_min.toLocaleString()}-${predicted_salary_max.toLocaleString()}`,
+      confidence: Math.round(confidence_score * 100)
+    };
+  }
+  return {
+    range: '--',
+    confidence: 0
+  };
 });
 
-const radarPointsArray = computed(() => {
-  const center = 100;
-  const maxRadius = 80;
-  const angleStep = (2 * Math.PI) / skillAssessment.length;
-  
-  return skillAssessment.map((skill, index) => {
-    const angle = index * angleStep - Math.PI / 2;
-    const radius = (skill.score / 100) * maxRadius;
-    const x = center + radius * Math.cos(angle);
-    const y = center + radius * Math.sin(angle);
-    return { x, y };
-  });
+const jobSearchDuration = computed(() => {
+  if (durationPrediction.value) {
+    const days = durationPrediction.value.predicted_days;
+    const months = Math.round(days / 30);
+    return {
+      estimate: `${months}个月`
+    };
+  }
+  return {
+    estimate: '--'
+  };
 });
 
-const improvementSuggestions = [
-  {
-    category: 'technical',
-    icon: '💻',
-    title: '技术能力提升',
-    items: [
+const employmentSuccessRate = computed(() => {
+  if (comprehensivePrediction.value) {
+    const rate = comprehensivePrediction.value.employment_success_rate;
+    let level = '一般';
+    if (rate >= 80) level = '优秀';
+    else if (rate >= 60) level = '良好';
+    return { rate, level };
+  }
+  return {
+    rate: 0,
+    level: '--'
+  };
+});
+
+const overallScore = computed(() => {
+  if (comprehensivePrediction.value) {
+    const score = Math.min(comprehensivePrediction.value.overall_score || 0, 100);
+    let description = '表现良好';
+    if (score >= 90) description = '表现优异';
+    else if (score >= 80) description = '表现良好';
+    else if (score >= 70) description = '表现一般';
+    else description = '需要提升';
+    return { score, description };
+  }
+  return {
+    score: 0,
+    description: '--'
+  };
+});
+
+
+
+
+
+// 能力提升建议 - 基于API数据
+const improvementSuggestions = computed(() => {
+  // 如果没有预测数据，返回空数组
+  if (!userParams.value) {
+    return [];
+  }
+  
+  const suggestions = [];
+  
+  // 从API获取所有建议
+  const apiRecommendations = comprehensivePrediction.value?.financial_analysis?.recommendations || [];
+  
+  // 技术能力提升建议
+  const technicalItems = [];
+  
+  // 使用API建议的前半部分作为技术建议，或使用默认建议
+  if (apiRecommendations.length > 0) {
+    // 将API建议分类处理
+    apiRecommendations.forEach((recommendation, index) => {
+      technicalItems.push({
+        name: `能力提升建议 ${index + 1}`,
+        description: recommendation,
+        priority: index === 0 ? 'high' : 'medium',
+        improvement: 15 - index * 2
+      });
+    });
+  } else {
+    // 默认技术建议
+    technicalItems.push(
       {
         name: 'React高级特性',
         description: '学习Hooks、Context、性能优化等高级特性',
@@ -394,118 +514,70 @@ const improvementSuggestions = [
         description: '掌握类型系统，提升代码质量',
         priority: 'high',
         improvement: 12
-      },
-      {
-        name: 'Node.js后端开发',
-        description: '扩展全栈开发能力',
-        priority: 'medium',
-        improvement: 20
       }
-    ]
-  },
-  {
-    category: 'communication',
-    icon: '🗣️',
-    title: '沟通协作能力',
-    items: [
-      {
-        name: '技术文档写作',
-        description: '提升技术表达和文档编写能力',
-        priority: 'medium',
-        improvement: 10
-      },
-      {
-        name: '跨部门协作',
-        description: '加强与产品、设计团队的协作',
-        priority: 'medium',
-        improvement: 8
-      },
-      {
-        name: '英语口语',
-        description: '提升国际化团队协作能力',
-        priority: 'low',
-        improvement: 5
-      }
-    ]
-  },
-  {
-    category: 'learning',
+    );
+  }
+  
+  suggestions.push({
+    category: 'technical',
+    icon: '💻',
+    title: '能力提升建议',
+    items: technicalItems
+  });
+  
+  // 职业发展建议（使用固定建议）
+  const careerItems = [
+    {
+      name: '薪资谈判',
+      description: '学习薪资谈判技巧，争取更好待遇',
+      priority: 'medium',
+      improvement: 10
+    },
+    {
+      name: '项目管理',
+      description: '学习敏捷开发和项目管理方法',
+      priority: 'medium',
+      improvement: 8
+    }
+  ];
+  
+  suggestions.push({
+    category: 'career',
+    icon: '🎯',
+    title: '职业发展建议',
+    items: careerItems
+  });
+  
+  // 技能拓展建议
+  suggestions.push({
+    category: 'skills',
     icon: '📚',
-    title: '持续学习能力',
+    title: '技能拓展',
     items: [
-      {
-        name: '新技术跟进',
-        description: '保持对前沿技术的敏感度',
-        priority: 'high',
-        improvement: 18
-      },
-      {
-        name: '开源项目参与',
-        description: '通过开源项目提升技术影响力',
-        priority: 'medium',
-        improvement: 15
-      },
       {
         name: '技术分享',
-        description: '通过分享巩固和传播知识',
+        description: '通过技术博客和开源贡献提升影响力',
         priority: 'low',
         improvement: 8
+      },
+      {
+        name: '行业认证',
+        description: '获取相关技术认证，提升专业度',
+        priority: 'low',
+        improvement: 6
       }
     ]
-  }
-];
+  });
+  
+  return suggestions;
+});
 
-const swotAnalysis = [
-  {
-    type: 'strengths',
-    icon: '💪',
-    title: '优势 (Strengths)',
-    items: [
-      '前端技术基础扎实，熟练掌握主流框架',
-      '学习能力强，能快速适应新技术',
-      '工作态度认真，注重代码质量',
-      '有良好的审美和用户体验意识'
-    ]
-  },
-  {
-    type: 'weaknesses',
-    icon: '⚠️',
-    title: '劣势 (Weaknesses)',
-    items: [
-      '后端开发经验相对不足',
-      '大型项目架构设计经验有限',
-      '团队管理和领导经验缺乏',
-      '英语口语表达能力有待提升'
-    ]
-  },
-  {
-    type: 'opportunities',
-    icon: '🌟',
-    title: '机会 (Opportunities)',
-    items: [
-      '前端技术栈持续发展，市场需求旺盛',
-      '全栈开发趋势为技能扩展提供机会',
-      '远程工作模式增加就业选择',
-      '新兴技术领域(如Web3)带来新机遇'
-    ]
-  },
-  {
-    type: 'threats',
-    icon: '⚡',
-    title: '威胁 (Threats)',
-    items: [
-      '技术更新换代快，需持续学习',
-      '市场竞争激烈，同质化严重',
-      '经济环境变化影响就业市场',
-      'AI工具可能替代部分重复性工作'
-    ]
-  }
-];
 
-const updateSkillAssessment = () => {
-  console.log('重新评估技能');
-  // 这里可以调用API重新评估技能
-};
+
+// 页面初始化
+// onMounted(() => {
+//   loadAllPredictions();
+// });
 </script>
 
 <style scoped>
