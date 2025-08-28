@@ -95,7 +95,7 @@ export function getPredictionHistoryDetail(
   id: number
 ): Promise<PredictionHistoryDetailResponse> {
   return request({
-    url: `/api/user/prediction_history/${id}/`,
+    url: `/api/predict/history/${id}/`,
     method: "get",
   });
 }
