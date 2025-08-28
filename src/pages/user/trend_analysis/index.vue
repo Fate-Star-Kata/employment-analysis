@@ -1,6 +1,25 @@
+<!-- eslint-disable -->
 <script setup lang="ts">
+/* eslint-disable */
+import type {
+  EmploymentOverview,
+  EmploymentTrendData,
+  Industry,
+  PopularPosition,
+  SalaryTrendData,
+} from '@/types/apis/APIS_T'
+import { ElMessage } from 'element-plus'
+
 import { Motion } from 'motion-v'
 import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref } from 'vue'
+
+import {
+  getEmploymentRateTrend,
+  getIndustries,
+  getPopularRanking,
+  getSalaryTrend,
+  getStatisticsOverview,
+} from '@/api/user/trend'
 
 const footerText = import.meta.env.VITE_APP_FOOTER || '版权所有 © 2025 HZSYSTEM'
 
@@ -8,8 +27,8 @@ const footerText = import.meta.env.VITE_APP_FOOTER || '版权所有 © 2025 HZSY
 interface RevealProps { delay?: number }
 const RevealMotion = defineComponent<RevealProps>({
   name: 'RevealMotion',
-  props: { delay: { type: Number, default: 0 } },
-  setup(props, { slots }) {
+  props: { delay: { type: Number as () => number, default: 0 } },
+  setup(props: RevealProps, { slots }) {
     const el = ref<HTMLElement | null>(null)
     const inView = ref(false)
     let io: IntersectionObserver | null = null
@@ -56,103 +75,57 @@ const RevealMotion = defineComponent<RevealProps>({
   },
 })
 
-// 数据定义
-const selectedIndustry = ref('all')
-const industries = [
-  { key: 'all', name: '全行业' },
-  { key: 'it', name: '信息技术' },
-  { key: 'finance', name: '金融' },
-  { key: 'education', name: '教育' },
-  { key: 'healthcare', name: '医疗健康' },
-  { key: 'manufacturing', name: '制造业' },
-]
+// 响应式数据定义
+const selectedIndustry = ref<number | null>(null)
+const loading = ref(false)
+const industries = ref<Industry[]>([])
+const employmentTrends = ref<EmploymentTrendData[]>([])
+const salaryTrends = ref<SalaryTrendData[]>([])
+const hotJobs = ref<PopularPosition[]>([])
+const statisticsOverview = ref<EmploymentOverview | null>(null)
 
-const employmentTrends = [
-  { industry: '信息技术', rate: 92 },
-  { industry: '金融', rate: 85 },
-  { industry: '教育', rate: 78 },
-  { industry: '医疗健康', rate: 88 },
-  { industry: '制造业', rate: 75 },
-]
+// 格式化薪资显示
+function formatSalary(salary: number): string {
+  return `¥${(salary / 1000).toFixed(1)}k`
+}
 
-const salaryTrends = [
-  {
-    industry: '信息技术',
-    icon: '💻',
-    salary: '¥8,500',
-    trend: '↗ +12% 同比增长',
-    trendType: 'up',
-  },
-  {
-    industry: '金融',
-    icon: '🏦',
-    salary: '¥7,800',
-    trend: '↗ +8% 同比增长',
-    trendType: 'up',
-  },
-  {
-    industry: '教育',
-    icon: '🎓',
-    salary: '¥5,200',
-    trend: '→ 持平',
-    trendType: 'stable',
-  },
-  {
-    industry: '医疗健康',
-    icon: '🏥',
-    salary: '¥6,800',
-    trend: '↗ +15% 同比增长',
-    trendType: 'up',
-  },
-]
+// 格式化数量显示
+function formatCount(count: number): string {
+  if (count >= 10000) {
+    return `${(count / 10000).toFixed(1)}万`
+  }
+  return count.toString()
+}
 
-const hotJobs = [
-  {
-    rank: 1,
-    position: '软件开发工程师',
-    industry: '信息技术',
-    demand: '15,420',
-    salary: '¥9,200',
-    trend: '↗ 高',
-    trendClass: 'trend-up',
-  },
-  {
-    rank: 2,
-    position: '数据分析师',
-    industry: '信息技术',
-    demand: '8,760',
-    salary: '¥8,800',
-    trend: '↗ 高',
-    trendClass: 'trend-up',
-  },
-  {
-    rank: 3,
-    position: '产品经理',
-    industry: '信息技术',
-    demand: '6,540',
-    salary: '¥10,500',
-    trend: '↗ 中',
-    trendClass: 'trend-up',
-  },
-  {
-    rank: 4,
-    position: '金融分析师',
-    industry: '金融',
-    demand: '4,320',
-    salary: '¥8,200',
-    trend: '→ 稳定',
-    trendClass: 'trend-stable',
-  },
-  {
-    rank: 5,
-    position: '市场营销专员',
-    industry: '全行业',
-    demand: '12,180',
-    salary: '¥6,500',
-    trend: '↗ 中',
-    trendClass: 'trend-up',
-  },
-]
+// 获取趋势显示文本
+function getTrendText(heatIndex: number): { text: string, class: string } {
+  if (heatIndex >= 80) {
+    return { text: '↗ 高', class: 'trend-up' }
+  }
+  else if (heatIndex >= 60) {
+    return { text: '↗ 中', class: 'trend-up' }
+  }
+  else if (heatIndex >= 40) {
+    return { text: '→ 稳定', class: 'trend-stable' }
+  }
+  else {
+    return { text: '↘ 低', class: 'trend-down' }
+  }
+}
+
+// 获取进度条颜色
+function getProgressBarColor(rate: number) {
+  if (rate < 50) return 'bg-red-500'
+  if (rate < 80) return 'bg-yellow-500'
+  return 'bg-green-500'
+}
+
+// 获取进度条文字颜色
+function getProgressTextColor(rate: number) {
+  if (rate < 50) return 'text-red-500'
+  if (rate < 80) return 'text-yellow-500'
+  return 'text-green-500'
+}
 
 const techSkills = [
   { name: 'Python', level: 'high' },
@@ -162,7 +135,7 @@ const techSkills = [
   { name: '机器学习', level: 'medium' },
   { name: 'SQL', level: 'high' },
   { name: '云计算', level: 'medium' },
-  { name: '区块链', level: 'low' },
+  { name: '区块链', level: 'low' }
 ]
 
 const softSkills = [
@@ -171,7 +144,7 @@ const softSkills = [
   { name: '项目管理', level: 'medium' },
   { name: '问题解决', level: 'high' },
   { name: '领导力', level: 'medium' },
-  { name: '学习能力', level: 'high' },
+  { name: '学习能力', level: 'high' }
 ]
 
 const regions = [
@@ -179,50 +152,116 @@ const regions = [
     city: '北京',
     jobs: '45,230',
     salary: '¥9,800',
-    competition: '⭐⭐⭐⭐⭐',
+    competition: '⭐⭐⭐⭐⭐'
   },
   {
     city: '上海',
     jobs: '38,760',
     salary: '¥9,200',
-    competition: '⭐⭐⭐⭐⭐',
+    competition: '⭐⭐⭐⭐⭐'
   },
   {
     city: '深圳',
     jobs: '32,450',
     salary: '¥8,900',
-    competition: '⭐⭐⭐⭐',
+    competition: '⭐⭐⭐⭐'
   },
   {
     city: '杭州',
     jobs: '18,320',
     salary: '¥8,200',
-    competition: '⭐⭐⭐',
-  },
+    competition: '⭐⭐⭐'
+  }
 ]
 
-function selectIndustry(industry: string) {
-  selectedIndustry.value = industry
-  console.log('选择行业:', industry)
+// API调用函数
+const fetchIndustries = async () => {
+  try {
+    const response = await getIndustries()
+    if (response.code === 200) {
+      industries.value = response.data.categories
+    }
+  } catch (error) {
+    console.error('获取行业列表失败:', error)
+    ElMessage.error('获取行业列表失败')
+  }
 }
 
-// 获取进度条颜色
-function getProgressBarColor(rate: number) {
-  if (rate < 50)
-    return 'bg-red-500'
-  if (rate < 80)
-    return 'bg-yellow-500'
-  return 'bg-green-500'
+const fetchEmploymentTrend = async () => {
+  try {
+    loading.value = true
+    const params = selectedIndustry.value ? { industry_id: selectedIndustry.value } : {}
+    const response = await getEmploymentRateTrend(params)
+    if (response.code === 200) {
+      employmentTrends.value = response.data.trend_data
+    }
+  } catch (error) {
+    console.error('获取就业率趋势失败:', error)
+    ElMessage.error('获取就业率趋势失败')
+  } finally {
+    loading.value = false
+  }
 }
 
-// 获取进度条文字颜色
-function getProgressTextColor(rate: number) {
-  if (rate < 50)
-    return 'text-red-500'
-  if (rate < 80)
-    return 'text-yellow-500'
-  return 'text-green-500'
+const fetchSalaryTrend = async () => {
+  try {
+    const params = selectedIndustry.value ? { industry_id: selectedIndustry.value } : {}
+    const response = await getSalaryTrend(params)
+    if (response.code === 200) {
+      salaryTrends.value = response.data.salary_trend
+    }
+  } catch (error) {
+    console.error('获取薪资趋势失败:', error)
+    ElMessage.error('获取薪资趋势失败')
+  }
 }
+
+const fetchPopularRanking = async () => {
+  try {
+    const params = selectedIndustry.value ? { industry_id: selectedIndustry.value, limit: 10 } : { limit: 10 }
+    const response = await getPopularRanking(params)
+    if (response.code === 200) {
+      hotJobs.value = response.data.ranking
+    }
+  } catch (error) {
+    console.error('获取热门职位排行失败:', error)
+    ElMessage.error('获取热门职位排行失败')
+  }
+}
+
+const fetchStatisticsOverview = async () => {
+  try {
+    const response = await getStatisticsOverview()
+    if (response.code === 200) {
+      statisticsOverview.value = response.data.employment_overview
+    }
+  } catch (error) {
+    console.error('获取统计概览失败:', error)
+    ElMessage.error('获取统计概览失败')
+  }
+}
+
+// 加载所有数据
+const loadAllData = async () => {
+  await Promise.all([
+    fetchEmploymentTrend(),
+    fetchSalaryTrend(),
+    fetchPopularRanking()
+  ])
+}
+
+// 选择行业
+const selectIndustry = async (industryId: number | null) => {
+  selectedIndustry.value = industryId
+  await loadAllData()
+}
+
+// 页面初始化
+onMounted(async () => {
+  await fetchIndustries()
+  await fetchStatisticsOverview()
+  await loadAllData()
+})
 </script>
 
 <template>
@@ -252,28 +291,29 @@ function getProgressTextColor(rate: number) {
               选择分析行业
             </h2>
             <div class="flex flex-wrap gap-3">
-              <button 
+              <button
+                class="btn btn-sm rounded-full transition-all"
                 :class="[
-                  'btn btn-sm rounded-full transition-all',
-                  selectedIndustry === null 
-                    ? 'btn-primary' 
-                    : 'btn-outline btn-primary'
+                  selectedIndustry === null
+                    ? 'btn-primary'
+                    : 'btn-outline btn-primary',
                 ]"
+                :disabled="loading"
                 @click="selectIndustry(null)"
               >
                 全行业
               </button>
-              <button 
-                v-for="industry in industries" 
+              <button
+                v-for="industry in industries"
                 :key="industry.id"
+                class="btn btn-sm rounded-full transition-all"
                 :class="[
-                  'btn btn-sm rounded-full transition-all',
-                  selectedIndustry === industry.id 
-                    ? 'btn-primary' 
-                    : 'btn-outline btn-primary'
+                  selectedIndustry === industry.id
+                    ? 'btn-primary'
+                    : 'btn-outline btn-primary',
                 ]"
-                @click="selectIndustry(industry.id)"
                 :disabled="loading"
+                @click="selectIndustry(industry.id)"
               >
                 {{ industry.name }}
               </button>
@@ -294,20 +334,15 @@ function getProgressTextColor(rate: number) {
               暂无数据
             </div>
             <div v-else class="space-y-4">
-              <div 
-                v-for="item in employmentTrends" 
-                :key="item.date"
-                class="flex items-center gap-4"
-              >
+              <div v-for="item in employmentTrends" :key="item.date" class="flex items-center gap-4">
                 <div class="w-20 text-sm font-medium text-right">{{ item.date }}</div>
                 <div class="flex-1 bg-base-300 rounded-full h-3 overflow-hidden">
-                  <div
-                    class="h-full transition-all duration-1000 ease-out"
-                    :class="getProgressBarColor(item.employment_rate)"
-                    :style="{ width: item.employment_rate + '%' }"
-                  ></div>
+                  <div class="h-full transition-all duration-1000 ease-out"
+                    :class="getProgressBarColor(item.employment_rate)" :style="{ width: item.employment_rate + '%' }">
+                  </div>
                 </div>
-                <div class="w-12 text-sm font-bold" :class="getProgressTextColor(item.employment_rate)">{{ item.employment_rate }}%</div>
+                <div class="w-12 text-sm font-bold" :class="getProgressTextColor(item.employment_rate)">{{
+                  item.employment_rate }}%</div>
               </div>
             </div>
           </div>
@@ -326,11 +361,8 @@ function getProgressTextColor(rate: number) {
               暂无数据
             </div>
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div 
-                v-for="item in salaryTrends" 
-                :key="item.date"
-                class="card bg-base-100 shadow-sm hover:shadow-md transition"
-              >
+              <div v-for="item in salaryTrends" :key="item.date"
+                class="card bg-base-100 shadow-sm hover:shadow-md transition">
                 <div class="card-body p-4">
                   <div class="flex items-center gap-3">
                     <div class="text-2xl">💰</div>
@@ -363,9 +395,9 @@ function getProgressTextColor(rate: number) {
                     <th>排名</th>
                     <th>职位名称</th>
                     <th>所属行业</th>
-                    <th>需求量</th>
+                    <th>浏览量</th>
                     <th>平均薪资</th>
-                    <th>增长趋势</th>
+                    <th>热度趋势</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -386,9 +418,8 @@ function getProgressTextColor(rate: number) {
                       </div>
                     </td>
                     <td class="font-semibold">
-                      {{ job.position }}
+                      {{ job.position_title }}
                     </td>
-                    <td class="font-semibold">{{ job.position_title }}</td>
                     <td>
                       <div class="badge badge-outline badge-sm">
                         {{ job.industry }}
@@ -399,8 +430,8 @@ function getProgressTextColor(rate: number) {
                     <td>
                       <div :class="[
                         'badge badge-sm',
-                        getTrendText(job.heat_index).class === 'trend-up' ? 'badge-success' : 
-                        getTrendText(job.heat_index).class === 'trend-stable' ? 'badge-warning' : 'badge-error'
+                        getTrendText(job.heat_index).class === 'trend-up' ? 'badge-success' :
+                          getTrendText(job.heat_index).class === 'trend-stable' ? 'badge-warning' : 'badge-error'
                       ]">
                         {{ getTrendText(job.heat_index).text }}
                       </div>
@@ -427,14 +458,10 @@ function getProgressTextColor(rate: number) {
                   技术技能
                 </h3>
                 <div class="flex flex-wrap gap-2">
-                  <div
-                    v-for="skill in techSkills"
-                    :key="skill.name"
-                    class="badge badge-lg" :class="[
-                      skill.level === 'high' ? 'badge-success'
+                  <div v-for="skill in techSkills" :key="skill.name" class="badge badge-lg" :class="[
+                    skill.level === 'high' ? 'badge-success'
                       : skill.level === 'medium' ? 'badge-warning' : 'badge-error',
-                    ]"
-                  >
+                  ]">
                     {{ skill.name }}
                   </div>
                 </div>
@@ -445,14 +472,10 @@ function getProgressTextColor(rate: number) {
                   软技能
                 </h3>
                 <div class="flex flex-wrap gap-2">
-                  <div
-                    v-for="skill in softSkills"
-                    :key="skill.name"
-                    class="badge badge-lg" :class="[
-                      skill.level === 'high' ? 'badge-success'
+                  <div v-for="skill in softSkills" :key="skill.name" class="badge badge-lg" :class="[
+                    skill.level === 'high' ? 'badge-success'
                       : skill.level === 'medium' ? 'badge-warning' : 'badge-error',
-                    ]"
-                  >
+                  ]">
                     {{ skill.name }}
                   </div>
                 </div>
@@ -485,11 +508,8 @@ function getProgressTextColor(rate: number) {
               🌍 地区就业分析
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div
-                v-for="region in regions"
-                :key="region.city"
-                class="card bg-base-100 shadow-sm hover:shadow-md transition"
-              >
+              <div v-for="region in regions" :key="region.city"
+                class="card bg-base-100 shadow-sm hover:shadow-md transition">
                 <div class="card-body p-4">
                   <h4 class="card-title text-lg">
                     {{ region.city }}
@@ -522,281 +542,6 @@ function getProgressTextColor(rate: number) {
     </footer>
   </div>
 </template>
-
-<script setup lang="ts">
-import { h, defineComponent, onMounted, onBeforeUnmount, ref, computed } from "vue";
-import { Motion } from "motion-v";
-import { ElMessage } from 'element-plus';
-import {
-  getEmploymentRateTrend,
-  getSalaryTrend,
-  getPopularRanking,
-  getIndustries,
-  getStatisticsOverview
-} from '@/api/user/trend';
-import type {
-  EmploymentTrendData,
-  SalaryTrendData,
-  PopularPosition,
-  Industry,
-  EmploymentOverview
-} from '@/types/apis/APIS_T';
-
-const footerText = import.meta.env.VITE_APP_FOOTER || "版权所有 © 2025 HZSYSTEM";
-
-// RevealMotion 组件定义
-type RevealProps = { delay?: number };
-const RevealMotion = defineComponent<RevealProps>({
-  name: "RevealMotion",
-  props: { delay: { type: Number, default: 0 } },
-  setup(props, { slots }) {
-    const el = ref<HTMLElement | null>(null);
-    const inView = ref(false);
-    let io: IntersectionObserver | null = null;
-
-    const animateProps = computed(() => {
-      return inView.value
-        ? { opacity: 1, y: 0, transition: { duration: 0.6, delay: props.delay } }
-        : { opacity: 0, y: 16 };
-    });
-
-    onMounted(() => {
-      io = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => {
-            if (e.isIntersecting) {
-              inView.value = true;
-              io?.unobserve(e.target);
-            }
-          });
-        },
-        { threshold: 0.05 }
-      );
-      if (el.value) io.observe(el.value);
-    });
-
-    onBeforeUnmount(() => io?.disconnect());
-
-    return () =>
-      h(
-        "div",
-        { ref: el },
-        [
-          h(
-            Motion as any,
-            {
-              initial: { opacity: 0, y: 16 },
-              animate: animateProps.value,
-            },
-            slots
-          )
-        ]
-      );
-  },
-});
-
-// 响应式数据定义
-const selectedIndustry = ref<number | null>(null);
-const loading = ref(false);
-const industries = ref<Industry[]>([]);
-const employmentTrends = ref<EmploymentTrendData[]>([]);
-const salaryTrends = ref<SalaryTrendData[]>([]);
-const hotJobs = ref<PopularPosition[]>([]);
-const statisticsOverview = ref<EmploymentOverview | null>(null);
-
-// 行业图标映射
-const industryIcons: Record<string, string> = {
-  '信息技术': '💻',
-  '金融': '🏦',
-  '教育': '🎓',
-  '医疗健康': '🏥',
-  '制造业': '🏭',
-  '服务业': '🛎️',
-  '建筑业': '🏗️',
-  '零售业': '🛒'
-};
-
-// 获取行业图标
-const getIndustryIcon = (industryName: string): string => {
-  return industryIcons[industryName] || '🏢';
-};
-
-// 格式化薪资显示
-const formatSalary = (salary: number): string => {
-  return `¥${(salary / 1000).toFixed(1)}k`;
-};
-
-// 格式化数量显示
-const formatCount = (count: number): string => {
-  if (count >= 10000) {
-    return `${(count / 10000).toFixed(1)}万`;
-  }
-  return count.toString();
-};
-
-// 获取趋势显示文本
-const getTrendText = (heatIndex: number): { text: string; class: string } => {
-  if (heatIndex >= 80) {
-    return { text: '↗ 高', class: 'trend-up' };
-  } else if (heatIndex >= 60) {
-    return { text: '↗ 中', class: 'trend-up' };
-  } else if (heatIndex >= 40) {
-    return { text: '→ 稳定', class: 'trend-stable' };
-  } else {
-    return { text: '↘ 低', class: 'trend-down' };
-  }
-};
-
-const techSkills = [
-  { name: 'Python', level: 'high' },
-  { name: 'Java', level: 'high' },
-  { name: 'JavaScript', level: 'medium' },
-  { name: '数据分析', level: 'high' },
-  { name: '机器学习', level: 'medium' },
-  { name: 'SQL', level: 'high' },
-  { name: '云计算', level: 'medium' },
-  { name: '区块链', level: 'low' }
-];
-
-const softSkills = [
-  { name: '沟通能力', level: 'high' },
-  { name: '团队协作', level: 'high' },
-  { name: '项目管理', level: 'medium' },
-  { name: '问题解决', level: 'high' },
-  { name: '领导力', level: 'medium' },
-  { name: '学习能力', level: 'high' }
-];
-
-const regions = [
-  {
-    city: '北京',
-    jobs: '45,230',
-    salary: '¥9,800',
-    competition: '⭐⭐⭐⭐⭐'
-  },
-  {
-    city: '上海',
-    jobs: '38,760',
-    salary: '¥9,200',
-    competition: '⭐⭐⭐⭐⭐'
-  },
-  {
-    city: '深圳',
-    jobs: '32,450',
-    salary: '¥8,900',
-    competition: '⭐⭐⭐⭐'
-  },
-  {
-    city: '杭州',
-    jobs: '18,320',
-    salary: '¥8,200',
-    competition: '⭐⭐⭐'
-  }
-];
-
-// API调用函数
-const fetchIndustries = async () => {
-  try {
-    const response = await getIndustries();
-    if (response.code === 200) {
-      industries.value = response.data.categories;
-    }
-  } catch (error) {
-    console.error('获取行业列表失败:', error);
-    ElMessage.error('获取行业列表失败');
-  }
-};
-
-const fetchEmploymentTrend = async () => {
-  try {
-    loading.value = true;
-    const params = selectedIndustry.value ? { industry_id: selectedIndustry.value } : {};
-    const response = await getEmploymentRateTrend(params);
-    if (response.code === 200) {
-      employmentTrends.value = response.data.trend_data;
-    }
-  } catch (error) {
-    console.error('获取就业率趋势失败:', error);
-    ElMessage.error('获取就业率趋势失败');
-  } finally {
-    loading.value = false;
-  }
-};
-
-const fetchSalaryTrend = async () => {
-  try {
-    const params = selectedIndustry.value ? { industry_id: selectedIndustry.value } : {};
-    const response = await getSalaryTrend(params);
-    if (response.code === 200) {
-      salaryTrends.value = response.data.salary_trend;
-    }
-  } catch (error) {
-    console.error('获取薪资趋势失败:', error);
-    ElMessage.error('获取薪资趋势失败');
-  }
-};
-
-const fetchPopularRanking = async () => {
-  try {
-    const params = selectedIndustry.value ? { industry_id: selectedIndustry.value, limit: 10 } : { limit: 10 };
-    const response = await getPopularRanking(params);
-    if (response.code === 200) {
-      hotJobs.value = response.data.ranking;
-    }
-  } catch (error) {
-    console.error('获取热门职位排行失败:', error);
-    ElMessage.error('获取热门职位排行失败');
-  }
-};
-
-const fetchStatisticsOverview = async () => {
-  try {
-    const response = await getStatisticsOverview();
-    if (response.code === 200) {
-      statisticsOverview.value = response.data.employment_overview;
-    }
-  } catch (error) {
-    console.error('获取统计概览失败:', error);
-    ElMessage.error('获取统计概览失败');
-  }
-};
-
-// 加载所有数据
-const loadAllData = async () => {
-  await Promise.all([
-    fetchEmploymentTrend(),
-    fetchSalaryTrend(),
-    fetchPopularRanking()
-  ]);
-};
-
-// 选择行业
-const selectIndustry = async (industryId: number | null) => {
-  selectedIndustry.value = industryId;
-  await loadAllData();
-};
-
-// 页面初始化
-onMounted(async () => {
-  await fetchIndustries();
-  await fetchStatisticsOverview();
-  await loadAllData();
-});
-
-// 获取进度条颜色
-const getProgressBarColor = (rate: number) => {
-  if (rate < 50) return 'bg-red-500';
-  if (rate < 80) return 'bg-yellow-500';
-  return 'bg-green-500';
-};
-
-// 获取进度条文字颜色
-const getProgressTextColor = (rate: number) => {
-  if (rate < 50) return 'text-red-500';
-  if (rate < 80) return 'text-yellow-500';
-  return 'text-green-500';
-};
-</script>
 
 <style scoped>
 /* 使用 Tailwind CSS 和 DaisyUI，无需额外样式 */
